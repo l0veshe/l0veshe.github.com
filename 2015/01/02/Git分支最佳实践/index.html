@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.2" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="本文介绍我一年前在自己的项目（包括工作项目和私人项目）中引入的git分支模式，这个模式很成功。">
+<meta name="keywords" content="devlop,git">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git分支最佳实践(Reproduce)">
+<meta property="og:url" content="http://yoursite.com/2015/01/02/Git分支最佳实践/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="本文介绍我一年前在自己的项目（包括工作项目和私人项目）中引入的git分支模式，这个模式很成功。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://yoursite.com/img/git1.png">
+<meta property="og:image" content="http://yoursite.com/img/git2.png">
+<meta property="og:updated_time" content="2018-10-20T14:41:17.070Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Git分支最佳实践(Reproduce)">
+<meta name="twitter:description" content="本文介绍我一年前在自己的项目（包括工作项目和私人项目）中引入的git分支模式，这个模式很成功。">
+<meta name="twitter:image" content="http://yoursite.com/img/git1.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/01/02/Git分支最佳实践/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Git分支最佳实践(Reproduce) | 止乎于静</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">止乎于静</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>Categories</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/01/02/Git分支最佳实践/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Git分支最佳实践(Reproduce)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2015-01-02 09:06:32" itemprop="dateCreated datePublished" datetime="2015-01-02T09:06:32+08:00">2015-01-02</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2018-10-20 22:41:17" itemprop="dateModified" datetime="2018-10-20T22:41:17+08:00">2018-10-20</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/开发/" itemprop="url" rel="index"><span itemprop="name">开发</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文介绍我一年前在自己的项目（包括工作项目和私人项目）中引入的git分支模式，这个模式很成功。</p>
+<a id="more"></a>
+<p><img src="/img/git1.png" alt="git分支最佳实践"></p>
+<h2 id="主要分支"><a href="#主要分支" class="headerlink" title="主要分支"></a>主要分支</h2><p><strong>中央仓库中有两个长期的分支：</strong></p>
+<ul>
+<li><p>master</p>
+</li>
+<li><p>develop</p>
+</li>
+</ul>
+<p>master用作生产分支，里面的代码是准备部署到生产环境的。</p>
+<p>develop是可交付的开发代码，也可以看成是用于集成分支，每晚构建从develop获取代码。</p>
+<p>当develop分支中的代码足够稳定的时候，就将改动合并到master分支，同时打上一个标签，标签的名称为发布的版本号。</p>
+<h2 id="辅助分支"><a href="#辅助分支" class="headerlink" title="辅助分支"></a>辅助分支</h2><p>通过辅助分支来帮助并行开发，和主要分支不同，这些分支的生命周期是有限的：</p>
+<ul>
+<li><p>特性分支</p>
+</li>
+<li><p>发布分支</p>
+</li>
+<li><p>紧急修复分支</p>
+</li>
+</ul>
+<h2 id="特性分支"><a href="#特性分支" class="headerlink" title="特性分支"></a>特性分支</h2><p>特性分支可能从develop分支分出，最终必须合并回develop。</p>
+<p>特性分支（也叫主题分支）用于开发新特性。每个新特性开一个新分支，最终会合并回develop（当特性开发完毕的时候），或者放弃（如果最终决定不开发这个特性）。</p>
+<p>特性分支只存在于开发者的仓库中。</p>
+<h2 id="创建一个特性分支"><a href="#创建一个特性分支" class="headerlink" title="创建一个特性分支"></a>创建一个特性分支</h2><p><strong>从develop分支分出：</strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout -b myfeature develop</span><br></pre></td></tr></table></figure></p>
+<p><strong>合并回develop</strong></p>
+<h2 id="完成的特性需要合并回develop："><a href="#完成的特性需要合并回develop：" class="headerlink" title="完成的特性需要合并回develop："></a>完成的特性需要合并回develop：</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout develop$ git merge --no-ff myfeature$ git branch -d myfeature$ git push origin develop</span><br></pre></td></tr></table></figure>
+<p>使用—no-ff确保总是新生成一个提交，避免丢失曾经存在一个特性分支的历史信息，也能够方便地看出哪些提交属于同一个特性。比较：</p>
+<p><img src="/img/git2.png" alt="merge --no-ff"></p>
+<h2 id="发布分支"><a href="#发布分支" class="headerlink" title="发布分支"></a>发布分支</h2><p>发布分支可能从develop分出，最终必须合并回1develop和master。发布分支以release-*的方式命名。</p>
+<p>发布分支为新的发布版本作准备，包括一些小bug的修正和发布的元信息（版本号、发布日期等）的添加。这样develop分支就可以接受针对以后的发布的新特性。</p>
+<p>在代码基本可以发布的时候从develop分支分出发布分支。这时要确保此次发布包括的特性都已经合并到develop分支了（同时，为下一版发布准备的特性不能合并到develop分支，必须等待发布分支分出后才能合并）。</p>
+<h2 id="创建发布分支"><a href="#创建发布分支" class="headerlink" title="创建发布分支"></a>创建发布分支</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout -b release-1.2 develop$ ./bump-version.sh 1.2$ git commit -a -m <span class="string">"Bumped version number to 1.2"</span></span><br></pre></td></tr></table></figure>
+<p>bump-version.sh是一个脚本，修改相应文件的信息，以体现版本号已经改变了。</p>
+<h2 id="完成发布分支"><a href="#完成发布分支" class="headerlink" title="完成发布分支"></a>完成发布分支</h2><p>当发布分支中的代码可以发布的时候，将代码合并到master分支，并打上相应的标签。同时还需要合并到develop分支，因为发布分支里可能包含一些修正bug的代码，合并回去可以确保以后的版本也包含这些修正。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout master$ git merge --no-ff release-1.2$ git tag -a 1.2$ git checkout develop$ git merge --no-ff release-1.2</span><br></pre></td></tr></table></figure></p>
+<p>注意，合并回develop分支很可能导致合并冲突，我们需要手工修复一下，然后提交。之后可以删除发布分支：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git branch -d release-1.2</span><br></pre></td></tr></table></figure></p>
+<h2 id="紧急修复分支"><a href="#紧急修复分支" class="headerlink" title="紧急修复分支"></a>紧急修复分支</h2><p>可能从master分出，必须合并回develop和master。分支名以hotfix-*开头。</p>
+<p>紧急修复分支和发布分支很像，只不过它们是意料之外的。如果生产系统里有一个紧急的bug，必须马上修复的话，我们就从master里分出一个紧急修复分支。</p>
+<p>这样，某个人修复紧急bug的同时，团队其他成员可以继续在develop分支上开发。</p>
+<h2 id="创建紧急修复分支"><a href="#创建紧急修复分支" class="headerlink" title="创建紧急修复分支"></a>创建紧急修复分支</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout -b hotfix-1.2.1 master$ ./bump-version.sh 1.2.1$ git commit -a -m <span class="string">"Bumped version number to 1.2.1"</span></span><br></pre></td></tr></table></figure>
+<h2 id="修复bug并提交"><a href="#修复bug并提交" class="headerlink" title="修复bug并提交"></a>修复bug并提交</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git commit -m <span class="string">"Fixed severe production problem"</span></span><br></pre></td></tr></table></figure>
+<h2 id="完成紧急修复分支"><a href="#完成紧急修复分支" class="headerlink" title="完成紧急修复分支"></a>完成紧急修复分支</h2><p>修复bug之后，需要合并回master，同时也需要合并回develop。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout master$ git merge --no-ff hotfix-1.2.1$ git tag -a 1.2.1$ git checkout develop$ git merge --no-ff hotfix-1.2.1</span><br></pre></td></tr></table></figure></p>
+<p>以上情况假定不存在发布分支。假设存在发布分支的话，代码不应该合并回develop，而应该合并回发布分支，确保正在准备的发布分支也能收到这个补丁（由于发布分支最终会合并到develop，因此这时不用再另外合并到develop）。</p>
+<p>最后，删除这个紧急修复分支：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git branch -d hotfix-1.2.1</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/devlop/" rel="tag"># devlop</a>
+          
+            <a href="/tags/git/" rel="tag"># git</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/12/09/高性能Mysql-创建高性能的索引/" rel="next" title="高性能Mysql-创建高性能的索引">
+                <i class="fa fa-chevron-left"></i> 高性能Mysql-创建高性能的索引
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/01/02/CDN-选型与评估/" rel="prev" title="CDN 选型与评估">
+                CDN 选型与评估 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">43</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">19</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">62</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#主要分支"><span class="nav-number">1.</span> <span class="nav-text">主要分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#辅助分支"><span class="nav-number">2.</span> <span class="nav-text">辅助分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特性分支"><span class="nav-number">3.</span> <span class="nav-text">特性分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建一个特性分支"><span class="nav-number">4.</span> <span class="nav-text">创建一个特性分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完成的特性需要合并回develop："><span class="nav-number">5.</span> <span class="nav-text">完成的特性需要合并回develop：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发布分支"><span class="nav-number">6.</span> <span class="nav-text">发布分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建发布分支"><span class="nav-number">7.</span> <span class="nav-text">创建发布分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完成发布分支"><span class="nav-number">8.</span> <span class="nav-text">完成发布分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#紧急修复分支"><span class="nav-number">9.</span> <span class="nav-text">紧急修复分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建紧急修复分支"><span class="nav-number">10.</span> <span class="nav-text">创建紧急修复分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修复bug并提交"><span class="nav-number">11.</span> <span class="nav-text">修复bug并提交</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完成紧急修复分支"><span class="nav-number">12.</span> <span class="nav-text">完成紧急修复分支</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Muse</a> v6.4.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

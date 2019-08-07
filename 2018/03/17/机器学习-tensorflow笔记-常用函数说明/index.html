@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.2" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="一、矩阵操作1. 矩阵生成如何生成矩阵 全 0 矩阵 全 1 矩阵 随机数矩阵 常熟矩阵   tf.ones | tf.zerostf.ones(shape, type=tf.float32, name=None)tf.zeros([2,3], int32)用法类似, 都是产生尺寸为shape的张量(tensor)123456789sess = tf.InteractiveSession()x1">
+<meta name="keywords" content="机器学习,tensorflow,常用函数,变量作用域">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习-tensorflow笔记-常用函数-变量作用域">
+<meta property="og:url" content="http://yoursite.com/2018/03/17/机器学习-tensorflow笔记-常用函数说明/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="一、矩阵操作1. 矩阵生成如何生成矩阵 全 0 矩阵 全 1 矩阵 随机数矩阵 常熟矩阵   tf.ones | tf.zerostf.ones(shape, type=tf.float32, name=None)tf.zeros([2,3], int32)用法类似, 都是产生尺寸为shape的张量(tensor)123456789sess = tf.InteractiveSession()x1">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-10-20T14:41:17.075Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="机器学习-tensorflow笔记-常用函数-变量作用域">
+<meta name="twitter:description" content="一、矩阵操作1. 矩阵生成如何生成矩阵 全 0 矩阵 全 1 矩阵 随机数矩阵 常熟矩阵   tf.ones | tf.zerostf.ones(shape, type=tf.float32, name=None)tf.zeros([2,3], int32)用法类似, 都是产生尺寸为shape的张量(tensor)123456789sess = tf.InteractiveSession()x1">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/17/机器学习-tensorflow笔记-常用函数说明/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>机器学习-tensorflow笔记-常用函数-变量作用域 | 止乎于静</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">止乎于静</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>Categories</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/17/机器学习-tensorflow笔记-常用函数说明/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">机器学习-tensorflow笔记-常用函数-变量作用域
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2018-03-17 19:18:50" itemprop="dateCreated datePublished" datetime="2018-03-17T19:18:50+08:00">2018-03-17</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2018-10-20 22:41:17" itemprop="dateModified" datetime="2018-10-20T22:41:17+08:00">2018-10-20</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="一、矩阵操作"><a href="#一、矩阵操作" class="headerlink" title="一、矩阵操作"></a>一、矩阵操作</h1><h2 id="1-矩阵生成"><a href="#1-矩阵生成" class="headerlink" title="1. 矩阵生成"></a>1. 矩阵生成</h2><p>如何生成矩阵</p>
+<pre><code>全 0 矩阵
+全 1 矩阵
+随机数矩阵
+常熟矩阵
+</code></pre><p><br></p>
+<hr>
+<h3 id="tf-ones-tf-zeros"><a href="#tf-ones-tf-zeros" class="headerlink" title="tf.ones | tf.zeros"></a>tf.ones | tf.zeros</h3><h4 id="tf-ones-shape-type-tf-float32-name-None"><a href="#tf-ones-shape-type-tf-float32-name-None" class="headerlink" title="tf.ones(shape, type=tf.float32, name=None)"></a><b>tf.ones(shape, type=tf.float32, name=None)</b><br></h4><h4 id="tf-zeros-2-3-int32"><a href="#tf-zeros-2-3-int32" class="headerlink" title="tf.zeros([2,3], int32)"></a><b>tf.zeros([2,3], int32)</b><br></h4><p>用法类似, 都是产生尺寸为shape的张量(tensor)<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sess = tf.InteractiveSession()</span><br><span class="line">x1 = tf.ones([<span class="number">2</span>,<span class="number">3</span>], tf.int32)</span><br><span class="line">x2 = tf.zeros([<span class="number">2</span>,<span class="number">3</span>], tf.float32)</span><br><span class="line">print(sess.run(x1))</span><br><span class="line"><span class="comment">#[[1 1 1]</span></span><br><span class="line"><span class="comment"># [1 1 1]]</span></span><br><span class="line">print(sess.run(x2))</span><br><span class="line"><span class="comment">#[[0. 0. 0.]</span></span><br><span class="line"><span class="comment"># [0. 0. 0.]]</span></span><br></pre></td></tr></table></figure></p>
+<p><br></p>
+<hr>
+<h3 id="tf-ones-like-tf-zeros-like"><a href="#tf-ones-like-tf-zeros-like" class="headerlink" title="tf.ones_like | tf.zeros_like"></a>tf.ones_like | tf.zeros_like</h3><h4 id="tf-ones-like-tensor-type-None-name-None"><a href="#tf-ones-like-tensor-type-None-name-None" class="headerlink" title="tf.ones_like(tensor, type=None, name=None)"></a><b>tf.ones_like(tensor, type=None, name=None)<br></b></h4><h4 id="tf-zeros-like-tensor-type-None-name-None"><a href="#tf-zeros-like-tensor-type-None-name-None" class="headerlink" title="tf.zeros_like(tensor, type=None, name=None)"></a><b>tf.zeros_like(tensor, type=None, name=None)<br></b></h4><p>新建一个与给定的tensor类型大小一致的tensor，其所有元素为1和0</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">tensor=[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]] </span><br><span class="line">x1 = tf.ones_like(tensor) </span><br><span class="line">x2 = tf.zeros_like(tensor)</span><br><span class="line">print(sess.run(x1))</span><br><span class="line"><span class="comment">#[[1 1 1]</span></span><br><span class="line"><span class="comment"># [1 1 1]]</span></span><br><span class="line">print(sess.run(x2))</span><br><span class="line"><span class="comment">#[[0 0 0]</span></span><br><span class="line"><span class="comment"># [0 0 0]]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-fill"><a href="#tf-fill" class="headerlink" title="tf.fill"></a>tf.fill</h3><h4 id="tf-fill-shape-value-name-None"><a href="#tf-fill-shape-value-name-None" class="headerlink" title="tf.fill(shape, value, name=None)"></a><b>tf.fill(shape, value, name=None)<br></b></h4><p>创建一个形状大小为shape的tensor,其初始值为value</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">print(sess.run(tf.fill([<span class="number">2</span>,<span class="number">3</span>],<span class="number">2</span>)))</span><br><span class="line"><span class="comment">#[[2 2 2]</span></span><br><span class="line"><span class="comment"># [2 2 2]]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-constant"><a href="#tf-constant" class="headerlink" title="tf.constant"></a>tf.constant</h3><h4 id="tf-constant-value-dtype-None-shape-None-name-’Const’"><a href="#tf-constant-value-dtype-None-shape-None-name-’Const’" class="headerlink" title="tf.constant(value, dtype=None, shape=None, name=’Const’)"></a><br>tf.constant(value, dtype=None, shape=None, name=’Const’)<br></h4><p>创建一个常量tensor，按照给出value来赋值，可以用shape来指定其形状。value可以是一个数，也可以是一个list。<br>如果是一个数，那么这个常亮中所有值的按该数来赋值。<br>如果是list,那么len(value)一定要小于等于shape展开后的长度。赋值时，先将value中的值逐个存入。不够的部分，则全部存入value的最后一个值。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">a = tf.constant(<span class="number">2</span>,shape=[<span class="number">2</span>])</span><br><span class="line">b = tf.constant(<span class="number">2</span>,shape=[<span class="number">2</span>,<span class="number">2</span>])</span><br><span class="line">c = tf.constant([<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>],shape=[<span class="number">6</span>])</span><br><span class="line">d = tf.constant([<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>],shape=[<span class="number">3</span>,<span class="number">2</span>])</span><br><span class="line"></span><br><span class="line">sess = tf.InteractiveSession()</span><br><span class="line">print(sess.run(a))</span><br><span class="line"><span class="comment">#[2 2]</span></span><br><span class="line">print(sess.run(b))</span><br><span class="line"><span class="comment">#[[2 2]</span></span><br><span class="line"><span class="comment"># [2 2]]</span></span><br><span class="line">print(sess.run(c))</span><br><span class="line"><span class="comment">#[1 2 3 3 3 3]</span></span><br><span class="line">print(sess.run(d))</span><br><span class="line"><span class="comment">#[[1 2]</span></span><br><span class="line"><span class="comment"># [3 3]</span></span><br><span class="line"><span class="comment"># [3 3]]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tr-random-normal-tr-truncated-normal-tr-random-uniform"><a href="#tr-random-normal-tr-truncated-normal-tr-random-uniform" class="headerlink" title="tr.random_normal | tr.truncated_normal | tr.random_uniform"></a>tr.random_normal | tr.truncated_normal | tr.random_uniform</h3><h4 id="tf-random-normal-shape-mean-0-0-stddev-1-0-dtype-tf-float32-seed-None-name-None"><a href="#tf-random-normal-shape-mean-0-0-stddev-1-0-dtype-tf-float32-seed-None-name-None" class="headerlink" title="tf.random_normal(shape,mean=0.0,stddev=1.0,dtype=tf.float32,seed=None, name=None)"></a><b>tf.random_normal(shape,mean=0.0,stddev=1.0,dtype=tf.float32,seed=None, name=None)<br></b></h4><h4 id="tf-truncated-normal-shape-mean-0-0-stddev-10-0-dtype-tf-float32-seed-None-name-None"><a href="#tf-truncated-normal-shape-mean-0-0-stddev-10-0-dtype-tf-float32-seed-None-name-None" class="headerlink" title="tf.truncated_normal(shape,mean=0.0,stddev=10.0,dtype=tf.float32,seed=None,name=None)"></a><b>tf.truncated_normal(shape,mean=0.0,stddev=10.0,dtype=tf.float32,seed=None,name=None)<br></b></h4><h4 id="tf-random-uniform-shape-minval-0-maxval-None-dtype-tf-float32-seed-None-name-None"><a href="#tf-random-uniform-shape-minval-0-maxval-None-dtype-tf-float32-seed-None-name-None" class="headerlink" title="tf.random_uniform(shape,minval=0,maxval=None,dtype=tf.float32,seed=None,name=None)"></a><b>tf.random_uniform(shape,minval=0,maxval=None,dtype=tf.float32,seed=None,name=None)<br></b></h4><p><a href="https://www.cnblogs.com/baiboy/p/tjx7.html" target="_blank" rel="noopener">知识超链接: 正态分布的运用</a></p>
+<p>这几个都是用于生成随机数tensor的。尺寸是shape<br>random_normal: 正态分布随机数，均值mean，标准差stddev<br>truncated_normal: 截断正态分布随机数，均值mean，标准差stddev，不过只保留[mean-2<em>stddev,mean+2</em>stddev]范围内的随机数<br>random_uniform: 均匀分布随机数，范围为[minval,maxval]   </p>
+<pre><code>mean: 正态分布的均值，默认为0
+stddev: 正态分布的标准差，默认为1.0
+</code></pre><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sess = tf.InteractiveSession()</span><br><span class="line">x1 = tf.random_normal(shape=[<span class="number">1</span>,<span class="number">5</span>],mean=<span class="number">0.0</span>,stddev=<span class="number">1.0</span>,dtype=tf.float32,seed=<span class="keyword">None</span>,name=<span class="keyword">None</span>)</span><br><span class="line">x2 = tf.truncated_normal(shape=[<span class="number">1</span>,<span class="number">5</span>],mean=<span class="number">0.0</span>,stddev=<span class="number">1.0</span>,dtype=tf.float32,seed=<span class="keyword">None</span>,name=<span class="keyword">None</span>)</span><br><span class="line">x3 = tf.random_uniform(shape=[<span class="number">1</span>,<span class="number">5</span>])</span><br><span class="line">print(sess.run(x1)) </span><br><span class="line"><span class="comment">#[[ 1.7445475  -0.49313113  0.26903954 -0.21690038  0.1437116 ]]</span></span><br><span class="line">print(sess.run(x2)) </span><br><span class="line"><span class="comment">#[[-0.35470265 -0.61908704  0.66833335 -0.41895854  1.2754084 ]]</span></span><br><span class="line">print(sess.run(x3)) </span><br><span class="line"><span class="comment">#[[0.10420477 0.50558376 0.42275226 0.45313942 0.22565234]]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-get-variable-tf-variable-scope"><a href="#tf-get-variable-tf-variable-scope" class="headerlink" title="tf.get_variable | tf.variable_scope()"></a>tf.get_variable | tf.variable_scope()</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">get_variable(name, shape=<span class="keyword">None</span>, dtype=dtypes.float32, initializer=<span class="keyword">None</span>,</span><br><span class="line">                 regularizer=<span class="keyword">None</span>, trainable=<span class="keyword">True</span>, collections=<span class="keyword">None</span>,</span><br><span class="line">                 caching_device=<span class="keyword">None</span>, partitioner=<span class="keyword">None</span>, validate_shape=<span class="keyword">True</span>,</span><br><span class="line">                 custom_getter=<span class="keyword">None</span>):</span><br></pre></td></tr></table></figure>
+<p>如果在该命名域中之前已经有名字=name的变量，则调用那个变量；如果没有，则根据输入的参数重新创建一个名字为name的变量。在众多的输入参数中，有几个是我已经比较了解的，下面来一一讲一下</p>
+<pre><code>name: 这个不用说了，变量的名字 
+shape: 变量的形状，[]表示一个数，[3]表示长为3的向量，[2,3]表示矩阵或者张量(tensor)
+dtype: 变量的数据格式，主要有tf.int32, tf.float32, tf.float64等等 
+initializer: 初始化工具，有tf.zero_initializer, tf.ones_initializer, tf.constant_initializer, tf.random_uniform_initializer, tf.random_normal_initializer, tf.truncated_normal_initializer等
+</code></pre><p><br></p>
+<hr>
+<h2 id="2-矩阵变换"><a href="#2-矩阵变换" class="headerlink" title="2. 矩阵变换"></a>2. 矩阵变换</h2><h3 id="tf-shape-Tensor"><a href="#tf-shape-Tensor" class="headerlink" title="tf.shape(Tensor)"></a>tf.shape(Tensor)</h3><p>Returns the shape of a tensor.返回张量的形状。但是注意，tf.shape函数本身也是返回一个张量。而在tf中，张量是需要用sess.run(Tensor)来得到具体的值的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">labels = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">shape = tf.shape(labels)</span><br><span class="line">print(shape)</span><br><span class="line">sess = tf.InteractiveSession()</span><br><span class="line">print(sess.run(shape))</span><br><span class="line"><span class="comment">#Tensor("Shape:0", shape=(1,), dtype=int32)</span></span><br><span class="line"><span class="comment">#[3]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-expand-dims"><a href="#tf-expand-dims" class="headerlink" title="tf.expand_dims"></a>tf.expand_dims</h3><h4 id="tf-expand-dims-Tensor-dim"><a href="#tf-expand-dims-Tensor-dim" class="headerlink" title="tf.expand_dims(Tensor, dim) "></a><b>tf.expand_dims(Tensor, dim) <br></b></h4><p>为张量+1维。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sess = tf.InteractiveSession()</span><br><span class="line">labels = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">x = tf.expand_dims(labels, <span class="number">0</span>)</span><br><span class="line">print(sess.run(x))</span><br><span class="line"><span class="comment">#[[1 2 3]]</span></span><br><span class="line">x = tf.expand_dims(labels, <span class="number">1</span>)</span><br><span class="line">print(sess.run(x))</span><br><span class="line"><span class="comment">#[[1]</span></span><br><span class="line"><span class="comment">#    [2]</span></span><br><span class="line"><span class="comment">#    [3]]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-pack"><a href="#tf-pack" class="headerlink" title="tf.pack"></a>tf.pack</h3><h4 id="tf-pack-values-axis-0-name-”pack”"><a href="#tf-pack-values-axis-0-name-”pack”" class="headerlink" title="tf.pack(values, axis=0, name=”pack”)  "></a><b>tf.pack(values, axis=0, name=”pack”)  <br></b></h4><p>Packs a list of rank-R tensors into one rank-(R+1) tensor<br>将一个R维张量列表沿着axis轴组合成一个R+1维的张量。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 'x' is [1, 4]</span></span><br><span class="line"><span class="comment"># 'y' is [2, 5]</span></span><br><span class="line"><span class="comment"># 'z' is [3, 6]</span></span><br><span class="line">pack([x, y, z]) =&gt; [[1, 4], [2, 5], [3, 6]]  # Pack along first dim.</span><br><span class="line">pack([x, y, z], axis=1) =&gt; [[1, 2, 3], [4, 5, 6]]</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-concat"><a href="#tf-concat" class="headerlink" title="tf.concat"></a>tf.concat</h3><h4 id="tf-concat-concat-dim-values-name-”concat”"><a href="#tf-concat-concat-dim-values-name-”concat”" class="headerlink" title="tf.concat(concat_dim, values, name=”concat”) "></a><b>tf.concat(concat_dim, values, name=”concat”) <br></b></h4><p>将张量沿着指定维数拼接起来。个人感觉跟前面的pack用法类似</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">t1 = [[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]]</span><br><span class="line">t2 = [[<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>], [<span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>]]</span><br><span class="line">tf.concat(<span class="number">0</span>, [t1, t2]) </span><br><span class="line"><span class="comment">#==&gt; [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]</span></span><br><span class="line">tf.concat(<span class="number">1</span>, [t1, t2]) </span><br><span class="line"><span class="comment">#==&gt; [[1, 2, 3, 7, 8, 9], [4, 5, 6, 10, 11, 12]]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-sparse-to-dense"><a href="#tf-sparse-to-dense" class="headerlink" title="tf.sparse_to_dense"></a>tf.sparse_to_dense</h3><p>稀疏矩阵转密集矩阵 </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sparse_to_dense</span><span class="params">(sparse_indices,</span></span></span><br><span class="line"><span class="function"><span class="params">                    output_shape,</span></span></span><br><span class="line"><span class="function"><span class="params">                    sparse_values,</span></span></span><br><span class="line"><span class="function"><span class="params">                    default_value=<span class="number">0</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">                    validate_indices=True,</span></span></span><br><span class="line"><span class="function"><span class="params">                    name=None)</span>:</span></span><br></pre></td></tr></table></figure>
+<p>几个参数的含义：<br>sparse_indices: 元素的坐标[[0,0],[1,2]] 表示(0,0)，和(1,2)处有值<br>output_shape: 得到的密集矩阵的shape<br>sparse_values: sparse_indices坐标表示的点的值，可以是0D或者1D张量。若0D，则所有稀疏值都一样。若是1D，则len(sparse_values)应该等于len(sparse_indices)<br>default_values: 缺省点的默认值</p>
+<p><br></p>
+<hr>
+<h3 id="tf-random-shuffle"><a href="#tf-random-shuffle" class="headerlink" title="tf.random_shuffle"></a>tf.random_shuffle</h3><h4 id="tf-random-shuffle-value-seed-None-name-None"><a href="#tf-random-shuffle-value-seed-None-name-None" class="headerlink" title="tf.random_shuffle(value,seed=None,name=None)  "></a><b>tf.random_shuffle(value,seed=None,name=None)  <br></b></h4><p>沿着value的第一维进行随机重新排列</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sess = tf.InteractiveSession()</span><br><span class="line">a=[[<span class="number">1</span>,<span class="number">2</span>],[<span class="number">3</span>,<span class="number">4</span>],[<span class="number">5</span>,<span class="number">6</span>]]</span><br><span class="line">x = tf.random_shuffle(a)</span><br><span class="line">print(sess.run(x))</span><br><span class="line"><span class="comment">#===&gt;[[3 4],[5 6],[1 2]]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-argmax-tf-argmin"><a href="#tf-argmax-tf-argmin" class="headerlink" title="tf.argmax | tf.argmin"></a>tf.argmax | tf.argmin</h3><h4 id="tf-argmax-input-tensor-dimention-axis"><a href="#tf-argmax-input-tensor-dimention-axis" class="headerlink" title="tf.argmax(input=tensor,dimention=axis) "></a><b>tf.argmax(input=tensor,dimention=axis) <br></b></h4><p>找到给定的张量tensor中在指定轴axis上的最大值/最小值的位置。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">a=tf.get_variable(name=<span class="string">'a'</span>,</span><br><span class="line">                  shape=[<span class="number">3</span>,<span class="number">4</span>],</span><br><span class="line">                  dtype=tf.float32,</span><br><span class="line">                  initializer=tf.random_uniform_initializer(minval=<span class="number">-1</span>,maxval=<span class="number">1</span>))</span><br><span class="line">b=tf.argmax(input=a,dimension=<span class="number">0</span>)</span><br><span class="line">c=tf.argmax(input=a,dimension=<span class="number">1</span>)</span><br><span class="line">sess = tf.InteractiveSession()</span><br><span class="line">sess.run(tf.initialize_all_variables())</span><br><span class="line">print(sess.run(a))</span><br><span class="line"><span class="comment">#[[ 0.04261756 -0.34297419 -0.87816691 -0.15430689]</span></span><br><span class="line"><span class="comment"># [ 0.18663144  0.86972666 -0.06103253  0.38307118]</span></span><br><span class="line"><span class="comment"># [ 0.84588599 -0.45432305 -0.39736366  0.38526249]]</span></span><br><span class="line">print(sess.run(b))</span><br><span class="line"><span class="comment">#[2 1 1 2]</span></span><br><span class="line">print(sess.run(c))</span><br><span class="line"><span class="comment">#[0 1 0]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-cast"><a href="#tf-cast" class="headerlink" title="tf.cast"></a>tf.cast</h3><h4 id="cast-x-dtype-name-None"><a href="#cast-x-dtype-name-None" class="headerlink" title="cast(x, dtype, name=None) "></a><b>cast(x, dtype, name=None) <br></b></h4><p>将x的数据格式转化成dtype.例如，原来x的数据格式是bool，那么将其转化成float以后，就能够将其转化成0和1的序列。反之也可以</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">a = tf.Variable([<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">1</span>])</span><br><span class="line">b = tf.cast(a,dtype=tf.bool)</span><br><span class="line">sess = tf.InteractiveSession()</span><br><span class="line">sess.run(tf.initialize_all_variables())</span><br><span class="line">print(sess.run(b))</span><br><span class="line"><span class="comment">#[ True False False  True  True]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<h3 id="tf-matmul"><a href="#tf-matmul" class="headerlink" title="tf.matmul"></a>tf.matmul</h3><p>用来做矩阵乘法。若a为l<em>m的矩阵，b为m</em>n的矩阵，那么通过tf.matmul(a,b) 结果就会得到一个l*n的矩阵<br>不过这个函数还提供了很多额外的功能。我们来看下函数的定义：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">matmul(a, b,</span><br><span class="line">           transpose_a=<span class="keyword">False</span>, transpose_b=<span class="keyword">False</span>,</span><br><span class="line">           a_is_sparse=<span class="keyword">False</span>, b_is_sparse=<span class="keyword">False</span>,</span><br><span class="line">           name=<span class="keyword">None</span>):</span><br></pre></td></tr></table></figure>
+<p>可以看到还提供了transpose和is_sparse的选项。<br>如果对应的transpose项为True，例如transpose_a=True,那么a在参与运算之前就会先转置一下。<br>而如果a_is_sparse=True,那么a会被当做稀疏矩阵来参与运算。</p>
+<p><br></p>
+<hr>
+<h3 id="tf-reshape"><a href="#tf-reshape" class="headerlink" title="tf.reshape"></a>tf.reshape</h3><h4 id="reshape-tensor-shape-name-None"><a href="#reshape-tensor-shape-name-None" class="headerlink" title="reshape(tensor, shape, name=None) "></a><b>reshape(tensor, shape, name=None) <br></b></h4><p>顾名思义，就是将tensor按照新的shape重新排列。一般来说，shape有三种用法：<br>如果 shape=[-1], 表示要将tensor展开成一个list<br>如果 shape=[a,b,c,…] 其中每个a,b,c,..均&gt;0，那么就是常规用法<br>如果 shape=[a,-1,c,…] 此时b=-1，a,c,..依然&gt;0。这表示tf会根据tensor的原尺寸，自动计算b的值。<br>官方给的例子已经很详细了，我就不写示例代码了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tensor 't' is [1, 2, 3, 4, 5, 6, 7, 8, 9]</span></span><br><span class="line"><span class="comment"># tensor 't' has shape [9]</span></span><br><span class="line">reshape(t, [3, 3]) ==&gt; [[1, 2, 3],</span><br><span class="line">                        [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>],</span><br><span class="line">                        [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]</span><br><span class="line"></span><br><span class="line"><span class="comment"># tensor 't' is [[[1, 1], [2, 2]],</span></span><br><span class="line"><span class="comment">#                [[3, 3], [4, 4]]]</span></span><br><span class="line"><span class="comment"># tensor 't' has shape [2, 2, 2]</span></span><br><span class="line">reshape(t, [2, 4]) ==&gt; [[1, 1, 2, 2],</span><br><span class="line">                        [<span class="number">3</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">4</span>]]</span><br><span class="line"></span><br><span class="line"><span class="comment"># tensor 't' is [[[1, 1, 1],</span></span><br><span class="line"><span class="comment">#                 [2, 2, 2]],</span></span><br><span class="line"><span class="comment">#                [[3, 3, 3],</span></span><br><span class="line"><span class="comment">#                 [4, 4, 4]],</span></span><br><span class="line"><span class="comment">#                [[5, 5, 5],</span></span><br><span class="line"><span class="comment">#                 [6, 6, 6]]]</span></span><br><span class="line"><span class="comment"># tensor 't' has shape [3, 2, 3]</span></span><br><span class="line"><span class="comment"># pass '[-1]' to flatten 't'</span></span><br><span class="line">reshape(t, [-1]) ==&gt; [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]</span><br><span class="line"></span><br><span class="line"><span class="comment"># -1 can also be used to infer the shape</span></span><br><span class="line"><span class="comment"># -1 is inferred to be 9:</span></span><br><span class="line">reshape(t, [2, -1]) ==&gt; [[1, 1, 1, 2, 2, 2, 3, 3, 3],</span><br><span class="line">                         [<span class="number">4</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">5</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">6</span>, <span class="number">6</span>]]</span><br><span class="line"></span><br><span class="line"><span class="comment"># -1 is inferred to be 2:</span></span><br><span class="line">reshape(t, [-1, 9]) ==&gt; [[1, 1, 1, 2, 2, 2, 3, 3, 3],</span><br><span class="line">                         [<span class="number">4</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">5</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">6</span>, <span class="number">6</span>]]</span><br><span class="line"></span><br><span class="line"><span class="comment"># -1 is inferred to be 3:</span></span><br><span class="line">reshape(t, [ 2, -1, 3]) ==&gt; [[[1, 1, 1],</span><br><span class="line">                              [<span class="number">2</span>, <span class="number">2</span>, <span class="number">2</span>],</span><br><span class="line">                              [<span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>]],</span><br><span class="line">                             [[<span class="number">4</span>, <span class="number">4</span>, <span class="number">4</span>],</span><br><span class="line">                              [<span class="number">5</span>, <span class="number">5</span>, <span class="number">5</span>],</span><br><span class="line">                              [<span class="number">6</span>, <span class="number">6</span>, <span class="number">6</span>]]]</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/机器学习/" rel="tag"># 机器学习</a>
+          
+            <a href="/tags/tensorflow/" rel="tag"># tensorflow</a>
+          
+            <a href="/tags/常用函数/" rel="tag"># 常用函数</a>
+          
+            <a href="/tags/变量作用域/" rel="tag"># 变量作用域</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/17/机器学习-目标函数-损失函数-目标函数正则项/" rel="next" title="机器学习-目标函数/损失函数/目标函数正则项">
+                <i class="fa fa-chevron-left"></i> 机器学习-目标函数/损失函数/目标函数正则项
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/10/06/章一-数据与R/" rel="prev" title="章一 数据与R">
+                章一 数据与R <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">43</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">19</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">62</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、矩阵操作"><span class="nav-number">1.</span> <span class="nav-text">一、矩阵操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-矩阵生成"><span class="nav-number">1.1.</span> <span class="nav-text">1. 矩阵生成</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-ones-tf-zeros"><span class="nav-number">1.1.1.</span> <span class="nav-text">tf.ones | tf.zeros</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-ones-shape-type-tf-float32-name-None"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">tf.ones(shape, type=tf.float32, name=None)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-zeros-2-3-int32"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">tf.zeros([2,3], int32)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-ones-like-tf-zeros-like"><span class="nav-number">1.1.2.</span> <span class="nav-text">tf.ones_like | tf.zeros_like</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-ones-like-tensor-type-None-name-None"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">tf.ones_like(tensor, type=None, name=None)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-zeros-like-tensor-type-None-name-None"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">tf.zeros_like(tensor, type=None, name=None)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-fill"><span class="nav-number">1.1.3.</span> <span class="nav-text">tf.fill</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-fill-shape-value-name-None"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">tf.fill(shape, value, name=None)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-constant"><span class="nav-number">1.1.4.</span> <span class="nav-text">tf.constant</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-constant-value-dtype-None-shape-None-name-’Const’"><span class="nav-number">1.1.4.1.</span> <span class="nav-text">tf.constant(value, dtype=None, shape=None, name=’Const’)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tr-random-normal-tr-truncated-normal-tr-random-uniform"><span class="nav-number">1.1.5.</span> <span class="nav-text">tr.random_normal | tr.truncated_normal | tr.random_uniform</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-random-normal-shape-mean-0-0-stddev-1-0-dtype-tf-float32-seed-None-name-None"><span class="nav-number">1.1.5.1.</span> <span class="nav-text">tf.random_normal(shape,mean=0.0,stddev=1.0,dtype=tf.float32,seed=None, name=None)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-truncated-normal-shape-mean-0-0-stddev-10-0-dtype-tf-float32-seed-None-name-None"><span class="nav-number">1.1.5.2.</span> <span class="nav-text">tf.truncated_normal(shape,mean=0.0,stddev=10.0,dtype=tf.float32,seed=None,name=None)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-random-uniform-shape-minval-0-maxval-None-dtype-tf-float32-seed-None-name-None"><span class="nav-number">1.1.5.3.</span> <span class="nav-text">tf.random_uniform(shape,minval=0,maxval=None,dtype=tf.float32,seed=None,name=None)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-get-variable-tf-variable-scope"><span class="nav-number">1.1.6.</span> <span class="nav-text">tf.get_variable | tf.variable_scope()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-矩阵变换"><span class="nav-number">1.2.</span> <span class="nav-text">2. 矩阵变换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-shape-Tensor"><span class="nav-number">1.2.1.</span> <span class="nav-text">tf.shape(Tensor)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-expand-dims"><span class="nav-number">1.2.2.</span> <span class="nav-text">tf.expand_dims</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-expand-dims-Tensor-dim"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">tf.expand_dims(Tensor, dim) </span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-pack"><span class="nav-number">1.2.3.</span> <span class="nav-text">tf.pack</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-pack-values-axis-0-name-”pack”"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">tf.pack(values, axis=0, name=”pack”)  </span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-concat"><span class="nav-number">1.2.4.</span> <span class="nav-text">tf.concat</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-concat-concat-dim-values-name-”concat”"><span class="nav-number">1.2.4.1.</span> <span class="nav-text">tf.concat(concat_dim, values, name=”concat”) </span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-sparse-to-dense"><span class="nav-number">1.2.5.</span> <span class="nav-text">tf.sparse_to_dense</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-random-shuffle"><span class="nav-number">1.2.6.</span> <span class="nav-text">tf.random_shuffle</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-random-shuffle-value-seed-None-name-None"><span class="nav-number">1.2.6.1.</span> <span class="nav-text">tf.random_shuffle(value,seed=None,name=None)  </span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-argmax-tf-argmin"><span class="nav-number">1.2.7.</span> <span class="nav-text">tf.argmax | tf.argmin</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tf-argmax-input-tensor-dimention-axis"><span class="nav-number">1.2.7.1.</span> <span class="nav-text">tf.argmax(input=tensor,dimention=axis) </span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-cast"><span class="nav-number">1.2.8.</span> <span class="nav-text">tf.cast</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#cast-x-dtype-name-None"><span class="nav-number">1.2.8.1.</span> <span class="nav-text">cast(x, dtype, name=None) </span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-matmul"><span class="nav-number">1.2.9.</span> <span class="nav-text">tf.matmul</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tf-reshape"><span class="nav-number">1.2.10.</span> <span class="nav-text">tf.reshape</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#reshape-tensor-shape-name-None"><span class="nav-number">1.2.10.1.</span> <span class="nav-text">reshape(tensor, shape, name=None) </span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Muse</a> v6.4.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
