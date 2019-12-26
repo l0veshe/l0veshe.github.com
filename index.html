@@ -293,6 +293,176 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/26/Docker-Compose-and-WordPress/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/12/26/Docker-Compose-and-WordPress/" itemprop="url">
+                  Docker Compose and WordPress
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2019-12-26 13:38:36 / Modified: 13:50:32" itemprop="dateCreated datePublished" datetime="2019-12-26T13:38:36+08:00">2019-12-26</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="Define-the-project"><a href="#Define-the-project" class="headerlink" title="Define the project"></a>Define the project</h2><h3 id="1-Create-an-empty-project-directory"><a href="#1-Create-an-empty-project-directory" class="headerlink" title="1 Create an empty project directory."></a>1 Create an empty project directory.</h3><p>You can name the directory something easy for you to remember. This directory is the context for your application image. The directory should only contain resources to build that image.</p>
+<p>This project directory contains a docker-compose.yml file which is complete in itself for a good starter wordpress project.</p>
+<blockquote>
+<p>Tip: You can use either a .yml or .yaml extension for this file. They both work.</p>
+</blockquote>
+<h3 id="2-Change-into-your-project-directory"><a href="#2-Change-into-your-project-directory" class="headerlink" title="2 Change into your project directory."></a>2 Change into your project directory.</h3><p>For example, if you named your directory my_wordpress:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd my_wordpress/</span><br></pre></td></tr></table></figure>
+<h3 id="3-Create-a-docker-compose-yml-file-that-starts-your-WordPress-blog-and-a-separate-MySQL-instance-with-a-volume-mount-for-data-persistence"><a href="#3-Create-a-docker-compose-yml-file-that-starts-your-WordPress-blog-and-a-separate-MySQL-instance-with-a-volume-mount-for-data-persistence" class="headerlink" title="3. Create a docker-compose.yml file that starts your WordPress blog and a separate MySQL instance with a volume mount for data persistence:"></a>3. Create a docker-compose.yml file that starts your WordPress blog and a separate MySQL instance with a volume mount for data persistence:</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">version: &apos;3.3&apos;</span><br><span class="line"></span><br><span class="line">services:</span><br><span class="line">   db:</span><br><span class="line">     image: mysql:5.7</span><br><span class="line">     volumes:</span><br><span class="line">       - db_data:/var/lib/mysql</span><br><span class="line">     restart: always</span><br><span class="line">     environment:</span><br><span class="line">       MYSQL_ROOT_PASSWORD: somewordpress</span><br><span class="line">       MYSQL_DATABASE: wordpress</span><br><span class="line">       MYSQL_USER: wordpress</span><br><span class="line">       MYSQL_PASSWORD: wordpress</span><br><span class="line"></span><br><span class="line">   wordpress:</span><br><span class="line">     depends_on:</span><br><span class="line">       - db</span><br><span class="line">     image: wordpress:latest</span><br><span class="line">     ports:</span><br><span class="line">       - &quot;8000:80&quot;</span><br><span class="line">     restart: always</span><br><span class="line">     environment:</span><br><span class="line">       WORDPRESS_DB_HOST: db:3306</span><br><span class="line">       WORDPRESS_DB_USER: wordpress</span><br><span class="line">       WORDPRESS_DB_PASSWORD: wordpress</span><br><span class="line">       WORDPRESS_DB_NAME: wordpress</span><br><span class="line">volumes:</span><br><span class="line">    db_data: &#123;&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Notes:</p>
+<ul>
+<li><p>The docker volume db_data persists any updates made by WordPress to the database. Learn more about docker volumes</p>
+</li>
+<li><p>WordPress Multisite works only on ports 80 and 443.</p>
+</li>
+</ul>
+</blockquote>
+<h2 id="Build-the-project"><a href="#Build-the-project" class="headerlink" title="Build the project"></a>Build the project</h2><p>Now, run <code>docker-compose up -d</code> from your project directory.</p>
+<p>This runs <code>docker-compose up</code> in detached mode, pulls the needed Docker images, and starts the wordpress and database containers, as shown in the example below.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose up -d</span><br><span class="line">Creating network &quot;my_wordpress_default&quot; with the default driver</span><br><span class="line">Pulling db (mysql:5.7)...</span><br><span class="line">5.7: Pulling from library/mysql</span><br><span class="line">efd26ecc9548: Pull complete</span><br><span class="line">a3ed95caeb02: Pull complete</span><br><span class="line">...</span><br><span class="line">Digest: sha256:34a0aca88e85f2efa5edff1cea77cf5d3147ad93545dbec99cfe705b03c520de</span><br><span class="line">Status: Downloaded newer image for mysql:5.7</span><br><span class="line">Pulling wordpress (wordpress:latest)...</span><br><span class="line">latest: Pulling from library/wordpress</span><br><span class="line">efd26ecc9548: Already exists</span><br><span class="line">a3ed95caeb02: Pull complete</span><br><span class="line">589a9d9a7c64: Pull complete</span><br><span class="line">...</span><br><span class="line">Digest: sha256:ed28506ae44d5def89075fd5c01456610cd6c64006addfe5210b8c675881aff6</span><br><span class="line">Status: Downloaded newer image for wordpress:latest</span><br><span class="line">Creating my_wordpress_db_1</span><br><span class="line">Creating my_wordpress_wordpress_1</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note: WordPress Multisite works only on ports <code>80</code> and/or <code>443</code>. If you get an error message about binding <code>0.0.0.0</code> to port <code>80</code> or <code>443</code> (depending on which one you specified), it is likely that the port you configured for WordPress is already in use by another service.</p>
+</blockquote>
+<h2 id="Bring-up-WordPress-in-a-web-browser"><a href="#Bring-up-WordPress-in-a-web-browser" class="headerlink" title="Bring up WordPress in a web browser"></a>Bring up WordPress in a web browser</h2><p>At this point, WordPress should be running on port 8000 of your Docker Host, and you can complete the “famous five-minute installation” as a WordPress administrator.</p>
+<blockquote>
+<p>Note: The WordPress site is not immediately available on port <code>8000</code> because the containers are still being initialized and may take a couple of minutes before the first load.</p>
+</blockquote>
+<p>If you are using Docker Machine, you can run the command docker-machine ip MACHINE_VM to get the machine address, and then open <code>http://MACHINE_VM_IP:8000</code> in a web browser.</p>
+<p>If you are using Docker Desktop for Mac or Docker Desktop for Windows, you can use <a href="http://localhost" target="_blank" rel="noopener">http://localhost</a> as the IP address, and open <code>http://localhost:8000</code> in a web browser.</p>
+<h2 id="Shutdown-and-cleanup"><a href="#Shutdown-and-cleanup" class="headerlink" title="Shutdown and cleanup"></a>Shutdown and cleanup</h2><p>The command <code>docker-compose</code> down removes the containers and default network, but preserves your WordPress database.</p>
+<p>The command <code>docker-compose down --volumes</code> removes the containers, default network, and the WordPress database.</p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/24/Docker-私有仓库/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1864,180 +2034,6 @@ Adaboost：指数损失函数 （后面会专门介绍这个算法）
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/04/09/Git客户端保存用户名和密码-hexo-登陆需要密码问题/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2015/04/09/Git客户端保存用户名和密码-hexo-登陆需要密码问题/" itemprop="url">
-                  Git客户端保存用户名和密码 & hexo 登陆需要密码问题
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2015-04-09 15:47:15" itemprop="dateCreated datePublished" datetime="2015-04-09T15:47:15+08:00">2015-04-09</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">Edited on</span>
-                
-                <time title="Modified: 2018-10-20 22:41:17" itemprop="dateModified" datetime="2018-10-20T22:41:17+08:00">2018-10-20</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/git/" itemprop="url" rel="index"><span itemprop="name">git</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>hexo d 时重复输入用户名密码的问题<br>Git 每次进行 Pull 和 Push 操作时都要输入用户名和密码， 非常不便。 虽然有客户端 SmartGit/HG 以及 TortiseGig 可以帮你记一下客户端， 但是每个代码库都要记录一次， 如果项目包含很多个 submodule 的话， 用起来也有些不方便。 经过一番搜索， 最终找到了让 git 客户端记住密码的方法， 现总结如下：<br>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2015/04/09/Git客户端保存用户名和密码-hexo-登陆需要密码问题/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </p></div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2085,7 +2081,7 @@ Adaboost：指数损失函数 （后面会专门介绍这个算法）
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">44</span>
+                    <span class="site-state-item-count">45</span>
                     <span class="site-state-item-name">posts</span>
                   </a>
                 </div>
@@ -2273,7 +2269,9 @@ Adaboost：指数损失函数 （后面会专门介绍这个算法）
                     
                       
                     
-                    <span class="site-state-item-count">62</span>
+                      
+                    
+                    <span class="site-state-item-count">63</span>
                     <span class="site-state-item-name">tags</span>
                   </a>
                 </div>
@@ -2480,9 +2478,9 @@ Adaboost：指数损失函数 （后面会专门介绍这个算法）
       
     
       
-        
-      
     
+      
+        
       
     
       
