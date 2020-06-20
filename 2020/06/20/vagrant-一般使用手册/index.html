@@ -109,13 +109,14 @@
 
 
   <meta name="description" content="零 准备工作 安装vagrant 1 安装virtualbox，准备rpm源12345678910[root@localhost ~]# cat /etc/yum.repos.d/virtual.repo[virtualbox]name=Oracle Linux / RHEL / CentOS-$releasever / $basearch - VirtualBoxbaseurl=http://d">
+<meta name="keywords" content="vagrant,virtualbox">
 <meta property="og:type" content="article">
 <meta property="og:title" content="vagrant 一般使用手册">
 <meta property="og:url" content="http://yoursite.com/2020/06/20/vagrant-一般使用手册/index.html">
 <meta property="og:site_name" content="止乎于静">
 <meta property="og:description" content="零 准备工作 安装vagrant 1 安装virtualbox，准备rpm源12345678910[root@localhost ~]# cat /etc/yum.repos.d/virtual.repo[virtualbox]name=Oracle Linux / RHEL / CentOS-$releasever / $basearch - VirtualBoxbaseurl=http://d">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-06-20T08:49:05.477Z">
+<meta property="og:updated_time" content="2020-06-20T09:03:50.347Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="vagrant 一般使用手册">
 <meta name="twitter:description" content="零 准备工作 安装vagrant 1 安装virtualbox，准备rpm源12345678910[root@localhost ~]# cat /etc/yum.repos.d/virtual.repo[virtualbox]name=Oracle Linux / RHEL / CentOS-$releasever / $basearch - VirtualBoxbaseurl=http://d">
@@ -338,12 +339,34 @@
                 
               
 
-              <time title="Created: 2020-06-20 16:49:05" itemprop="dateCreated datePublished" datetime="2020-06-20T16:49:05+08:00">2020-06-20</time>
+              <time title="Created: 2020-06-20 16:49:05 / Modified: 17:03:50" itemprop="dateCreated datePublished" datetime="2020-06-20T16:49:05+08:00">2020-06-20</time>
             
 
+            
+              
+
+              
             
           </span>
 
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/DEVOPS/" itemprop="url" rel="index"><span itemprop="name">DEVOPS</span></a></span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -375,27 +398,23 @@
         <h2 id="零-准备工作-安装vagrant"><a href="#零-准备工作-安装vagrant" class="headerlink" title="零 准备工作 安装vagrant"></a>零 准备工作 安装vagrant</h2><hr>
 <h3 id="1-安装virtualbox，准备rpm源"><a href="#1-安装virtualbox，准备rpm源" class="headerlink" title="1 安装virtualbox，准备rpm源"></a>1 安装virtualbox，准备rpm源</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># cat /etc/yum.repos.d/virtual.repo</span></span><br><span class="line">[virtualbox]</span><br><span class="line">name=Oracle Linux / RHEL / CentOS-<span class="variable">$releasever</span> / <span class="variable">$basearch</span> - VirtualBox</span><br><span class="line">baseurl=http://download.virtualbox.org/virtualbox/rpm/el/<span class="variable">$releasever</span>/<span class="variable">$basearch</span></span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">repo_gpgcheck=1</span><br><span class="line">gpgkey=https://www.virtualbox.org/download/oracle_vbox.asc</span><br><span class="line"> </span><br><span class="line">[root@localhost ~]<span class="comment"># yum install VirtualBox-6.1</span></span><br></pre></td></tr></table></figure>
 <h3 id="2-安装vagrant"><a href="#2-安装vagrant" class="headerlink" title="2 安装vagrant"></a>2 安装vagrant</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># wget https://releases.hashicorp.com/vagrant/2.2.7/vagrant_2.2.7_x86_64.rpm</span></span><br><span class="line">[root@localhost ~]<span class="comment"># rpm -ivh vagrant_2.2.7_x86_64.rpm</span></span><br><span class="line">[root@localhost ~]<span class="comment"># vagrant version</span></span><br><span class="line">Installed Version: 2.2.7</span><br><span class="line">Latest Version: 2.2.7</span><br><span class="line"> </span><br><span class="line">You<span class="string">'re running an up-to-date version of Vagrant!</span></span><br></pre></td></tr></table></figure>
-<h2 id="一-Vitrualbox"><a href="#一-Vitrualbox" class="headerlink" title="一 Vitrualbox"></a>一 Vitrualbox</h2><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">显示所有注册的虚拟机	 VBoxManage list vms</span><br><span class="line">删除虚拟机	VBoxManage unregistervm vm10-0-0-101 --delete </span><br><span class="line">显示虚拟机详情	VBoxManage showvminfo vm10-0-0-101</span><br><span class="line">关闭虚拟机	VBoxManage controlvm vm10-0-0-101 poweroff</span><br><span class="line">开启虚拟机	VBoxManage startvm  vm10-0-0-101 </span><br><span class="line">查看所有磁盘	vboxmanage list hdds</span><br><span class="line">删除vbox磁盘	vboxmanage closemedium disk &lt;uuid&gt; --delete   # uuid从查看所有磁盘中获得</span><br><span class="line">建立vmdk磁盘	VBoxManage createhd --filename /home/dev/disk/homer65_100g --size 100000 --format VMDK     # /home/dev/disk/homer65_100g  磁盘名 size 100000 100G</span><br></pre></td></tr></table></figure>
-<h2 id="二-Vagrant"><a href="#二-Vagrant" class="headerlink" title="二 Vagrant"></a>二 Vagrant</h2><p>1 安装插件</p>
-<p>vagrant plugin install vagrant-vbguest —plugin-clean-sources —plugin-source <a href="https://gems.ruby-china.com/" target="_blank" rel="noopener">https://gems.ruby-china.com/</a> —verbose<br>必装插件</p>
-<p><a href="https://blog.csdn.net/gdp12315_gu/article/details/79432302" target="_blank" rel="noopener">https://blog.csdn.net/gdp12315_gu/article/details/79432302</a></p>
-<p>2 vagrant 创建私有box</p>
-<p>1) 我们需要知道要制作box的虚拟机的真实名称, 执行：</p>
-<h1 id="VBoxManage-list-vms"><a href="#VBoxManage-list-vms" class="headerlink" title="VBoxManage list vms"></a>VBoxManage list vms</h1><p>“vm10-0-7-66” {1b85767d-78c9-4bbe-8090-d23c77ab94d0}<br>vm10-0-7-66 是我们要制作的box的虚拟机的名字</p>
-<p>2）创建box</p>
-<h1 id="vagrant-package-—base-vm10-0-7-66-—output-centos-lb-7-7-box"><a href="#vagrant-package-—base-vm10-0-7-66-—output-centos-lb-7-7-box" class="headerlink" title="vagrant package —base vm10-0-7-66 —output centos_lb/7.7.box"></a>vagrant package —base vm10-0-7-66 —output centos_lb/7.7.box</h1><p>如有box名称存在我们首先要删除box</p>
-<h1 id="vagrant-box-remove-centos-lb-7-7-box"><a href="#vagrant-box-remove-centos-lb-7-7-box" class="headerlink" title="vagrant box remove centos_lb/7.7.box"></a>vagrant box remove centos_lb/7.7.box</h1><p>3) 建立box 并添加到本地vagrant</p>
-<h1 id="vagrant-box-add-centos-lb-7-7-box-centos-lb-7-7-box"><a href="#vagrant-box-add-centos-lb-7-7-box-centos-lb-7-7-box" class="headerlink" title="vagrant box add centos_lb/7.7.box centos_lb/7.7.box"></a>vagrant box add centos_lb/7.7.box centos_lb/7.7.box</h1><p>==&gt; box: Box file was not detected as metadata. Adding it directly…<br>==&gt; box: Adding box ‘centos_lb/7.7.box’ (v0) for provider:<br>    box: Unpacking necessary files from: file:///home/dev/centos_lb/7.7.box<br>==&gt; box: Successfully added box ‘centos_lb/7.7.box’ (v0) for ‘virtualbox’!<br>[root@vm10-0-0-15 dev]# vagrant box list<br>centos/7            (virtualbox, 0)<br>centos/7.7          (virtualbox, 0)<br>centos7             (virtualbox, 0)<br>centos_lb/7.7  (virtualbox, 0)<br>geerlingguy/debian9 (virtualbox, 1.1.5)<br>[root@vm10-0-0-15 dev]# ls ~/.vagrant.d/boxes/<br>centos7  centos_lb-VAGRANTSLASH-7.7.box  centos-VAGRANTSLASH-7<br>已经添加进vagrant中了</p>
-<p>删除刚生成的已经使用过box的文件</p>
-<h1 id="rm-fr-centos-lb"><a href="#rm-fr-centos-lb" class="headerlink" title="rm -fr centos_lb"></a>rm -fr centos_lb</h1><p>4) 可能重复安装需要删除的文件夹 vm766 重复安装的虚拟机名称</p>
-<h1 id="rm-fr-home-dev-vagrant-machines-vm766"><a href="#rm-fr-home-dev-vagrant-machines-vm766" class="headerlink" title="rm -fr  /home/dev/.vagrant/machines/vm766"></a>rm -fr  /home/dev/.vagrant/machines/vm766</h1><p>3 新增挂载磁盘</p>
-<p>1） 初始化虚拟机</p>
-<h1 id="停机并准备添加新硬盘"><a href="#停机并准备添加新硬盘" class="headerlink" title="停机并准备添加新硬盘"></a>停机并准备添加新硬盘</h1><p>vagrant halt vm765</p>
-<h1 id="新增一个100g的vmdk磁盘文件"><a href="#新增一个100g的vmdk磁盘文件" class="headerlink" title="新增一个100g的vmdk磁盘文件"></a>新增一个100g的vmdk磁盘文件</h1><p>VBoxManage createhd —filename /home/dev/disk/homer66_100g —size 100000 —format VMDK</p>
-<p>2) 创建虚拟磁盘</p>
-<h1 id="查看虚拟机info"><a href="#查看虚拟机info" class="headerlink" title="查看虚拟机info"></a>查看虚拟机info</h1><p>VBoxManage showvminfo vm10-0-7-65</p>
-<h1 id="根据输出信息，大概找到-Storage-Controller-查看只有ide，没有sata"><a href="#根据输出信息，大概找到-Storage-Controller-查看只有ide，没有sata" class="headerlink" title="根据输出信息，大概找到 Storage Controller,查看只有ide，没有sata"></a>根据输出信息，大概找到 Storage Controller,查看只有ide，没有sata</h1><h1 id="增加了个-sata-驱动器"><a href="#增加了个-sata-驱动器" class="headerlink" title="增加了个 sata 驱动器"></a>增加了个 sata 驱动器</h1><p>VBoxManage storagectl vm10-0-7-65 —name “SATA Controller” —add sata —portcount 5 —controller IntelAhci —bootable on</p>
-<h1 id="继续把硬盘插上去"><a href="#继续把硬盘插上去" class="headerlink" title="继续把硬盘插上去"></a>继续把硬盘插上去</h1><p>VBoxManage storageattach vm10-0-7-65 —storagectl “SATA Controller” —type hdd —medium /home/dev/disk/homer65_100g.vmdk —port 1 —device 0<br>vm1-master 就是你虚拟机的名字，上面有提到<br>–storagectl 参数就是磁盘控制器的名字，参考上一条命令中的 –name<br>–type hdd 表示是硬盘，因为这个命令不仅仅可以插硬盘，还能插光驱等，所以要指定插的是什么<br>–medium 这里指定的是虚拟磁盘的文件名，想想一下你手里拿着的硬盘<br>–port 表示插在哪个端口，上面我们创建 sata 控制器的时候通过 –portcount 5 开放了5个端口，相当于主板上的5个sata- 接口，此时我们用第1个<br>–device 0 设备id，设为0 就可以了，我也不知道什么意思<br>如果没有错误的话，这里就成功添加了一块硬盘到虚拟机了，启动虚拟机，这里我用的是vagrant来管理虚拟机的。<br>vagrant up vm765<br>vagrant ssh vm765</p>
+<h2 id="一-Vitrualbox"><a href="#一-Vitrualbox" class="headerlink" title="一 Vitrualbox"></a>一 Vitrualbox</h2><hr>
+<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">显示所有注册的虚拟机	 VBoxManage list vms</span><br><span class="line">删除虚拟机	VBoxManage unregistervm vm10-0-0-101 --delete </span><br><span class="line">显示虚拟机详情	VBoxManage showvminfo vm10-0-0-101</span><br><span class="line">关闭虚拟机	VBoxManage controlvm vm10-0-0-101 poweroff</span><br><span class="line">开启虚拟机	VBoxManage startvm  vm10-0-0-101 </span><br><span class="line">查看所有磁盘	vboxmanage list hdds</span><br><span class="line">删除vbox磁盘	vboxmanage closemedium disk &lt;uuid&gt; --delete   # uuid从查看所有磁盘中获得</span><br><span class="line">建立vmdk磁盘	VBoxManage createhd --filename /home/dev/disk/homer65_100g --size 100000 --format VMDK     # /home/dev/disk/homer65_100g  磁盘名 size 100000 100G</span><br></pre></td></tr></table></figure>
+<h2 id="二-Vagrant"><a href="#二-Vagrant" class="headerlink" title="二 Vagrant"></a>二 Vagrant</h2><hr>
+<h3 id="1-安装插件"><a href="#1-安装插件" class="headerlink" title="1 安装插件"></a>1 安装插件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vagrant plugin install vagrant-vbguest --plugin-clean-sources --plugin-source https://gems.ruby-china.com/ --verbose</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>必装插件<br><a href="https://blog.csdn.net/gdp12315_gu/article/details/79432302" target="_blank" rel="noopener">https://blog.csdn.net/gdp12315_gu/article/details/79432302</a></p>
+</blockquote>
+<h3 id="2-vagrant-创建私有box"><a href="#2-vagrant-创建私有box" class="headerlink" title="2 vagrant 创建私有box"></a>2 vagrant 创建私有box</h3><h4 id="1-我们需要知道要制作box的虚拟机的真实名称-执行："><a href="#1-我们需要知道要制作box的虚拟机的真实名称-执行：" class="headerlink" title="1) 我们需要知道要制作box的虚拟机的真实名称, 执行："></a>1) 我们需要知道要制作box的虚拟机的真实名称, 执行：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># VBoxManage list vms</span></span><br><span class="line"><span class="string">"vm10-0-7-66"</span> &#123;1b85767d-78c9-4bbe-8090-d23c77ab94d0&#125;</span><br><span class="line">vm10-0-7-66 是我们要制作的box的虚拟机的名字</span><br><span class="line">`</span><br></pre></td></tr></table></figure>
+<h4 id="2）创建box"><a href="#2）创建box" class="headerlink" title="2）创建box"></a>2）创建box</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vagrant package --base vm10-0-7-66 --output centos_lb/7.7.box</span></span><br></pre></td></tr></table></figure>
+<p>如有box名称存在我们首先要删除box</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vagrant box remove centos_lb/7.7.box</span></span><br></pre></td></tr></table></figure>
+<h4 id="3-建立box-并添加到本地vagrant"><a href="#3-建立box-并添加到本地vagrant" class="headerlink" title="3) 建立box 并添加到本地vagrant"></a>3) 建立box 并添加到本地vagrant</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vagrant box add centos_lb/7.7.box centos_lb/7.7.box</span></span><br><span class="line">==&gt; box: Box file was not detected as metadata. Adding it directly...</span><br><span class="line">==&gt; box: Adding box <span class="string">'centos_lb/7.7.box'</span> (v0) <span class="keyword">for</span> provider:</span><br><span class="line">    box: Unpacking necessary files from: file:///home/dev/centos_lb/7.7.box</span><br><span class="line">==&gt; box: Successfully added box <span class="string">'centos_lb/7.7.box'</span> (v0) <span class="keyword">for</span> <span class="string">'virtualbox'</span>!</span><br><span class="line">[root@vm10-0-0-15 dev]<span class="comment"># vagrant box list</span></span><br><span class="line">centos/7            (virtualbox, 0)</span><br><span class="line">centos/7.7          (virtualbox, 0)</span><br><span class="line">centos7             (virtualbox, 0)</span><br><span class="line">centos_lb/7.7  (virtualbox, 0)</span><br><span class="line">geerlingguy/debian9 (virtualbox, 1.1.5)</span><br><span class="line">[root@vm10-0-0-15 dev]<span class="comment"># ls ~/.vagrant.d/boxes/</span></span><br><span class="line">centos7  centos_lb-VAGRANTSLASH-7.7.box  centos-VAGRANTSLASH-7</span><br></pre></td></tr></table></figure>
+<p>已经添加进vagrant中了<br>删除刚生成的已经使用过box的文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># rm -fr centos_lb</span></span><br></pre></td></tr></table></figure>
+<h4 id="4-可能重复安装需要删除的文件夹-vm766-重复安装的虚拟机名称"><a href="#4-可能重复安装需要删除的文件夹-vm766-重复安装的虚拟机名称" class="headerlink" title="4) 可能重复安装需要删除的文件夹 vm766 重复安装的虚拟机名称"></a>4) 可能重复安装需要删除的文件夹 vm766 重复安装的虚拟机名称</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># rm -fr  /home/dev/.vagrant/machines/vm766</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-新增挂载磁盘"><a href="#3-新增挂载磁盘" class="headerlink" title="3 新增挂载磁盘"></a>3 新增挂载磁盘</h3><h4 id="1）-初始化虚拟机"><a href="#1）-初始化虚拟机" class="headerlink" title="1） 初始化虚拟机"></a>1） 初始化虚拟机</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 停机并准备添加新硬盘</span></span><br><span class="line">vagrant halt vm765</span><br><span class="line"><span class="comment"># 新增一个100g的vmdk磁盘文件</span></span><br><span class="line">VBoxManage createhd --filename /home/dev/disk/homer66_100g --size 100000 --format VMDK</span><br></pre></td></tr></table></figure>
+<h3 id="2-创建虚拟磁盘"><a href="#2-创建虚拟磁盘" class="headerlink" title="2) 创建虚拟磁盘"></a>2) 创建虚拟磁盘</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看虚拟机info</span></span><br><span class="line">VBoxManage showvminfo vm10-0-7-65</span><br><span class="line"><span class="comment"># 根据输出信息，大概找到 Storage Controller,查看只有ide，没有sata</span></span><br><span class="line"><span class="comment"># 增加了个 sata 驱动器</span></span><br><span class="line">VBoxManage storagectl vm10-0-7-65 --name <span class="string">"SATA Controller"</span> --add sata --portcount 5 --controller IntelAhci --bootable on</span><br><span class="line"><span class="comment"># 继续把硬盘插上去</span></span><br><span class="line">VBoxManage storageattach vm10-0-7-65 --storagectl <span class="string">"SATA Controller"</span> --<span class="built_in">type</span> hdd --medium /home/dev/disk/homer65_100g.vmdk --port 1 --device 0</span><br><span class="line">vm1-master 就是你虚拟机的名字，上面有提到</span><br><span class="line">–storagectl 参数就是磁盘控制器的名字，参考上一条命令中的 –name</span><br><span class="line">–<span class="built_in">type</span> hdd 表示是硬盘，因为这个命令不仅仅可以插硬盘，还能插光驱等，所以要指定插的是什么</span><br><span class="line">–medium 这里指定的是虚拟磁盘的文件名，想想一下你手里拿着的硬盘</span><br><span class="line">–port 表示插在哪个端口，上面我们创建 sata 控制器的时候通过 –portcount 5 开放了5个端口，相当于主板上的5个sata- 接口，此时我们用第1个</span><br><span class="line">–device 0 设备id，设为0 就可以了，我也不知道什么意思</span><br><span class="line">如果没有错误的话，这里就成功添加了一块硬盘到虚拟机了，启动虚拟机，这里我用的是vagrant来管理虚拟机的。</span><br><span class="line">vagrant up vm765</span><br><span class="line">vagrant ssh vm765</span><br></pre></td></tr></table></figure>
 <p>剩下的就和正常服务器一样了，fdisk 格式化硬盘，然后mount到你想mout的位置</p>
 
       
@@ -414,6 +433,14 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/vagrant/" rel="tag"># vagrant</a>
+          
+            <a href="/tags/virtualbox/" rel="tag"># virtualbox</a>
+          
+        </div>
       
 
       
@@ -555,7 +582,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">20</span>
+                      
+                    
+                    <span class="site-state-item-count">21</span>
                     <span class="site-state-item-name">categories</span>
                   </a>
                 </div>
@@ -700,7 +729,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">66</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">68</span>
                     <span class="site-state-item-name">tags</span>
                   </a>
                 </div>
@@ -736,7 +769,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#零-准备工作-安装vagrant"><span class="nav-number">1.</span> <span class="nav-text">零 准备工作 安装vagrant</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-安装virtualbox，准备rpm源"><span class="nav-number">1.1.</span> <span class="nav-text">1 安装virtualbox，准备rpm源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-安装vagrant"><span class="nav-number">1.2.</span> <span class="nav-text">2 安装vagrant</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一-Vitrualbox"><span class="nav-number">2.</span> <span class="nav-text">一 Vitrualbox</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#常用命令"><span class="nav-number">2.1.</span> <span class="nav-text">常用命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二-Vagrant"><span class="nav-number">3.</span> <span class="nav-text">二 Vagrant</span></a></li></ol><li class="nav-item nav-level-1"><a class="nav-link" href="#VBoxManage-list-vms"><span class="nav-number"></span> <span class="nav-text">VBoxManage list vms</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#vagrant-package-—base-vm10-0-7-66-—output-centos-lb-7-7-box"><span class="nav-number"></span> <span class="nav-text">vagrant package —base vm10-0-7-66 —output centos_lb/7.7.box</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#vagrant-box-remove-centos-lb-7-7-box"><span class="nav-number"></span> <span class="nav-text">vagrant box remove centos_lb/7.7.box</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#vagrant-box-add-centos-lb-7-7-box-centos-lb-7-7-box"><span class="nav-number"></span> <span class="nav-text">vagrant box add centos_lb/7.7.box centos_lb/7.7.box</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rm-fr-centos-lb"><span class="nav-number"></span> <span class="nav-text">rm -fr centos_lb</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rm-fr-home-dev-vagrant-machines-vm766"><span class="nav-number"></span> <span class="nav-text">rm -fr  /home/dev/.vagrant/machines/vm766</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#停机并准备添加新硬盘"><span class="nav-number"></span> <span class="nav-text">停机并准备添加新硬盘</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#新增一个100g的vmdk磁盘文件"><span class="nav-number"></span> <span class="nav-text">新增一个100g的vmdk磁盘文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#查看虚拟机info"><span class="nav-number"></span> <span class="nav-text">查看虚拟机info</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#根据输出信息，大概找到-Storage-Controller-查看只有ide，没有sata"><span class="nav-number"></span> <span class="nav-text">根据输出信息，大概找到 Storage Controller,查看只有ide，没有sata</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#增加了个-sata-驱动器"><span class="nav-number"></span> <span class="nav-text">增加了个 sata 驱动器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#继续把硬盘插上去"><span class="nav-number"></span> <span class="nav-text">继续把硬盘插上去</span></a></li></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#零-准备工作-安装vagrant"><span class="nav-number">1.</span> <span class="nav-text">零 准备工作 安装vagrant</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-安装virtualbox，准备rpm源"><span class="nav-number">1.1.</span> <span class="nav-text">1 安装virtualbox，准备rpm源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-安装vagrant"><span class="nav-number">1.2.</span> <span class="nav-text">2 安装vagrant</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一-Vitrualbox"><span class="nav-number">2.</span> <span class="nav-text">一 Vitrualbox</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#常用命令"><span class="nav-number">2.1.</span> <span class="nav-text">常用命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二-Vagrant"><span class="nav-number">3.</span> <span class="nav-text">二 Vagrant</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-安装插件"><span class="nav-number">3.1.</span> <span class="nav-text">1 安装插件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-vagrant-创建私有box"><span class="nav-number">3.2.</span> <span class="nav-text">2 vagrant 创建私有box</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-我们需要知道要制作box的虚拟机的真实名称-执行："><span class="nav-number">3.2.1.</span> <span class="nav-text">1) 我们需要知道要制作box的虚拟机的真实名称, 执行：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2）创建box"><span class="nav-number">3.2.2.</span> <span class="nav-text">2）创建box</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-建立box-并添加到本地vagrant"><span class="nav-number">3.2.3.</span> <span class="nav-text">3) 建立box 并添加到本地vagrant</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-可能重复安装需要删除的文件夹-vm766-重复安装的虚拟机名称"><span class="nav-number">3.2.4.</span> <span class="nav-text">4) 可能重复安装需要删除的文件夹 vm766 重复安装的虚拟机名称</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-新增挂载磁盘"><span class="nav-number">3.3.</span> <span class="nav-text">3 新增挂载磁盘</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1）-初始化虚拟机"><span class="nav-number">3.3.1.</span> <span class="nav-text">1） 初始化虚拟机</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-创建虚拟磁盘"><span class="nav-number">3.4.</span> <span class="nav-text">2) 创建虚拟磁盘</span></a></li></ol></li></ol></div>
             
 
           </div>
