@@ -293,6 +293,165 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/16/Tensorflow-神经网络入门/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/03/16/Tensorflow-神经网络入门/" itemprop="url">
+                  Tensorflow 神经网络入门
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2018-03-16 14:01:16" itemprop="dateCreated datePublished" datetime="2018-03-16T14:01:16+08:00">2018-03-16</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2018-10-20 22:41:17" itemprop="dateModified" datetime="2018-10-20T22:41:17+08:00">2018-10-20</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="搭建神经网络基本流程"><a href="#搭建神经网络基本流程" class="headerlink" title="搭建神经网络基本流程"></a>搭建神经网络基本流程</h2><p>定义添加神经层的函数</p>
+<pre><code>1. 训练的数据
+2. 定义节点准备接受数据
+3. 定义神经层： 隐藏层和预测层
+4. 定义loss表达式
+5. 选择optimizer 使loss达到最小
+</code></pre><p>然后对所有变量进行初始化，通过sess.run optimizer,迭代1000次进行学习</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/env python3</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加层</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_layer</span><span class="params">()</span>:</span></span><br><span class="line">    //<span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 训练的数据</span></span><br><span class="line"><span class="comment"># Make up some real data</span></span><br><span class="line"><span class="comment"># [numpy.linspace 在指定的间隔内返回均匀间隔的数字](http://python.usyiyi.cn/documents/NumPy_v111/reference/generated/numpy.linspace.html)</span></span><br><span class="line">x_data = np.linspace(<span class="number">-1</span>,<span class="number">1</span>,<span class="number">300</span>)[:,np.newaxis]</span><br><span class="line">noise = np.random.normal(<span class="number">0</span>, <span class="number">0.05</span>, x_data.shape)</span><br><span class="line">y_data = np.square(x_data) - <span class="number">0.5</span> + noise</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.定义节点准备接收数据</span></span><br><span class="line"><span class="comment"># define placeholder for inputs to network  </span></span><br><span class="line">xs = tf.placeholder(tf.float32, [<span class="keyword">None</span>, <span class="number">1</span>])</span><br><span class="line">ys = tf.placeholder(tf.float32, [<span class="keyword">None</span>, <span class="number">1</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.定义神经层：隐藏层和预测层</span></span><br><span class="line"><span class="comment"># add hidden layer 输入值是 xs，在隐藏层有 10 个神经元</span></span><br><span class="line">l1 = add_layer(xs, <span class="number">1</span>, <span class="number">10</span>, activation_function=tf.nn.relu)</span><br><span class="line"><span class="comment"># add output layer 输入值是隐藏层 l1，在预测层输出 1 个结果</span></span><br><span class="line">prediction = add_layer(l1, <span class="number">10</span>, <span class="number">1</span>, activation_function=<span class="keyword">None</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4.定义 loss 表达式</span></span><br><span class="line"><span class="comment"># the error between prediciton and real data    </span></span><br><span class="line">loss = tf.reduce_mean(tf.reduce_sum(tf.square(ys - prediction),reduction_indices=[<span class="number">1</span>]))</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/04/09/Git客户端保存用户名和密码-hexo-登陆需要密码问题/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1820,180 +1979,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/03/27/Docker核心技术预览/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2015/03/27/Docker核心技术预览/" itemprop="url">
-                  Docker核心技术预览
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2015-03-27 10:28:39" itemprop="dateCreated datePublished" datetime="2015-03-27T10:28:39+08:00">2015-03-27</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">Edited on</span>
-                
-                <time title="Modified: 2019-12-25 09:59:55" itemprop="dateModified" datetime="2019-12-25T09:59:55+08:00">2019-12-25</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/DOCKER/" itemprop="url" rel="index"><span itemprop="name">DOCKER</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p><a href="http://www.infoq.com/cn/articles/docker-core-technology-preview/" target="_blank" rel="noopener">http://www.infoq.com/cn/articles/docker-core-technology-preview/</a><br>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2015/03/27/Docker核心技术预览/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </p></div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2041,7 +2026,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">45</span>
+                    <span class="site-state-item-count">46</span>
                     <span class="site-state-item-name">posts</span>
                   </a>
                 </div>
@@ -2231,7 +2216,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">63</span>
+                      
+                    
+                    <span class="site-state-item-count">64</span>
                     <span class="site-state-item-name">tags</span>
                   </a>
                 </div>
@@ -2271,7 +2258,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love" id="animate">
     <i class="fa fa-user"></i>
   </span>
