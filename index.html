@@ -293,6 +293,501 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/20/Consul-手动操作-查看-注销节点-服务/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/06/20/Consul-手动操作-查看-注销节点-服务/" itemprop="url">
+                  Consul 手动操作 查看 注销节点/服务
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2020-06-20 17:32:49" itemprop="dateCreated datePublished" datetime="2020-06-20T17:32:49+08:00">2020-06-20</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/注册中心/" itemprop="url" rel="index"><span itemprop="name">注册中心</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="查看指定ip-services"><a href="#查看指定ip-services" class="headerlink" title="查看指定ip services"></a>查看指定ip services</h3><hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/catalog/services| python -m json.tool</span><br><span class="line"></span><br><span class="line">curl -s http://10.0.2.26:8500/v1/agent/services | python -m json.tool</span><br></pre></td></tr></table></figure>
+<h3 id="查看指定ip-不健康的services"><a href="#查看指定ip-不健康的services" class="headerlink" title="查看指定ip 不健康的services"></a>查看指定ip 不健康的services</h3><hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/health/state/critical | python -m json.tool</span><br></pre></td></tr></table></figure>
+<h3 id="查看本机配置"><a href="#查看本机配置" class="headerlink" title="查看本机配置"></a>查看本机配置</h3><hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/agent/self | python -m json.tool</span><br></pre></td></tr></table></figure>
+<h3 id="返回本地agent的配置和成员信息"><a href="#返回本地agent的配置和成员信息" class="headerlink" title="返回本地agent的配置和成员信息"></a>返回本地agent的配置和成员信息</h3><hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/agent/self| python -m json.tool</span><br></pre></td></tr></table></figure>
+<h3 id="查看集群服务端"><a href="#查看集群服务端" class="headerlink" title="查看集群服务端"></a>查看集群服务端</h3><hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/status/peers</span><br></pre></td></tr></table></figure>
+<h3 id="查看leader"><a href="#查看leader" class="headerlink" title="查看leader"></a>查看leader</h3><hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/status/leader</span><br></pre></td></tr></table></figure>
+<h3 id="查看集群所有节点-nodes"><a href="#查看集群所有节点-nodes" class="headerlink" title="查看集群所有节点 nodes"></a>查看集群所有节点 nodes</h3><hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/catalog/nodes | python -m json.tool</span><br></pre></td></tr></table></figure>
+<h3 id="注销节点-consul重启导致node名冲突"><a href="#注销节点-consul重启导致node名冲突" class="headerlink" title="注销节点/consul重启导致node名冲突"></a>注销节点/consul重启导致node名冲突</h3><hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/catalog/nodes | python -m json.tool |grep <span class="string">"Node"</span> <span class="comment"># 找到冲突节点的node名称</span></span><br><span class="line"></span><br><span class="line">curl -X PUT -H <span class="string">'application/json'</span> -d <span class="string">'&#123;"Datacenter": "dc1","Node": "consul_client71"&#125;'</span> http://10.0.2.26:8500/v1/catalog/deregister   <span class="comment"># 修改Node后的value ，重启节点重新注册</span></span><br></pre></td></tr></table></figure>
+<h2 id="注销服务"><a href="#注销服务" class="headerlink" title="注销服务"></a>注销服务</h2><h3 id="删除服务必须使用连接到服务注册的那个节点上的consul-agent上执行dregister"><a href="#删除服务必须使用连接到服务注册的那个节点上的consul-agent上执行dregister" class="headerlink" title="删除服务必须使用连接到服务注册的那个节点上的consul agent上执行dregister"></a>删除服务必须使用连接到服务注册的那个节点上的consul agent上执行dregister</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/agent/services | python -m json.tool|grep <span class="string">"ID"</span>. <span class="comment"># 查看这个ip的服务id</span></span><br><span class="line"></span><br><span class="line">curl --request PUT http://10.0.2.26:8500/v1/agent/service/deregister/msg-core-10-0-2-26-25105  <span class="comment"># 替换后边id名称</span></span><br></pre></td></tr></table></figure>
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/20/Consul作为内存型注册中心使用方式安装/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/06/20/Consul作为内存型注册中心使用方式安装/" itemprop="url">
+                  Consul作为内存型注册中心使用方式安装
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2020-06-20 17:30:14" itemprop="dateCreated datePublished" datetime="2020-06-20T17:30:14+08:00">2020-06-20</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/注册中心/" itemprop="url" rel="index"><span itemprop="name">注册中心</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="1-单主服务端"><a href="#1-单主服务端" class="headerlink" title="1 单主服务端"></a>1 单主服务端</h2><hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">root@vm10-0-8-11 shells]<span class="comment"># cat docker-compose-consul.yml</span></span><br><span class="line">version: <span class="string">'3'</span></span><br><span class="line">services:</span><br><span class="line">  consul_client:</span><br><span class="line">    container_name: consul_client</span><br><span class="line">    restart: always</span><br><span class="line">    image: hub.lingban.cn/consul:latest</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    <span class="built_in">command</span>:  agent -server -client 0.0.0.0 -<span class="built_in">bind</span> 10.0.8.10 -node consul_server3 -bootstrap-expect 1 -datacenter aiaas4 -ui</span><br><span class="line">    logging:</span><br><span class="line">      options:</span><br><span class="line">        max-size: <span class="string">'100m'</span></span><br><span class="line">        max-file: <span class="string">'10'</span></span><br></pre></td></tr></table></figure>
+<p>-datacenter 使用datacenter名称，其他agent不会主动加入不同名称的集群<br>-bootstrap-expect 1 设置为1，集群中第一个启动的为一个主，集群初始化时不用至少启动两个来选举主</p>
+<h2 id="2-多主模式"><a href="#2-多主模式" class="headerlink" title="2 多主模式"></a>2 多主模式</h2><hr>
+<p><strong>第一个主</strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@vm10-0-8-11 shells]<span class="comment"># cat docker-compose-consul.yml</span></span><br><span class="line">version: <span class="string">'3'</span></span><br><span class="line">services:</span><br><span class="line">  consul_client:</span><br><span class="line">    container_name: consul_client</span><br><span class="line">    restart: always</span><br><span class="line">    image: hub.lingban.cn/consul:latest</span><br><span class="line">    <span class="comment">#volumes:</span></span><br><span class="line">      <span class="comment">#- /data/aiaas/data/consul:/consul/data</span></span><br><span class="line">      <span class="comment">#- /data/aiaas/config/consul:/consul/config</span></span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    <span class="built_in">command</span>:  agent -server -client 0.0.0.0 -<span class="built_in">bind</span> 10.0.8.11 -node consul_server2 -bootstrap-expect 1 -datacenter aiaas4-test -ui</span><br><span class="line">    logging:</span><br><span class="line">      options:</span><br><span class="line">        max-size: <span class="string">'100m'</span></span><br><span class="line">        max-file: <span class="string">'10'</span></span><br></pre></td></tr></table></figure></p>
+<p>-datacenter aiaas4-test 使用datacenter名称，防止其他consul加入，或者主动加入错误节点<br>-bootstrap-expect 1 第一个主必须设置1，否则可能启动失败，需要等第二个节点加入选择才可用。<br>-bind 10.0.8.11 设置为本机ip<br>-node consul_server2 不同节点不同</p>
+<p><strong>第二个主</strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">version: <span class="string">'3'</span></span><br><span class="line">services:</span><br><span class="line">  consul_client:</span><br><span class="line">    container_name: consul_client</span><br><span class="line">    restart: always</span><br><span class="line">    image: hub.lingban.cn/consul:latest</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    <span class="built_in">command</span>:  agent -server -client 0.0.0.0 -<span class="built_in">bind</span> 10.0.8.12 -node consul_server3 -bootstrap-expect 2 -datacenter aiaas4-test -ui -retry-join 10.0.8.11</span><br><span class="line"> </span><br><span class="line">    logging:</span><br><span class="line">      options:</span><br><span class="line">        max-size: <span class="string">'100m'</span></span><br><span class="line">        max-file: <span class="string">'10'</span></span><br></pre></td></tr></table></figure></p>
+<p>-datacenter aiaas4-test 使用datacenter名称，防止其他consul加入，或者主动加入错误节点<br>-bootstrap-expect 2 第二个设置为2<br>-node consul_server3 不同节点名称不同</p>
+<h2 id="3-非主-从节点模式"><a href="#3-非主-从节点模式" class="headerlink" title="3 非主 从节点模式"></a>3 非主 从节点模式</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">version: <span class="string">'3'</span></span><br><span class="line">services:</span><br><span class="line">  consul_client:</span><br><span class="line">    container_name: consul_client</span><br><span class="line">    restart: always</span><br><span class="line">    image: hub.lingban.cn/consul:latest</span><br><span class="line">    <span class="comment">#volumes:</span></span><br><span class="line">    <span class="comment">#  - /data/aiaas/data/consul:/consul/data</span></span><br><span class="line">    <span class="comment">#  - /data/aiaas/config/consul:/consul/config</span></span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    <span class="built_in">command</span>:  agent -<span class="built_in">bind</span> 10.0.8.10 -client 0.0.0.0 -node consul_client1  -retry-join 10.0.8.11 -datacenter aiaas4-test -ui</span><br><span class="line">    logging:</span><br><span class="line">      options:</span><br><span class="line">        max-size: <span class="string">'100m'</span></span><br><span class="line">        max-file: <span class="string">'10'</span></span><br></pre></td></tr></table></figure>
+<p>没有-server 参数<br>-client 0.0.0.0 允许webui的浏览器访问<br>-retry-join 10.0.8.11 加入server<br>-datacenter aiaas4-test 加入指定集群</p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/20/HOMER-SIP-抓包监控服务/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/06/20/HOMER-SIP-抓包监控服务/" itemprop="url">
+                  HOMER - SIP 抓包监控服务
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2020-06-20 17:25:31" itemprop="dateCreated datePublished" datetime="2020-06-20T17:25:31+08:00">2020-06-20</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/语音电话/" itemprop="url" rel="index"><span itemprop="name">语音电话</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="一-什么是HOMER"><a href="#一-什么是HOMER" class="headerlink" title="一 什么是HOMER"></a>一 什么是HOMER</h2><hr>
+<blockquote>
+<p>HOMER是SIPCAPTURE堆栈的一部分：一个健壮的、运营商级的、模块化的VoIP和RTC捕获框架，用于分析和监视，支持所有主要的OSS语音平台和供应商不可知的捕获代理。HOMER在全球范围内部署了数千个部署，包括臭名昭著的行业供应商、语音网络运营商和财富500强企业，为使用和依赖VoIP服务和RTC技术的ITSP、VoIP提供商和主干供应商提供高级搜索、端到端分析和数据包深入分析功能—所有这些都是100%开源的</p>
+</blockquote>
+<h2 id="二-Homer安装-compose文件"><a href="#二-Homer安装-compose文件" class="headerlink" title="二 Homer安装  compose文件"></a>二 Homer安装  compose文件</h2><hr>
+<h3 id="1-存放位置"><a href="#1-存放位置" class="headerlink" title="1 存放位置"></a>1 存放位置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[jms_op@vm10-0-7-66 homer5]$ <span class="built_in">pwd</span></span><br><span class="line">/data/aiaas/shells/homer5</span><br></pre></td></tr></table></figure>
+<h4 id="2-Homer5-的heplify-server-与-homer-app、db的组合compose"><a href="#2-Homer5-的heplify-server-与-homer-app、db的组合compose" class="headerlink" title="2 Homer5 的heplify-server 与 homer-app、db的组合compose"></a>2 Homer5 的heplify-server 与 homer-app、db的组合compose</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line">[jms_op@vm10-0-7-66 homer5]$ cat ./docker-compose.yml</span><br><span class="line">version: <span class="string">'3.1'</span></span><br><span class="line"> </span><br><span class="line">networks:</span><br><span class="line">  monitor-net:</span><br><span class="line">    driver: bridge</span><br><span class="line"> </span><br><span class="line">services:</span><br><span class="line">  caddy:</span><br><span class="line">    image: hub.lingban.cn/homer/caddy:latest</span><br><span class="line">    container_name: caddy</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">"3000:3000"</span></span><br><span class="line">      - <span class="string">"9090:9090"</span></span><br><span class="line">      - <span class="string">"9093:9093"</span></span><br><span class="line">      - <span class="string">"9080:9080"</span></span><br><span class="line">    volumes:</span><br><span class="line">      - ./caddy/:/etc/caddy/</span><br><span class="line">    environment:</span><br><span class="line">      - ADMIN_USER=<span class="variable">$&#123;ADMIN_USER:-admin&#125;</span></span><br><span class="line">      - ADMIN_PASSWORD=<span class="variable">$&#123;ADMIN_PASSWORD:-admin&#125;</span></span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    labels:</span><br><span class="line">      org.label-schema.group: <span class="string">"monitoring"</span></span><br><span class="line"> </span><br><span class="line">  db:</span><br><span class="line">    container_name: db</span><br><span class="line">    image: hub.lingban.cn/homer/mariadb:latest</span><br><span class="line">    environment:</span><br><span class="line">      - <span class="string">"MYSQL_ROOT_PASSWORD="</span></span><br><span class="line">      - <span class="string">"MYSQL_ALLOW_EMPTY_PASSWORD=yes"</span></span><br><span class="line">      - <span class="string">"MYSQL_ROOT_HOST=%"</span></span><br><span class="line">    ports:</span><br><span class="line">      - 3306:3306</span><br><span class="line">    volumes:</span><br><span class="line">      - <span class="string">"/data/homer/data/mysql:/var/lib/mysql"</span></span><br><span class="line">      - <span class="string">"/data/homer/config/mysql:/etc/mysql"</span></span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    restart: unless-stopped</span><br><span class="line"> </span><br><span class="line">  adminer:</span><br><span class="line">    image: hub.lingban.cn/homer/adminer:latest</span><br><span class="line">    depends_on:</span><br><span class="line">      - db</span><br><span class="line">    ports:</span><br><span class="line">      - 8080:8080</span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    restart: unless-stopped</span><br><span class="line"> </span><br><span class="line">  heplify-server:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify-server:latest</span><br><span class="line">    container_name: heplify-server</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">"9096:9096"</span></span><br><span class="line">      - <span class="string">"9060:9060"</span></span><br><span class="line">      - <span class="string">"9060:9060/udp"</span></span><br><span class="line">    <span class="built_in">command</span>:</span><br><span class="line">      - <span class="string">'./heplify-server'</span></span><br><span class="line">    environment:</span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_HEPADDR=0.0.0.0:9060"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_ESADDR="</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBDRIVER=mysql"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBADDR=db:3306"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBUSER=root"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBPASS="</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBDROPDAYS=7"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_LOGLVL=info"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_LOGSTD=true"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_PROMADDR=0.0.0.0:9096"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_PROMTARGETIP="</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_PROMTARGETNAME="</span></span><br><span class="line">      - TZ=Asia/Shanghai</span><br><span class="line">      - TIME_ZONE=Asia/Shanghai</span><br><span class="line">    volumes:</span><br><span class="line">      - /etc/localtime:/etc/localtime:ro</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    expose:</span><br><span class="line">      - 9096</span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    depends_on:</span><br><span class="line">      - db</span><br><span class="line">    labels:</span><br><span class="line">      org.label-schema.group: <span class="string">"monitoring"</span></span><br><span class="line"> </span><br><span class="line">  homer-webapp:</span><br><span class="line">    container_name: homer-webapp</span><br><span class="line">    image: hub.lingban.cn/homer/homer-webapp:latest</span><br><span class="line">    environment:</span><br><span class="line">      - <span class="string">"DB_HOST=db"</span></span><br><span class="line">      - <span class="string">"DB_USER=root"</span></span><br><span class="line">      - <span class="string">"DB_PASS="</span></span><br><span class="line">      - TZ=Asia/Shanghai</span><br><span class="line">      - TIME_ZONE=Asia/Shanghai</span><br><span class="line">    expose:</span><br><span class="line">      - 80</span><br><span class="line">    volumes:</span><br><span class="line">      - /etc/localtime:/etc/localtime:ro</span><br><span class="line">      - ./docker-compose.yml:/homer-semaphore/.bootstrapped</span><br><span class="line">      - /data/homer/data/homer-webapp/opt:/opt</span><br><span class="line"> </span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    depends_on:</span><br><span class="line">      - db</span><br></pre></td></tr></table></figure>
+<h2 id="二-Homer-heplify-探针-compose-文件"><a href="#二-Homer-heplify-探针-compose-文件" class="headerlink" title="二 Homer heplify 探针 compose 文件"></a>二 Homer heplify 探针 compose 文件</h2><hr>
+<h3 id="1-一般存放位置"><a href="#1-一般存放位置" class="headerlink" title="1 一般存放位置"></a>1 一般存放位置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[jms_op@vm10-0-2-23 homer]$ <span class="built_in">pwd</span></span><br><span class="line">/data/aiaas/shells/homer</span><br></pre></td></tr></table></figure>
+<h3 id="2-每种服务的不同探针compose文件"><a href="#2-每种服务的不同探针compose文件" class="headerlink" title="2 每种服务的不同探针compose文件"></a>2 每种服务的不同探针compose文件</h3><p>针对每种服务的打开端口不同，分别监控不同的udp范围<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">[jms_op@vm10-0-2-23 homer]$ cat docker-compose-homer-hep-fs.yml</span><br><span class="line">version: <span class="string">'2'</span></span><br><span class="line">services:</span><br><span class="line">  heplify_fs:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify:latest</span><br><span class="line">    <span class="built_in">command</span>: <span class="string">"./heplify -hs 10.0.7.66:9060 -pr 15060-15080 -e"</span></span><br><span class="line">    container_name: heplify_fs</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    volumes:</span><br><span class="line">      - /proc:/host/proc</span><br><span class="line">      - /sys:/host/sys</span><br><span class="line">      - /:/rootfs</span><br><span class="line"> </span><br><span class="line">[jms_op@vm10-0-2-23 homer]$ cat docker-compose-homer-hep-opensips.yml</span><br><span class="line">version: <span class="string">'2'</span></span><br><span class="line">services:</span><br><span class="line">  heplify_opensips:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify:latest</span><br><span class="line">    <span class="built_in">command</span>: <span class="string">"./heplify -hs 10.0.7.66:9060 -pr 6060 -e"</span></span><br><span class="line">    container_name: heplify_opensips</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    environment:</span><br><span class="line">      - TZ=Asia/Shanghai</span><br><span class="line">      - TIME_ZONE=Asia/Shanghai</span><br><span class="line">    volumes:</span><br><span class="line">      - /etc/localtime:/etc/localtime:ro</span><br><span class="line">      - /proc:/host/proc</span><br><span class="line">      - /sys:/host/sys</span><br><span class="line">      - /:/rootfs</span><br><span class="line"> </span><br><span class="line">[jms_op@vm10-0-2-23 homer]$ cat docker-compose-homer-hep-janus.yml</span><br><span class="line">version: <span class="string">'2'</span></span><br><span class="line">services:</span><br><span class="line">  heplify_janus:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify:latest</span><br><span class="line">    <span class="built_in">command</span>: <span class="string">"./heplify -hs 10.0.7.66:9060 -pr 30000-39999 -e"</span></span><br><span class="line">    container_name: heplify_janus</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    volumes:</span><br><span class="line">    - /proc:/host/proc</span><br><span class="line">    - /sys:/host/sys</span><br><span class="line">    - /:/rootfs</span><br><span class="line">    - /etc/localtime:/etc/localtime:ro</span><br><span class="line">    environment:</span><br><span class="line">    - TZ=Asia/Shanghai</span><br><span class="line">    - TIME_ZONE=Asia/Shanghai</span><br><span class="line"> </span><br><span class="line">[jms_op@vm10-0-2-23 homer]$ cat docker-compose-homer-hep-rtp.yml</span><br><span class="line">version: <span class="string">'2'</span></span><br><span class="line">services:</span><br><span class="line">  heplify_rtp_1:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify:latest</span><br><span class="line">    <span class="built_in">command</span>: <span class="string">"./heplify -hs 10.0.7.66:9060 -pr 20000-29999 -e"</span></span><br><span class="line">    container_name: heplify_rtp</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    volumes:</span><br><span class="line">      - /proc:/host/proc</span><br><span class="line">      - /sys:/host/sys</span><br><span class="line">      - /:/rootfs</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/20/vagrant-一般使用手册/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1458,542 +1953,11 @@ logging:
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/06/章三-数据的描述统计量/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/10/06/章三-数据的描述统计量/" itemprop="url">
-                  章三 数据的描述统计量
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2018-10-06 10:58:02" itemprop="dateCreated datePublished" datetime="2018-10-06T10:58:02+08:00">2018-10-06</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">Edited on</span>
-                
-                <time title="Modified: 2018-10-20 22:41:17" itemprop="dateModified" datetime="2018-10-20T22:41:17+08:00">2018-10-20</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/统计学基于R/" itemprop="url" rel="index"><span itemprop="name">统计学基于R</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>一组样本数据的分布的数值特征可以从三个方面进行描述</p>
-<ul>
-<li>数据的<strong>水平</strong> (集中趋势或位置度量), 反映全部数据的数值大小</li>
-<li>数据的<strong>差异</strong>，反映离散程度</li>
-<li>分布的<strong>形状</strong>，反映偏度和峰度</li>
-</ul>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/10/06/章三-数据的描述统计量/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/06/章二-数据的可视化/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/10/06/章二-数据的可视化/" itemprop="url">
-                  章二 数据的可视化
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2018-10-06 10:55:40" itemprop="dateCreated datePublished" datetime="2018-10-06T10:55:40+08:00">2018-10-06</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">Edited on</span>
-                
-                <time title="Modified: 2018-10-20 22:41:17" itemprop="dateModified" datetime="2018-10-20T22:41:17+08:00">2018-10-20</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/统计学基于R/" itemprop="url" rel="index"><span itemprop="name">统计学基于R</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <ul>
-<li>简单频数表</li>
-</ul>
-<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&gt; ex2&lt;-read.table(<span class="string">"utf8_example2_1.txt"</span>)</span><br><span class="line">&gt; summary(ex2) <span class="comment"># 频数分布表</span></span><br><span class="line">&gt; count1 &lt;- table(ex2$社区)</span><br><span class="line">&gt; prop.table(count1)*<span class="number">100</span></span><br><span class="line"></span><br><span class="line">A社区 B社区 C社区 D社区</span><br><span class="line"><span class="number">33.75</span> <span class="number">21.25</span> <span class="number">26.25</span> <span class="number">18.75</span></span><br><span class="line"></span><br><span class="line">&gt; count2&lt;-table(ex2$性别)</span><br><span class="line">&gt; prop.table(count2)*<span class="number">100</span></span><br><span class="line"></span><br><span class="line">男 女</span><br><span class="line"><span class="number">45</span> <span class="number">55</span></span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/10/06/章二-数据的可视化/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/06/章一-数据与R/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/10/06/章一-数据与R/" itemprop="url">
-                  章一 数据与R
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2018-10-06 10:48:56" itemprop="dateCreated datePublished" datetime="2018-10-06T10:48:56+08:00">2018-10-06</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">Edited on</span>
-                
-                <time title="Modified: 2019-08-07 17:12:09" itemprop="dateModified" datetime="2019-08-07T17:12:09+08:00">2019-08-07</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/统计学基于R/" itemprop="url" rel="index"><span itemprop="name">统计学基于R</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h1 id="1-1-数据与统计学"><a href="#1-1-数据与统计学" class="headerlink" title="1.1 数据与统计学"></a>1.1 数据与统计学</h1><h2 id="1-1-1-统计学"><a href="#1-1-1-统计学" class="headerlink" title="1.1.1 统计学"></a>1.1.1 统计学</h2><pre><code>是一门分析数据的科学，它所提供的是收集数据、处理数据和分析数据的一套方法和技术，通过对数据的分析得出结论
-</code></pre>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/10/06/章一-数据与R/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
   </nav>
 
 
@@ -2036,7 +2000,7 @@ logging:
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">48</span>
+                    <span class="site-state-item-count">51</span>
                     <span class="site-state-item-name">posts</span>
                   </a>
                 </div>
@@ -2091,7 +2055,11 @@ logging:
                     
                       
                     
-                    <span class="site-state-item-count">21</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">23</span>
                     <span class="site-state-item-name">categories</span>
                   </a>
                 </div>
@@ -2240,7 +2208,13 @@ logging:
                     
                       
                     
-                    <span class="site-state-item-count">68</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">71</span>
                     <span class="site-state-item-name">tags</span>
                   </a>
                 </div>
@@ -2455,13 +2429,13 @@ logging:
       
     
       
+    
+      
+    
+      
+    
+      
         
-      
-    
-      
-    
-      
-    
       
     
       
