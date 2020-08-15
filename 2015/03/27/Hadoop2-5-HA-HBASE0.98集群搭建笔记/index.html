@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.2" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="把以前欠的债补上">
+<meta name="keywords" content="hadoop,hbase">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop2.5 HA集群搭建笔记">
+<meta property="og:url" content="http://yoursite.com/2015/03/27/Hadoop2-5-HA-HBASE0.98集群搭建笔记/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="把以前欠的债补上">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-10-20T14:41:17.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hadoop2.5 HA集群搭建笔记">
+<meta name="twitter:description" content="把以前欠的债补上">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/03/27/Hadoop2-5-HA-HBASE0.98集群搭建笔记/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Hadoop2.5 HA集群搭建笔记 | 止乎于静</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">止乎于静</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>Categories</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/03/27/Hadoop2-5-HA-HBASE0.98集群搭建笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Hadoop2.5 HA集群搭建笔记
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2015-03-27 09:31:48" itemprop="dateCreated datePublished" datetime="2015-03-27T09:31:48+08:00">2015-03-27</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2018-10-20 22:41:17" itemprop="dateModified" datetime="2018-10-20T22:41:17+08:00">2018-10-20</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/HADOOP/" itemprop="url" rel="index"><span itemprop="name">HADOOP</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>把以前欠的债补上<br><a id="more"></a></p>
+<h1 id="本地添加host"><a href="#本地添加host" class="headerlink" title="本地添加host"></a>本地添加host</h1><p>/etc/hosts</p>
+<p>192.168.11.71 h-master1<br>192.168.11.72 h-master2<br>192.168.11.73 h-slave1<br>192.168.11.74 h-slave2<br>192.168.11.76 h-slave3</p>
+<h1 id="环境信息"><a href="#环境信息" class="headerlink" title="环境信息"></a>环境信息</h1><p>h-master1 hadoop namenode HA</p>
+<pre><code>             hbase master
+
+             zookeeper
+</code></pre><p>h-master2 hadoop namenode HA</p>
+<pre><code>             zookeper
+</code></pre><p>h-slave1~3 hadoop datenode</p>
+<pre><code>             zookeeper
+
+             hbase HRegionServer
+</code></pre><h1 id="web"><a href="#web" class="headerlink" title="web"></a>web</h1><p>hadoop</p>
+<p><a href="http://h-master1:50070/dfshealth.html#tab-overview" target="_blank" rel="noopener">http://h-master1:50070/dfshealth.html#tab-overview</a></p>
+<p>hbase</p>
+<p><a href="http://h-master1:60010/master-status" target="_blank" rel="noopener">http://h-master1:60010/master-status</a></p>
+<p>[hadoop@h-master1 ~]$ ansible all -m shell -a /usr/java/jdk1.7.0_75/bin/jps<br>h-master2 | success | rc=0 &gt;&gt;<br>1747 JournalNode<br>1413 QuorumPeerMain<br>10685 Jps<br>2008 DFSZKFailoverController<br>2120 DataNode<br>1862 NameNode</p>
+<p>h-slave2 | success | rc=0 &gt;&gt;<br>2577 HRegionServer<br>6376 Jps<br>1695 JournalNode<br>1790 DataNode<br>1363 QuorumPeerMain</p>
+<p>h-slave1 | success | rc=0 &gt;&gt;<br>1441 QuorumPeerMain<br>6677 Jps<br>2733 HRegionServer<br>1797 JournalNode<br>1892 DataNode</p>
+<p>h-master1 | success | rc=0 &gt;&gt;<br>2255 QuorumPeerMain<br>21818 Jps<br>5254 HMaster<br>3253 NameNode<br>3416 DFSZKFailoverController<br>3122 JournalNode<br>3567 DataNode</p>
+<p>h-slave3 | success | rc=0 &gt;&gt;<br>1777 DataNode<br>6809 Jps<br>1340 QuorumPeerMain<br>1682 JournalNode<br>2607 HRegionServer</p>
+<h1 id="使用历史命令："><a href="#使用历史命令：" class="headerlink" title="使用历史命令："></a>使用历史命令：</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#首先安装ansible</span></span><br><span class="line"><span class="comment">#添加ansible hosts</span></span><br><span class="line">cat  /etc/ansible/hosts </span><br><span class="line">[m]</span><br><span class="line">h-master1</span><br><span class="line">h-master2</span><br><span class="line">[s]</span><br><span class="line">h-slave1</span><br><span class="line">h-slave2</span><br><span class="line">h-slave3</span><br><span class="line"></span><br><span class="line"><span class="comment">#配置文件下载地址</span></span><br><span class="line">wget https://raw.githubusercontent.com/l0veshe/l0veshe.github.com/master/accessory/hadoop_zookeeper_hbase.conf.tar.gz</span><br><span class="line">tar -zxvf hadoop_zookeeper_hbase.conf.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># hadoop集群间互可访问方式(初始化)</span></span><br><span class="line">ansible all -m copy -a <span class="string">"src=/home/hadoop/.ssh/authorized_keys dest=/home/hadoop/.ssh/authorized_keys owner=hadoop group=hadoop mode="</span>u=rw<span class="string">""</span></span><br><span class="line">ansible all -m copy -a <span class="string">"src=/home/hadoop/.ssh/id_rsa dest=/home/hadoop/.ssh/id_rsa owner=hadoop group=hadoop mode="</span>u=rw<span class="string">""</span></span><br><span class="line">ansible all -m copy -a <span class="string">"src=/home/hadoop/.ssh/id_rsa.pub dest=/home/hadoop/.ssh/id_rsa.pub owner=hadoop group=hadoop mode="</span>u=rw,g=r,o=r<span class="string">""</span></span><br><span class="line">ansible all -m copy -a <span class="string">"src=/home/hadoop/.ssh/id_rsa dest=/home/hadoop/.ssh/id_rsa owner=hadoop group=hadoop mode="</span>u=rw<span class="string">""</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭selinx</span></span><br><span class="line">ansible all -m replace -a <span class="string">"dest=/etc/selinux/config regexp='SELINUX=enforcing' replace='SELINUX=permissive' backup=yes"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"setenforce 0"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭iptables</span></span><br><span class="line">ansible all -m service -a <span class="string">"name=iptables state=stopped"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"chkconfig iptables off"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># NTP 同步</span></span><br><span class="line">ansible all -m yum -a <span class="string">"ntpdate state=latest"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"/usr/sbin/ntpdate ntp.fudan.edu.cn"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"echo '0 1 * * * /usr/sbin/ntpdate us.pool.ntp.org' &gt;&gt; /var/spool/cron/root"</span> -s</span><br><span class="line"></span><br><span class="line"><span class="comment"># 普通跳板机添加密钥方式</span></span><br><span class="line">ansible all -m authorized_key -a <span class="string">"user=hadoop key='&#123;&#123; lookup('file', '/home/hadoop/.ssh/id_rsa.pub') &#125;&#125;' path=/home/hadoop/.ssh/authorized_keys manage_dir=no"</span> --ask-pass -c paramiko</span><br><span class="line"></span><br><span class="line"><span class="comment">#部署hadoop</span></span><br><span class="line"><span class="comment"># 安装jdk Prepare /usr/local/src/jdk-8u25-linux-x64.rpm</span></span><br><span class="line">ansible all -m copy -a <span class="string">"src=/usr/local/src/jdk-7u75-linux-x64.rpm dest=/usr/local/src/jdk-7u75-linux-x64.rpm"</span></span><br><span class="line">ansible all -m yum -a <span class="string">"name=/usr/local/src/jdk-7u75-linux-x64.rpm state=present"</span></span><br><span class="line">(ansible all -m replace -a <span class="string">"dest=/etc/profile regexp='.*JAVA_HOME=.*' replace='export JAVA_HOME=/usr/java/jdk1.7.0_75' backup=yes"</span>) <span class="comment">#备用，替换参数值</span></span><br><span class="line">(ansible all -m lineinfile -a <span class="string">'dest="/etc/profile" regexp="JAVA_HOME=/usr/java/jdk1.7.0_75"'</span>) <span class="comment"># 检查是否在配置文件之内</span></span><br><span class="line">ansible all -m lineinfile -a <span class="string">'dest="/etc/profile" line="export JAVA_HOME=/usr/java/jdk1.7.0_75"'</span></span><br><span class="line">ansible all -m lineinfile -a <span class="string">'dest="/etc/profile" line="export PATH=$JAVA_HOME/bin:$PATH"'</span></span><br><span class="line">ansible all -m lineinfile -a <span class="string">'dest="/etc/profile" line="export HADOOP_HOME=/home/hadoop/hadoop/"'</span></span><br><span class="line">ansible all -m lineinfile -a <span class="string">'dest="/etc/profile" line="export PATH=$HADOOP_HOME/bin:$PATH"'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">ansible nginx -m shell -a <span class="string">"sudo cat /data/service/php/logs/php-fpm.log |egrep '(WARNING|ERROR)'|grep 'Dec 09'|awk '&#123;print <span class="variable">$5</span>&#125;'|sort|uniq -c "</span> -o</span><br><span class="line">ansible nginx -m shell -a <span class="string">"sudo cat /data/service/php/logs/php-fpm.log |grep WARNING|grep 'Dec 09'|wc -l"</span> -o</span><br><span class="line"></span><br><span class="line"><span class="comment"># zookeeper</span></span><br><span class="line">ansible all -m lineinfile -a <span class="string">'dest="/etc/profile" line="export ZOOKEEPER_HOME="/home/hadoop/hadoop/app/zookeeper-3.4.6""'</span></span><br><span class="line">ansible all -m lineinfile -a <span class="string">'dest="/etc/profile" line="export PATH=$ZOOKEEPER_HOME/bin:$ZOOKEEPER_HOME/conf:$PATH"'</span></span><br><span class="line">(ansible all -m replace -a <span class="string">"dest=/etc/profile regexp='.*ZOOKEEPER_HOME=.*' replace='export ZOOKEEPER_HOME=/home/hadoop/zookeeper-3.4.6' backup=yes"</span>) <span class="comment">#备用，替换参数值</span></span><br><span class="line">(ansible all -m lineinfile -a <span class="string">'dest="/etc/profile" regexp="ZOOKEEPER_HOME=/home/hadoop/zookeeper-3.4.6"'</span>) <span class="comment"># 检查是否在配置文件之内</span></span><br><span class="line">ansible all -m shell -a <span class="string">"source /etc/profile;/home/hadoop/zookeeper/bin/zkServer.sh stop"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"source /etc/profile;/home/hadoop/zookeeper/bin/zkServer.sh start"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"source /etc/profile;/home/hadoop/zookeeper/bin/zkServer.sh status"</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#启动，初始化</span></span><br><span class="line"><span class="comment">#init Hadoop HA</span></span><br><span class="line"><span class="comment">#namenode 1</span></span><br><span class="line">ansible all -m shell -a <span class="string">"source /etc/profile;/home/hadoop/zookeeper/bin/zkServer.sh start"</span> &amp;&amp; sleep 5</span><br><span class="line">ansible all -m shell -a <span class="string">"source /etc/profile;/home/hadoop/zookeeper/bin/zkServer.sh status"</span></span><br><span class="line">/home/hadoop/hadoop/bin/hdfs zkfc -formatZK</span><br><span class="line">ansible all -m shell -a <span class="string">"/home/hadoop/hadoop/sbin/hadoop-daemon.sh start journalnode"</span></span><br><span class="line"><span class="comment">#namenode 1</span></span><br><span class="line">hadoop namenode -format mycluster</span><br><span class="line">/home/hadoop/hadoop/sbin/hadoop-daemon.sh start namenode</span><br><span class="line"><span class="comment">#namenode 2</span></span><br><span class="line">/home/hadoop/hadoop/bin/hdfs namenode -bootstrapStandby</span><br><span class="line">/home/hadoop/hadoop/sbin/hadoop-daemon.sh start namenode</span><br><span class="line"><span class="comment">#namenode</span></span><br><span class="line">ansible m -m shell -a <span class="string">"source /etc/profile;/home/hadoop/hadoop/sbin/hadoop-daemon.sh start zkfc"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"source /etc/profile;/home/hadoop/hadoop/sbin/hadoop-daemon.sh start datanode"</span> </span><br><span class="line"><span class="comment">#check</span></span><br><span class="line">ansible all -m shell -a <span class="string">"/usr/java/jdk1.7.0_75/bin/jps"</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#stop</span></span><br><span class="line">ansible all -m shell -a <span class="string">"source /etc/profile;/home/hadoop/hadoop/sbin/hadoop-daemon.sh stop datanode"</span></span><br><span class="line">ansible m -m shell -a <span class="string">"source /etc/profile;/home/hadoop/hadoop/sbin/hadoop-daemon.sh stop zkfc"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"/home/hadoop/hadoop/sbin/hadoop-daemon.sh stop journalnode"</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#remakea,可能服务失败，重新部署</span></span><br><span class="line">ansible all -m shell -a <span class="string">"mv /home/hadoop/hadoop /tmp/hadoop3"</span></span><br><span class="line">tar -zxvf hadoop-2.5.2.tar.gz</span><br><span class="line">mv hadoop-2.5.2 hadoop</span><br><span class="line">cp /home/hadoop/etc.bak/hadoop/* /home/hadoop/hadoop/etc/hadoop/</span><br><span class="line">cat /home/hadoop/hadoop/etc/hadoop/hdfs-site.xml</span><br><span class="line"></span><br><span class="line"><span class="comment">#部署hbase</span></span><br><span class="line"><span class="comment">#hbase</span></span><br><span class="line">tar -zxvf hbase-0.98.11-hadoop2-bin.tar.gz</span><br><span class="line">mv hbase-0.98.11-hadoop2 hbase</span><br><span class="line">cp ./new/hbase_conf/* ./hbase/conf/</span><br><span class="line">mkdir ./hbase/<span class="built_in">log</span></span><br><span class="line"></span><br><span class="line">ansible all -m shell -a <span class="string">"ps aux|grep hbase"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"ps aux|grep hbase|grep java|grep -v grep"</span></span><br><span class="line">/home/hadoop/hbase/bin/stop-hbase.sh</span><br><span class="line">/home/hadoop/hbase/bin/start-hbase.sh</span><br><span class="line">tail -f /home/hadoop/hbase/<span class="built_in">log</span>/hbase-hadoop-master-h-master1.log</span><br><span class="line">vim /home/hadoop/hbase/<span class="built_in">log</span>/hbase-hadoop-master-h-master1.log</span><br><span class="line"><span class="comment">#结束进程</span></span><br><span class="line">ps aux|grep hbase|grep java|grep -v grep|awk <span class="string">'&#123;print $2&#125;'</span></span><br><span class="line">ps aux|grep hbase|grep java|grep -v grep|awk <span class="string">'&#123;print $2&#125;'</span>|xargs -i <span class="built_in">kill</span> &#123;&#125;; ps aux|grep hbase</span><br><span class="line"></span><br><span class="line"><span class="comment">#rm all,删除所有，重新部署</span></span><br><span class="line">ansible all -m shell -a <span class="string">"rm /home/hadoop/hadoop -fr"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"rm /home/hadoop/hbase -fr"</span></span><br><span class="line">ansible all -m shell -a <span class="string">"rm /home/hadoop/zookeeper -fr"</span></span><br><span class="line">tar -xzvf hadoop-2.5.2.tar.gz</span><br><span class="line">mv hadoop-2.5.2 hadoop</span><br><span class="line">tar -zxvf zookeeper-3.4.6.tar.gz</span><br><span class="line">mv zookeeper-3.4.6 zookeeper</span><br><span class="line">mkdir /home/hadoop/zookeeper/data</span><br><span class="line">mkdir /home/hadoop/zookeeper/logs</span><br><span class="line">cp ./new/hadoop_etc/* ./hadoop/etc/ -fr</span><br><span class="line">cp ./new/zookeeper_conf/* ./zookeeper/conf/ -fr</span><br><span class="line">bash Distribute.sh</span><br><span class="line">bash Distribute_zoookeeper.sh</span><br><span class="line">ansible h-master1 -m shell -a <span class="string">"echo '0'&gt; /home/hadoop/zookeeper/data/myid"</span></span><br><span class="line">ansible h-master2 -m shell -a <span class="string">"echo '1'&gt; /home/hadoop/zookeeper/data/myid"</span></span><br><span class="line">ansible h-slave1 -m shell -a <span class="string">"echo '2'&gt; /home/hadoop/zookeeper/data/myid"</span></span><br><span class="line">ansible h-slave2 -m shell -a <span class="string">"echo '3'&gt; /home/hadoop/zookeeper/data/myid"</span></span><br><span class="line">ansible h-slave3 -m shell -a <span class="string">"echo '4'&gt; /home/hadoop/zookeeper/data/myid"</span></span><br><span class="line"><span class="comment">#over</span></span><br><span class="line"><span class="comment">#other</span></span><br><span class="line">ansible all -m shell -a <span class="string">"echo \"127.0.0.1 localhost\" &gt;&gt; /etc/hosts"</span></span><br></pre></td></tr></table></figure>
+<h1 id="几个批量分发的脚本，很脑残"><a href="#几个批量分发的脚本，很脑残" class="headerlink" title="几个批量分发的脚本，很脑残"></a>几个批量分发的脚本，很脑残</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#distribute_hadoop_conf.sh </span></span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">scp -r /home/hadoop/hadoop/etc/hadoop/ h-master2:/home/hadoop/hadoop/etc/hadoop/ &amp;</span><br><span class="line">scp -r /home/hadoop/hadoop/etc/hadoop/ h-slave1:/home/hadoop/hadoop/etc/hadoop/ &amp;</span><br><span class="line">scp -r /home/hadoop/hadoop/etc/hadoop/ h-slave2:/home/hadoop/hadoop/etc/hadoop/ &amp;</span><br><span class="line">scp -r /home/hadoop/hadoop/etc/hadoop/ h-slave3:/home/hadoop/hadoop/etc/hadoop/ &amp;</span><br><span class="line"><span class="built_in">wait</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Task completed~"</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Distribute_hbase_conf.sh</span></span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">scp -r /home/hadoop/hbase/conf h-master2:~/hbase &amp;</span><br><span class="line">scp -r /home/hadoop/hbase/conf h-slave1:~/hbase &amp;</span><br><span class="line">scp -r /home/hadoop/hbase/conf h-slave2:~/hbase &amp;</span><br><span class="line">scp -r /home/hadoop/hbase/conf h-slave3:~/hbase &amp;</span><br><span class="line"><span class="built_in">wait</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Task completed~"</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Distribute_hbase.sh</span></span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">scp -r /home/hadoop/hbase h-slave1:~ &amp;</span><br><span class="line">scp -r /home/hadoop/hbase h-slave2:~ &amp;</span><br><span class="line">scp -r /home/hadoop/hbase h-slave3:~ &amp;</span><br><span class="line"><span class="built_in">wait</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Task completed~"</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Distribute.sh </span></span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">scp -r /home/hadoop/hadoop h-master2:~ &amp;</span><br><span class="line">scp -r /home/hadoop/hadoop h-slave1:~ &amp;</span><br><span class="line">scp -r /home/hadoop/hadoop h-slave2:~ &amp;</span><br><span class="line">scp -r /home/hadoop/hadoop h-slave3:~ &amp;</span><br><span class="line"><span class="built_in">wait</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Task completed~"</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Distribute_zoo_conf.sh</span></span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">scp -r /home/hadoop/zookeeper/conf h-master2:/home/hadoop/zookeeper/ &amp;</span><br><span class="line">scp -r /home/hadoop/zookeeper/conf h-slave1:/home/hadoop/zookeeper/ &amp;</span><br><span class="line">scp -r /home/hadoop/zookeeper/conf h-slave2:/home/hadoop/zookeeper/ &amp;</span><br><span class="line">scp -r /home/hadoop/zookeeper/conf h-slave3:/home/hadoop/zookeeper/ &amp;</span><br><span class="line"><span class="built_in">wait</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Task completed~"</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Distribute_zoookeeper.sh</span></span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">scp -r /home/hadoop/zookeeper h-master2:~ &amp;</span><br><span class="line">scp -r /home/hadoop/zookeeper h-slave1:~ &amp;</span><br><span class="line">scp -r /home/hadoop/zookeeper h-slave2:~ &amp;</span><br><span class="line">scp -r /home/hadoop/zookeeper h-slave3:~ &amp;</span><br><span class="line"><span class="built_in">wait</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Task completed~"</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/hbase/" rel="tag"># hbase</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/03/09/Fio-基准测试工具/" rel="next" title="Fio 基准测试工具">
+                <i class="fa fa-chevron-left"></i> Fio 基准测试工具
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/03/27/Docker核心技术预览/" rel="prev" title="Docker核心技术预览">
+                Docker核心技术预览 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">57</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">28</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">74</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#本地添加host"><span class="nav-number">1.</span> <span class="nav-text">本地添加host</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#环境信息"><span class="nav-number">2.</span> <span class="nav-text">环境信息</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#web"><span class="nav-number">3.</span> <span class="nav-text">web</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用历史命令："><span class="nav-number">4.</span> <span class="nav-text">使用历史命令：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#几个批量分发的脚本，很脑残"><span class="nav-number">5.</span> <span class="nav-text">几个批量分发的脚本，很脑残</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Muse</a> v6.4.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
