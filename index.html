@@ -293,6 +293,162 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/16/k8s-1-18-国服安装笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/08/16/k8s-1-18-国服安装笔记/" itemprop="url">
+                  k8s 1.18 国服安装笔记
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2020-08-16 09:07:20" itemprop="dateCreated datePublished" datetime="2020-08-16T09:07:20+08:00">2020-08-16</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="1-系统准备"><a href="#1-系统准备" class="headerlink" title="1 系统准备"></a>1 系统准备</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># cat /etc/centos-release</span></span><br><span class="line">CentOS Linux release 7.8.2003 (Core)</span><br></pre></td></tr></table></figure>
+<h2 id="2-配置固定ip"><a href="#2-配置固定ip" class="headerlink" title="2 配置固定ip"></a>2 配置固定ip</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># cat /etc/sysconfig/network-scripts/ifcfg-ens33</span></span><br><span class="line">TYPE=Ethernet</span><br><span class="line">PROXY_METHOD=none</span><br><span class="line">BROWSER_ONLY=no</span><br><span class="line">BOOTPROTO=static</span><br><span class="line"><span class="comment">#BOOTPROTO=dhcp</span></span><br><span class="line">DEFROUTE=yes</span><br><span class="line">IPV4_FAILURE_FATAL=no</span><br><span class="line">IPV6INIT=yes</span><br><span class="line">IPV6_AUTOCONF=yes</span><br><span class="line">IPV6_DEFROUTE=yes</span><br><span class="line">IPV6_FAILURE_FATAL=no</span><br><span class="line">IPV6_ADDR_GEN_MODE=stable-privacy</span><br><span class="line">NAME=ens33</span><br><span class="line">UUID=2cb41960-5518-4366-8aa9-3b387ab22468</span><br><span class="line">DEVICE=ens33</span><br><span class="line">ONBOOT=yes</span><br><span class="line">IPADDR=192.168.232.201</span><br><span class="line">NETMASK=255.255.255.0</span><br><span class="line">GATEWAY=192.168.232.2</span><br></pre></td></tr></table></figure>
+<h2 id="3-添加阿里源"><a href="#3-添加阿里源" class="headerlink" title="3 添加阿里源"></a>3 添加阿里源</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># rm -rfv /etc/yum.repos.d/*</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span></span><br></pre></td></tr></table></figure>
+<h2 id="4-配置主机名"><a href="#4-配置主机名" class="headerlink" title="4 配置主机名"></a>4 配置主机名</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># cat /etc/hosts</span></span><br><span class="line">127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4</span><br><span class="line">::1         localhost localhost.localdomain localhost6 localhost6.localdomain6</span><br><span class="line">192.168.232.201 k8s1.hank.im</span><br><span class="line">192.168.232.202 k8s2.hank.im</span><br></pre></td></tr></table></figure>
+<h2 id="5-关闭swap，注释swap分区"><a href="#5-关闭swap，注释swap分区" class="headerlink" title="5 关闭swap，注释swap分区"></a>5 关闭swap，注释swap分区</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># swapoff -a</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># sed -i 'd/swap/' /etc/fstab</span></span><br></pre></td></tr></table></figure>
+<h2 id="6-配置内核参数，将桥接的IPv4流量传递到iptables的链"><a href="#6-配置内核参数，将桥接的IPv4流量传递到iptables的链" class="headerlink" title="6 配置内核参数，将桥接的IPv4流量传递到iptables的链"></a>6 配置内核参数，将桥接的IPv4流量传递到iptables的链</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># cat &gt; /etc/sysctl.d/k8s.conf &lt;&lt;EOF</span></span><br><span class="line">net.bridge.bridge-nf-call-ip6tables = 1</span><br><span class="line">net.bridge.bridge-nf-call-iptables = 1</span><br><span class="line">EOF</span><br><span class="line">sysctl --system</span><br><span class="line">[root@k8s1 ~]<span class="comment"># setenforce 0</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># sed -i 's/SELINUX=enforcing/SELINUX=disabled/'  /etc/selinux/config</span></span><br></pre></td></tr></table></figure>
+<h2 id="7-安装常用包"><a href="#7-安装常用包" class="headerlink" title="7 安装常用包"></a>7 安装常用包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># yum install vim bash-completion net-tools gcc -y</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># yum group install Development Tools -y</span></span><br></pre></td></tr></table></figure>
+<h2 id="8-使用aliyun源安装docker-ce"><a href="#8-使用aliyun源安装docker-ce" class="headerlink" title="8 使用aliyun源安装docker-ce"></a>8 使用aliyun源安装docker-ce</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># yum install -y yum-utils device-mapper-persistent-data lvm2</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docke</span></span><br><span class="line">r-ce.repo</span><br><span class="line">[root@k8s1 ~]<span class="comment"># yum -y install docker-ce</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># mkdir -p /etc/docker</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># cat /etc/docker/daemon.json</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"graph"</span>: <span class="string">"/data/docker"</span>,</span><br><span class="line">  <span class="string">"exec-opts"</span>: [<span class="string">"native.cgroupdriver=systemd"</span>]</span><br><span class="line">&#125;</span><br><span class="line">[root@k8s1 ~]<span class="comment"># systemctl daemon-reload</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># systemctl restart docker</span></span><br></pre></td></tr></table></figure>
+<h2 id="9-装kubectl、kubelet、kubeadm"><a href="#9-装kubectl、kubelet、kubeadm" class="headerlink" title="9 装kubectl、kubelet、kubeadm"></a>9 装kubectl、kubelet、kubeadm</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># cat &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo</span></span><br><span class="line">[kubernetes]</span><br><span class="line">name=Kubernetes</span><br><span class="line">baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">repo_gpgcheck=1</span><br><span class="line">gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg</span><br><span class="line">EOF</span><br><span class="line">[root@k8s1 ~]<span class="comment"># yum install kubectl kubelet kubeadm</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># systemctl enable kubelet</span></span><br></pre></td></tr></table></figure>
+<h2 id="10-初始化安装集群"><a href="#10-初始化安装集群" class="headerlink" title="10 初始化安装集群"></a>10 初始化安装集群</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">kubeadm init --kubernetes-version=1.18.0  \</span><br><span class="line">--apiserver-advertise-address=192.168.232.201   \                 <span class="comment"># master ip</span></span><br><span class="line">--image-repository registry.aliyuncs.com/google_containers  \</span><br><span class="line">--service-cidr=192.168.0.0/16 --pod-network-cidr=192.169.0.0/16   <span class="comment"># 互无联系</span></span><br><span class="line">...</span><br><span class="line">To start using your cluster, you need to run the following as a regular user:</span><br><span class="line"></span><br><span class="line">  mkdir -p <span class="variable">$HOME</span>/.kube</span><br><span class="line">  sudo cp -i /etc/kubernetes/admin.conf <span class="variable">$HOME</span>/.kube/config</span><br><span class="line">  sudo chown $(id -u):$(id -g) <span class="variable">$HOME</span>/.kube/config</span><br><span class="line"></span><br><span class="line">You should now deploy a pod network to the cluster.</span><br><span class="line">Run <span class="string">"kubectl apply -f [podnetwork].yaml"</span> with one of the options listed at:</span><br><span class="line">  https://kubernetes.io/docs/concepts/cluster-administration/addons/</span><br><span class="line"></span><br><span class="line">Then you can join any number of worker nodes by running the following on each as root:</span><br><span class="line">[root@k8s1 ~]<span class="comment"># mkdir -p $HOME/.kube</span></span><br><span class="line">[root@k8s1 ~]<span class="comment">#  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span></span><br><span class="line">[root@k8s1 ~]<span class="comment">#  sudo chown $(id -u):$(id -g) $HOME/.kube/config</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># source &lt;(kubectl completion bash)</span></span><br></pre></td></tr></table></figure>
+<h2 id="11-查看节点-pod"><a href="#11-查看节点-pod" class="headerlink" title="11 查看节点 pod"></a>11 查看节点 pod</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">NAME                STATUS     ROLES    AGE     VERSION</span><br><span class="line">master01.paas.com   NotReady   master   2m29s   v1.18.0</span><br><span class="line">[root@master01 ~]<span class="comment"># kubectl get pod --all-namespaces</span></span><br><span class="line">NAMESPACE     NAME                                        READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system   coredns-7ff77c879f-fsj9l                    0/1     Pending   0          2m12s</span><br><span class="line">kube-system   coredns-7ff77c879f-q5ll2                    0/1     Pending   0          2m12s</span><br><span class="line">kube-system   etcd-master01.paas.com                      1/1     Running   0          2m22s</span><br><span class="line">kube-system   kube-apiserver-master01.paas.com            1/1     Running   0          2m22s</span><br><span class="line">kube-system   kube-controller-manager-master01.paas.com   1/1     Running   0          2m22s</span><br><span class="line">kube-system   kube-proxy-th472                            1/1     Running   0          2m12s</span><br><span class="line">kube-system   kube-scheduler-master01.paas.com            1/1     Running   0          2m22s</span><br></pre></td></tr></table></figure>
+<h2 id="12-查看时间是否正确"><a href="#12-查看时间是否正确" class="headerlink" title="12 查看时间是否正确"></a>12 查看时间是否正确</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># yum install ntpdate -y</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># ntpdate -u ntp.api.bz</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># echo "*/20 * * * * /usr/sbin/ntpdate -u ntp.api.bz &gt;/dev/null &amp;" &gt;&gt; /var/spool/cron/root</span></span><br><span class="line">16 Aug 08:48:33 ntpdate[109431]: step time server 114.118.7.161 offset 352572.538751 sec</span><br></pre></td></tr></table></figure>
+<h2 id="13-安装calico网络"><a href="#13-安装calico网络" class="headerlink" title="13 安装calico网络"></a>13 安装calico网络</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml</span></span><br></pre></td></tr></table></figure>
+<h2 id="14-再次查看node"><a href="#14-再次查看node" class="headerlink" title="14 再次查看node"></a>14 再次查看node</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># kubectl get pod --all-namespaces</span></span><br><span class="line">NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system   calico-kube-controllers-578894d4cd-8p9xr   1/1     Running   0          5m18s</span><br><span class="line">kube-system   calico-node-czgqs                          1/1     Running   0          5m19s</span><br><span class="line">kube-system   coredns-7ff77c879f-f6p5r                   1/1     Running   0          4d10h</span><br><span class="line">kube-system   coredns-7ff77c879f-p2xl8                   1/1     Running   0          4d10h</span><br><span class="line">kube-system   etcd-k8s1.hank.im                          1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-apiserver-k8s1.hank.im                1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-controller-manager-k8s1.hank.im       1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-proxy-qjczn                           1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-scheduler-k8s1.hank.im                1/1     Running   0          4d10h</span><br><span class="line">[root@k8s1 ~]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+<h2 id="15-如果报错，查看日志"><a href="#15-如果报错，查看日志" class="headerlink" title="15 如果报错，查看日志"></a>15 如果报错，查看日志</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查日志				</span></span><br><span class="line">kubectl describe pod/calico-node-28fwk -n kube-system</span><br></pre></td></tr></table></figure>
+<h2 id="16-添加dashboard"><a href="#16-添加dashboard" class="headerlink" title="16 添加dashboard"></a>16 添加dashboard</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[root@master01 ~]<span class="comment"># wget  https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc7/aio/deploy/recommended.yaml</span></span><br><span class="line">[root@master01 ~]<span class="comment"># vim recommended.yaml</span></span><br><span class="line">kind: Service</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br><span class="line">  name: kubernetes-dashboard</span><br><span class="line">  namespace: kubernetes-dashboard</span><br><span class="line">spec:</span><br><span class="line">  <span class="built_in">type</span>: NodePort   <span class="comment"># add</span></span><br><span class="line">  ports:</span><br><span class="line">    - port: 443</span><br><span class="line">      targetPort: 8443</span><br><span class="line">      nodePort: 30000  <span class="comment"># add</span></span><br><span class="line">  selector:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br><span class="line"></span><br><span class="line">[root@master01 ~]<span class="comment"># kubectl create -f recommended.yaml</span></span><br><span class="line">namespace/kubernetes-dashboard created</span><br><span class="line">serviceaccount/kubernetes-dashboard created</span><br><span class="line">service/kubernetes-dashboard created</span><br><span class="line">secret/kubernetes-dashboard-certs created</span><br><span class="line">secret/kubernetes-dashboard-csrf created</span><br><span class="line">secret/kubernetes-dashboard-key-holder created</span><br><span class="line">configmap/kubernetes-dashboard-settings created</span><br><span class="line">role.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">deployment.apps/kubernetes-dashboard created</span><br><span class="line">service/dashboard-metrics-scraper created</span><br><span class="line">deployment.apps/dashboard-metrics-scraper created</span><br></pre></td></tr></table></figure>
+<h2 id="17-查看状态"><a href="#17-查看状态" class="headerlink" title="17 查看状态"></a>17 查看状态</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment">#  kubectl get pods -A</span></span><br><span class="line">NAMESPACE              NAME                                        READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system            calico-kube-controllers-578894d4cd-8p9xr    1/1     Running   0          11m</span><br><span class="line">kube-system            calico-node-czgqs                           1/1     Running   0          11m</span><br><span class="line">kube-system            coredns-7ff77c879f-f6p5r                    1/1     Running   0          4d10h</span><br><span class="line">kube-system            coredns-7ff77c879f-p2xl8                    1/1     Running   0          4d10h</span><br><span class="line">kube-system            etcd-k8s1.hank.im                           1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-apiserver-k8s1.hank.im                 1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-controller-manager-k8s1.hank.im        1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-proxy-qjczn                            1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-scheduler-k8s1.hank.im                 1/1     Running   0          4d10h</span><br><span class="line">kubernetes-dashboard   dashboard-metrics-scraper-dc6947fbf-4ghbd   1/1     Running   0          2m4s</span><br><span class="line">kubernetes-dashboard   kubernetes-dashboard-5d4dc8b976-67lkz       1/1     Running   0          2m4s</span><br><span class="line">[root@k8s1 ~]<span class="comment"># kubectl get svc -n kubernetes-dashboard</span></span><br><span class="line">NAME                        TYPE        CLUSTER-IP        EXTERNAL-IP   PORT(S)         AGE</span><br><span class="line">dashboard-metrics-scraper   ClusterIP   192.168.178.170   &lt;none&gt;        8000/TCP        104s</span><br><span class="line">kubernetes-dashboard        NodePort    192.168.26.221    &lt;none&gt;        443:30000/TCP   104s</span><br></pre></td></tr></table></figure>
+<h2 id="18-绑定密钥"><a href="#18-绑定密钥" class="headerlink" title="18 绑定密钥"></a>18 绑定密钥</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># kubectl -n kubernetes-dashboard get secret</span></span><br><span class="line">NAME                               TYPE                                  DATA   AGE</span><br><span class="line">default-token-v7k99                kubernetes.io/service-account-token   3      2m50s</span><br><span class="line">kubernetes-dashboard-certs         Opaque                                0      2m50s</span><br><span class="line">kubernetes-dashboard-csrf          Opaque                                1      2m50s</span><br><span class="line">kubernetes-dashboard-key-holder    Opaque                                2      2m50s</span><br><span class="line">kubernetes-dashboard-token-rz9mn   kubernetes.io/service-account-token   3      2m50s</span><br><span class="line">[root@k8s1 ~]<span class="comment"># kubectl describe secrets -n kubernetes-dashboard  kubernetes-dashboard-token-rz9mn  | grep token | awk 'NR==3&#123;print $2&#125;'</span></span><br><span class="line">eyJhbGciOiJSUzI1NiIsImtpZCI6IlFyaXppQ1JTYV82TDhoM2N6RjgtS05QeGdlLXc2TURxZFFCdnQ5YmtoV0UifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC10b2tlbi1yejltbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjczZjU0YTdmLTU4NWYtNGIwOS1iNTAwLTZlOGIyODlhNGQ0YiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDprdWJlcm5ldGVzLWRhc2hib2FyZCJ9.gNfY2Jysj3o7klavdHzcd055D6E3lAiYwmE8-ldAWKBo7jVX4CsjjJuwXgMAudCJheEILx52TcgDnvh-kwqUH1xQuTR9z4PWGTGAoE58TEnMJFVRc6c3-CB5hX5zJ_gs0knEmrocWx1HADfWQ82KFH-zdUUPiio7osMgEmEE0FcY3hIP62CvQ6URMFiJ9MeOBODKeUijAjYj4qxh11IcnpaDqlkkUfhba7G05Jn__A_xKnbqQ9-ljM0Q3fCrMPCD-60gbzXUO7b7svus1KlP8uQKNUHSQOKzVvK17C89WqWwIqjGhs3SZ9ar1hlwHi0SlpHNGrZeMqryhHVoYhm00g</span><br></pre></td></tr></table></figure>
+<h2 id="19-绑定用户资源"><a href="#19-绑定用户资源" class="headerlink" title="19 绑定用户资源"></a>19 绑定用户资源</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[root@k8s1 ~]<span class="comment"># kubectl create clusterrolebinding serviceaccount-cluster-admin --clusterrole=cluster-admin --user=system:serviceaccount:kubernetes-dashboard:kubernetes-dashboard</span></span><br></pre></td></tr></table></figure>
+<p>打开https://<apiserver ip>:30000</apiserver></p>
+<p>输入token 上方一大堆串的字符<br><code>eyJhbGciOiJSUzI1NiIsImtpZCI6IlFyaXppQ1JTYV82TDhoM2N6RjgtS05QeGdlLXc2TURxZFFCdnQ5YmtoV0UifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC10b2tlbi1yejltbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjczZjU0YTdmLTU4NWYtNGIwOS1iNTAwLTZlOGIyODlhNGQ0YiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDprdWJlcm5ldGVzLWRhc2hib2FyZCJ9.gNfY2Jysj3o7klavdHzcd055D6E3lAiYwmE8-ldAWKBo7jVX4CsjjJuwXgMAudCJheEILx52TcgDnvh-kwqUH1xQuTR9z4PWGTGAoE58TEnMJFVRc6c3-CB5hX5zJ_gs0knEmrocWx1HADfWQ82KFH-zdUUPiio7osMgEmEE0FcY3hIP62CvQ6URMFiJ9MeOBODKeUijAjYj4qxh11IcnpaDqlkkUfhba7G05Jn__A_xKnbqQ9-ljM0Q3fCrMPCD-60gbzXUO7b7svus1KlP8uQKNUHSQOKzVvK17C89WqWwIqjGhs3SZ9ar1hlwHi0SlpHNGrZeMqryhHVoYhm00g</code></p>
+<h1 id="主节点搭建完成"><a href="#主节点搭建完成" class="headerlink" title="主节点搭建完成"></a>主节点搭建完成</h1>
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/14/技术运维基础技能面试题/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2370,184 +2526,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/20/vagrant-一般使用手册/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/06/20/vagrant-一般使用手册/" itemprop="url">
-                  vagrant 一般使用手册
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2020-06-20 16:49:05 / Modified: 17:03:50" itemprop="dateCreated datePublished" datetime="2020-06-20T16:49:05+08:00">2020-06-20</time>
-            
-
-            
-              
-
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/DEVOPS/" itemprop="url" rel="index"><span itemprop="name">DEVOPS</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="零-准备工作-安装vagrant"><a href="#零-准备工作-安装vagrant" class="headerlink" title="零 准备工作 安装vagrant"></a>零 准备工作 安装vagrant</h2><hr>
-<h3 id="1-安装virtualbox，准备rpm源"><a href="#1-安装virtualbox，准备rpm源" class="headerlink" title="1 安装virtualbox，准备rpm源"></a>1 安装virtualbox，准备rpm源</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># cat /etc/yum.repos.d/virtual.repo</span></span><br><span class="line">[virtualbox]</span><br><span class="line">name=Oracle Linux / RHEL / CentOS-<span class="variable">$releasever</span> / <span class="variable">$basearch</span> - VirtualBox</span><br><span class="line">baseurl=http://download.virtualbox.org/virtualbox/rpm/el/<span class="variable">$releasever</span>/<span class="variable">$basearch</span></span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">repo_gpgcheck=1</span><br><span class="line">gpgkey=https://www.virtualbox.org/download/oracle_vbox.asc</span><br><span class="line"> </span><br><span class="line">[root@localhost ~]<span class="comment"># yum install VirtualBox-6.1</span></span><br></pre></td></tr></table></figure>
-<h3 id="2-安装vagrant"><a href="#2-安装vagrant" class="headerlink" title="2 安装vagrant"></a>2 安装vagrant</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># wget https://releases.hashicorp.com/vagrant/2.2.7/vagrant_2.2.7_x86_64.rpm</span></span><br><span class="line">[root@localhost ~]<span class="comment"># rpm -ivh vagrant_2.2.7_x86_64.rpm</span></span><br><span class="line">[root@localhost ~]<span class="comment"># vagrant version</span></span><br><span class="line">Installed Version: 2.2.7</span><br><span class="line">Latest Version: 2.2.7</span><br><span class="line"> </span><br><span class="line">You<span class="string">'re running an up-to-date version of Vagrant!</span></span><br></pre></td></tr></table></figure>
-<h2 id="一-Vitrualbox"><a href="#一-Vitrualbox" class="headerlink" title="一 Vitrualbox"></a>一 Vitrualbox</h2><hr>
-<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">显示所有注册的虚拟机	 VBoxManage list vms</span><br><span class="line">删除虚拟机	VBoxManage unregistervm vm10-0-0-101 --delete </span><br><span class="line">显示虚拟机详情	VBoxManage showvminfo vm10-0-0-101</span><br><span class="line">关闭虚拟机	VBoxManage controlvm vm10-0-0-101 poweroff</span><br><span class="line">开启虚拟机	VBoxManage startvm  vm10-0-0-101 </span><br><span class="line">查看所有磁盘	vboxmanage list hdds</span><br><span class="line">删除vbox磁盘	vboxmanage closemedium disk &lt;uuid&gt; --delete   # uuid从查看所有磁盘中获得</span><br><span class="line">建立vmdk磁盘	VBoxManage createhd --filename /home/dev/disk/homer65_100g --size 100000 --format VMDK     # /home/dev/disk/homer65_100g  磁盘名 size 100000 100G</span><br></pre></td></tr></table></figure>
-<h2 id="二-Vagrant"><a href="#二-Vagrant" class="headerlink" title="二 Vagrant"></a>二 Vagrant</h2><hr>
-<h3 id="1-安装插件"><a href="#1-安装插件" class="headerlink" title="1 安装插件"></a>1 安装插件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vagrant plugin install vagrant-vbguest --plugin-clean-sources --plugin-source https://gems.ruby-china.com/ --verbose</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>必装插件<br><a href="https://blog.csdn.net/gdp12315_gu/article/details/79432302" target="_blank" rel="noopener">https://blog.csdn.net/gdp12315_gu/article/details/79432302</a></p>
-</blockquote>
-<h3 id="2-vagrant-创建私有box"><a href="#2-vagrant-创建私有box" class="headerlink" title="2 vagrant 创建私有box"></a>2 vagrant 创建私有box</h3><h4 id="1-我们需要知道要制作box的虚拟机的真实名称-执行："><a href="#1-我们需要知道要制作box的虚拟机的真实名称-执行：" class="headerlink" title="1) 我们需要知道要制作box的虚拟机的真实名称, 执行："></a>1) 我们需要知道要制作box的虚拟机的真实名称, 执行：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># VBoxManage list vms</span></span><br><span class="line"><span class="string">"vm10-0-7-66"</span> &#123;1b85767d-78c9-4bbe-8090-d23c77ab94d0&#125;</span><br><span class="line">vm10-0-7-66 是我们要制作的box的虚拟机的名字</span><br><span class="line">`</span><br></pre></td></tr></table></figure>
-<h4 id="2）创建box"><a href="#2）创建box" class="headerlink" title="2）创建box"></a>2）创建box</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vagrant package --base vm10-0-7-66 --output centos_lb/7.7.box</span></span><br></pre></td></tr></table></figure>
-<p>如有box名称存在我们首先要删除box</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vagrant box remove centos_lb/7.7.box</span></span><br></pre></td></tr></table></figure>
-<h4 id="3-建立box-并添加到本地vagrant"><a href="#3-建立box-并添加到本地vagrant" class="headerlink" title="3) 建立box 并添加到本地vagrant"></a>3) 建立box 并添加到本地vagrant</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vagrant box add centos_lb/7.7.box centos_lb/7.7.box</span></span><br><span class="line">==&gt; box: Box file was not detected as metadata. Adding it directly...</span><br><span class="line">==&gt; box: Adding box <span class="string">'centos_lb/7.7.box'</span> (v0) <span class="keyword">for</span> provider:</span><br><span class="line">    box: Unpacking necessary files from: file:///home/dev/centos_lb/7.7.box</span><br><span class="line">==&gt; box: Successfully added box <span class="string">'centos_lb/7.7.box'</span> (v0) <span class="keyword">for</span> <span class="string">'virtualbox'</span>!</span><br><span class="line">[root@vm10-0-0-15 dev]<span class="comment"># vagrant box list</span></span><br><span class="line">centos/7            (virtualbox, 0)</span><br><span class="line">centos/7.7          (virtualbox, 0)</span><br><span class="line">centos7             (virtualbox, 0)</span><br><span class="line">centos_lb/7.7  (virtualbox, 0)</span><br><span class="line">geerlingguy/debian9 (virtualbox, 1.1.5)</span><br><span class="line">[root@vm10-0-0-15 dev]<span class="comment"># ls ~/.vagrant.d/boxes/</span></span><br><span class="line">centos7  centos_lb-VAGRANTSLASH-7.7.box  centos-VAGRANTSLASH-7</span><br></pre></td></tr></table></figure>
-<p>已经添加进vagrant中了<br>删除刚生成的已经使用过box的文件</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># rm -fr centos_lb</span></span><br></pre></td></tr></table></figure>
-<h4 id="4-可能重复安装需要删除的文件夹-vm766-重复安装的虚拟机名称"><a href="#4-可能重复安装需要删除的文件夹-vm766-重复安装的虚拟机名称" class="headerlink" title="4) 可能重复安装需要删除的文件夹 vm766 重复安装的虚拟机名称"></a>4) 可能重复安装需要删除的文件夹 vm766 重复安装的虚拟机名称</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># rm -fr  /home/dev/.vagrant/machines/vm766</span></span><br></pre></td></tr></table></figure>
-<h3 id="3-新增挂载磁盘"><a href="#3-新增挂载磁盘" class="headerlink" title="3 新增挂载磁盘"></a>3 新增挂载磁盘</h3><h4 id="1）-初始化虚拟机"><a href="#1）-初始化虚拟机" class="headerlink" title="1） 初始化虚拟机"></a>1） 初始化虚拟机</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 停机并准备添加新硬盘</span></span><br><span class="line">vagrant halt vm765</span><br><span class="line"><span class="comment"># 新增一个100g的vmdk磁盘文件</span></span><br><span class="line">VBoxManage createhd --filename /home/dev/disk/homer66_100g --size 100000 --format VMDK</span><br></pre></td></tr></table></figure>
-<h3 id="2-创建虚拟磁盘"><a href="#2-创建虚拟磁盘" class="headerlink" title="2) 创建虚拟磁盘"></a>2) 创建虚拟磁盘</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看虚拟机info</span></span><br><span class="line">VBoxManage showvminfo vm10-0-7-65</span><br><span class="line"><span class="comment"># 根据输出信息，大概找到 Storage Controller,查看只有ide，没有sata</span></span><br><span class="line"><span class="comment"># 增加了个 sata 驱动器</span></span><br><span class="line">VBoxManage storagectl vm10-0-7-65 --name <span class="string">"SATA Controller"</span> --add sata --portcount 5 --controller IntelAhci --bootable on</span><br><span class="line"><span class="comment"># 继续把硬盘插上去</span></span><br><span class="line">VBoxManage storageattach vm10-0-7-65 --storagectl <span class="string">"SATA Controller"</span> --<span class="built_in">type</span> hdd --medium /home/dev/disk/homer65_100g.vmdk --port 1 --device 0</span><br><span class="line">vm1-master 就是你虚拟机的名字，上面有提到</span><br><span class="line">–storagectl 参数就是磁盘控制器的名字，参考上一条命令中的 –name</span><br><span class="line">–<span class="built_in">type</span> hdd 表示是硬盘，因为这个命令不仅仅可以插硬盘，还能插光驱等，所以要指定插的是什么</span><br><span class="line">–medium 这里指定的是虚拟磁盘的文件名，想想一下你手里拿着的硬盘</span><br><span class="line">–port 表示插在哪个端口，上面我们创建 sata 控制器的时候通过 –portcount 5 开放了5个端口，相当于主板上的5个sata- 接口，此时我们用第1个</span><br><span class="line">–device 0 设备id，设为0 就可以了，我也不知道什么意思</span><br><span class="line">如果没有错误的话，这里就成功添加了一块硬盘到虚拟机了，启动虚拟机，这里我用的是vagrant来管理虚拟机的。</span><br><span class="line">vagrant up vm765</span><br><span class="line">vagrant ssh vm765</span><br></pre></td></tr></table></figure>
-<p>剩下的就和正常服务器一样了，fdisk 格式化硬盘，然后mount到你想mout的位置</p>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2595,7 +2573,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">57</span>
+                    <span class="site-state-item-count">58</span>
                     <span class="site-state-item-name">posts</span>
                   </a>
                 </div>
