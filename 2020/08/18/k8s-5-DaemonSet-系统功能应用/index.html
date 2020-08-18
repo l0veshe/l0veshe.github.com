@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.2" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="DaemonSet保证在每个Node上都运行一个容器副本，常用来部署一些集群的日志、监控或者其他系统管理应用。典型的应用包括：  日志收集，比如fluentd，logstash等 系统监控，比如Prometheus Node Exporter，collectd，New Relic agent，Ganglia gmond等 系统程序，比如kube-proxy, kube-dns, glusterd,">
+<meta name="keywords" content="k8s,daemonSet">
+<meta property="og:type" content="article">
+<meta property="og:title" content="k8s-5 DaemonSet&#x2F;系统功能应用">
+<meta property="og:url" content="http://yoursite.com/2020/08/18/k8s-5-DaemonSet-系统功能应用/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="DaemonSet保证在每个Node上都运行一个容器副本，常用来部署一些集群的日志、监控或者其他系统管理应用。典型的应用包括：  日志收集，比如fluentd，logstash等 系统监控，比如Prometheus Node Exporter，collectd，New Relic agent，Ganglia gmond等 系统程序，比如kube-proxy, kube-dns, glusterd,">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-08-18T04:35:04.436Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="k8s-5 DaemonSet&#x2F;系统功能应用">
+<meta name="twitter:description" content="DaemonSet保证在每个Node上都运行一个容器副本，常用来部署一些集群的日志、监控或者其他系统管理应用。典型的应用包括：  日志收集，比如fluentd，logstash等 系统监控，比如Prometheus Node Exporter，collectd，New Relic agent，Ganglia gmond等 系统程序，比如kube-proxy, kube-dns, glusterd,">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/08/18/k8s-5-DaemonSet-系统功能应用/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>k8s-5 DaemonSet/系统功能应用 | 止乎于静</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">止乎于静</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>Categories</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/18/k8s-5-DaemonSet-系统功能应用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">k8s-5 DaemonSet/系统功能应用
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2020-08-18 12:35:04" itemprop="dateCreated datePublished" datetime="2020-08-18T12:35:04+08:00">2020-08-18</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/k8s/" itemprop="url" rel="index"><span itemprop="name">k8s</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>DaemonSet保证在每个Node上都运行一个容器副本，常用来部署一些集群的日志、监控或者其他系统管理应用。典型的应用包括：</p>
+<ul>
+<li>日志收集，比如fluentd，logstash等</li>
+<li>系统监控，比如Prometheus Node Exporter，collectd，New Relic agent，Ganglia gmond等</li>
+<li>系统程序，比如kube-proxy, kube-dns, glusterd, ceph等<br>使用Fluentd收集日志的例子：</li>
+</ul>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">DaemonSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">logging</span></span><br><span class="line"><span class="attr">        id:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">      name:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">fluentd-es</span></span><br><span class="line"><span class="attr">        image:</span> <span class="string">gcr.io/google_containers/fluentd-elasticsearch:1.3</span></span><br><span class="line"><span class="attr">        env:</span></span><br><span class="line"><span class="attr">         - name:</span> <span class="string">FLUENTD_ARGS</span></span><br><span class="line"><span class="attr">           value:</span> <span class="bullet">-qq</span></span><br><span class="line"><span class="attr">        volumeMounts:</span></span><br><span class="line"><span class="attr">         - name:</span> <span class="string">containers</span></span><br><span class="line"><span class="attr">           mountPath:</span> <span class="string">/var/lib/docker/containers</span></span><br><span class="line"><span class="attr">         - name:</span> <span class="string">varlog</span></span><br><span class="line"><span class="attr">           mountPath:</span> <span class="string">/varlog</span></span><br><span class="line"><span class="attr">      volumes:</span></span><br><span class="line"><span class="attr">         - hostPath:</span></span><br><span class="line"><span class="attr">             path:</span> <span class="string">/var/lib/docker/containers</span></span><br><span class="line"><span class="attr">           name:</span> <span class="string">containers</span></span><br><span class="line"><span class="attr">         - hostPath:</span></span><br><span class="line"><span class="attr">             path:</span> <span class="string">/var/log</span></span><br><span class="line"><span class="attr">           name:</span> <span class="string">varlog</span></span><br></pre></td></tr></table></figure>
+<h4 id="指定Node节点"><a href="#指定Node节点" class="headerlink" title="指定Node节点"></a>指定Node节点</h4><p>DaemonSet会忽略Node的unschedulable状态，有两种方式来指定Pod只运行在指定的Node节点上：</p>
+<ul>
+<li>nodeSelector：只调度到匹配指定label的Node上</li>
+<li>nodeAffinity：功能更丰富的Node选择器，比如支持集合操作</li>
+<li>podAffinity：调度到满足条件的Pod所在的Node上</li>
+</ul>
+<h4 id="nodeSelector示例"><a href="#nodeSelector示例" class="headerlink" title="nodeSelector示例"></a>nodeSelector示例</h4><p>首先给Node打上标签</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl label nodes node-01 disktype=ssd</span><br></pre></td></tr></table></figure>
+<p>然后在daemonset中指定nodeSelector为disktype=ssd：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">spec:</span><br><span class="line">  nodeSelector:</span><br><span class="line">    disktype: ssd</span><br></pre></td></tr></table></figure>
+<h4 id="nodeAffinity示例"><a href="#nodeAffinity示例" class="headerlink" title="nodeAffinity示例"></a>nodeAffinity示例</h4><p>nodeAffinity目前支持两种：requiredDuringSchedulingIgnoredDuringExecution和preferredDuringSchedulingIgnoredDuringExecution，分别代表必须满足条件和优选条件。比如下面的例子代表调度到包含标签kubernetes.io/e2e-az-name并且值为e2e-az1或e2e-az2的Node上，并且优选还带有标签another-node-label-key=another-node-label-value的Node。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">with-node-affinity</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  affinity:</span></span><br><span class="line"><span class="attr">    nodeAffinity:</span></span><br><span class="line"><span class="attr">      requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line"><span class="attr">        nodeSelectorTerms:</span></span><br><span class="line"><span class="attr">        - matchExpressions:</span></span><br><span class="line"><span class="attr">          - key:</span> <span class="string">kubernetes.io/e2e-az-name</span></span><br><span class="line"><span class="attr">            operator:</span> <span class="string">In</span></span><br><span class="line"><span class="attr">            values:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">e2e-az1</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">e2e-az2</span></span><br><span class="line"><span class="attr">      preferredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line"><span class="attr">      - weight:</span> <span class="number">1</span></span><br><span class="line"><span class="attr">        preference:</span></span><br><span class="line"><span class="attr">          matchExpressions:</span></span><br><span class="line"><span class="attr">          - key:</span> <span class="string">another-node-label-key</span></span><br><span class="line"><span class="attr">            operator:</span> <span class="string">In</span></span><br><span class="line"><span class="attr">            values:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">another-node-label-value</span></span><br><span class="line"><span class="attr">  containers:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">with-node-affinity</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">gcr.io/google_containers/pause:2.0</span></span><br></pre></td></tr></table></figure>
+<h4 id="podAffinity示例"><a href="#podAffinity示例" class="headerlink" title="podAffinity示例"></a>podAffinity示例</h4><p>podAffinity基于Pod的标签来选择Node，仅调度到满足条件Pod所在的Node上，支持podAffinity和podAntiAffinity。这个功能比较绕，以下面的例子为例：</p>
+<ul>
+<li>如果一个“Node所在Zone中包含至少一个带有security=S1标签且运行中的Pod”，那么可以调度到该Node</li>
+<li>不调度到“包含至少一个带有security=S2标签且运行中Pod”的Node上</li>
+</ul>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">with-pod-affinity</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  affinity:</span></span><br><span class="line"><span class="attr">    podAffinity:</span></span><br><span class="line"><span class="attr">      requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line"><span class="attr">      - labelSelector:</span></span><br><span class="line"><span class="attr">          matchExpressions:</span></span><br><span class="line"><span class="attr">          - key:</span> <span class="string">security</span></span><br><span class="line"><span class="attr">            operator:</span> <span class="string">In</span></span><br><span class="line"><span class="attr">            values:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">S1</span></span><br><span class="line"><span class="attr">        topologyKey:</span> <span class="string">failure-domain.beta.kubernetes.io/zone</span></span><br><span class="line"><span class="attr">    podAntiAffinity:</span></span><br><span class="line"><span class="attr">      preferredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line"><span class="attr">      - weight:</span> <span class="number">100</span></span><br><span class="line"><span class="attr">        podAffinityTerm:</span></span><br><span class="line"><span class="attr">          labelSelector:</span></span><br><span class="line"><span class="attr">            matchExpressions:</span></span><br><span class="line"><span class="attr">            - key:</span> <span class="string">security</span></span><br><span class="line"><span class="attr">              operator:</span> <span class="string">In</span></span><br><span class="line"><span class="attr">              values:</span></span><br><span class="line"><span class="bullet">              -</span> <span class="string">S2</span></span><br><span class="line"><span class="attr">          topologyKey:</span> <span class="string">kubernetes.io/hostname</span></span><br><span class="line"><span class="attr">  containers:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">with-pod-affinity</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">gcr.io/google_containers/pause:2.0</span></span><br></pre></td></tr></table></figure>
+<h4 id="静态Pod"><a href="#静态Pod" class="headerlink" title="静态Pod"></a>静态Pod</h4><p>除了DaemonSet，还可以使用静态Pod来在每台机器上运行指定的Pod，这需要kubelet在启动的时候指定manifest目录：</p>
+<p><code>kubelet --pod-manifest-path=/etc/kubernetes/manifests</code></p>
+<p>然后将所需要的Pod定义文件放到指定的manifest目录中。</p>
+<p>注意：静态Pod不能通过API Server来删除，但可以通过删除manifest文件来自动删除对应的Pod。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/k8s/" rel="tag"># k8s</a>
+          
+            <a href="/tags/daemonSet/" rel="tag"># daemonSet</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/08/18/k8s-4-StatefulSet-有状态服务/" rel="next" title="k8s-4 StatefulSet/有状态服务">
+                <i class="fa fa-chevron-left"></i> k8s-4 StatefulSet/有状态服务
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">62</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">29</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">78</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#指定Node节点"><span class="nav-number">1.</span> <span class="nav-text">指定Node节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#nodeSelector示例"><span class="nav-number">2.</span> <span class="nav-text">nodeSelector示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#nodeAffinity示例"><span class="nav-number">3.</span> <span class="nav-text">nodeAffinity示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#podAffinity示例"><span class="nav-number">4.</span> <span class="nav-text">podAffinity示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#静态Pod"><span class="nav-number">5.</span> <span class="nav-text">静态Pod</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Muse</a> v6.4.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

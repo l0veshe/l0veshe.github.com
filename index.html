@@ -293,6 +293,741 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/18/k8s-5-DaemonSet-系统功能应用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/08/18/k8s-5-DaemonSet-系统功能应用/" itemprop="url">
+                  k8s-5 DaemonSet/系统功能应用
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2020-08-18 12:35:04" itemprop="dateCreated datePublished" datetime="2020-08-18T12:35:04+08:00">2020-08-18</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/k8s/" itemprop="url" rel="index"><span itemprop="name">k8s</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>DaemonSet保证在每个Node上都运行一个容器副本，常用来部署一些集群的日志、监控或者其他系统管理应用。典型的应用包括：</p>
+<ul>
+<li>日志收集，比如fluentd，logstash等</li>
+<li>系统监控，比如Prometheus Node Exporter，collectd，New Relic agent，Ganglia gmond等</li>
+<li>系统程序，比如kube-proxy, kube-dns, glusterd, ceph等<br>使用Fluentd收集日志的例子：</li>
+</ul>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">DaemonSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">logging</span></span><br><span class="line"><span class="attr">        id:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">      name:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">fluentd-es</span></span><br><span class="line"><span class="attr">        image:</span> <span class="string">gcr.io/google_containers/fluentd-elasticsearch:1.3</span></span><br><span class="line"><span class="attr">        env:</span></span><br><span class="line"><span class="attr">         - name:</span> <span class="string">FLUENTD_ARGS</span></span><br><span class="line"><span class="attr">           value:</span> <span class="bullet">-qq</span></span><br><span class="line"><span class="attr">        volumeMounts:</span></span><br><span class="line"><span class="attr">         - name:</span> <span class="string">containers</span></span><br><span class="line"><span class="attr">           mountPath:</span> <span class="string">/var/lib/docker/containers</span></span><br><span class="line"><span class="attr">         - name:</span> <span class="string">varlog</span></span><br><span class="line"><span class="attr">           mountPath:</span> <span class="string">/varlog</span></span><br><span class="line"><span class="attr">      volumes:</span></span><br><span class="line"><span class="attr">         - hostPath:</span></span><br><span class="line"><span class="attr">             path:</span> <span class="string">/var/lib/docker/containers</span></span><br><span class="line"><span class="attr">           name:</span> <span class="string">containers</span></span><br><span class="line"><span class="attr">         - hostPath:</span></span><br><span class="line"><span class="attr">             path:</span> <span class="string">/var/log</span></span><br><span class="line"><span class="attr">           name:</span> <span class="string">varlog</span></span><br></pre></td></tr></table></figure>
+<h4 id="指定Node节点"><a href="#指定Node节点" class="headerlink" title="指定Node节点"></a>指定Node节点</h4><p>DaemonSet会忽略Node的unschedulable状态，有两种方式来指定Pod只运行在指定的Node节点上：</p>
+<ul>
+<li>nodeSelector：只调度到匹配指定label的Node上</li>
+<li>nodeAffinity：功能更丰富的Node选择器，比如支持集合操作</li>
+<li>podAffinity：调度到满足条件的Pod所在的Node上</li>
+</ul>
+<h4 id="nodeSelector示例"><a href="#nodeSelector示例" class="headerlink" title="nodeSelector示例"></a>nodeSelector示例</h4><p>首先给Node打上标签</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl label nodes node-01 disktype=ssd</span><br></pre></td></tr></table></figure>
+<p>然后在daemonset中指定nodeSelector为disktype=ssd：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">spec:</span><br><span class="line">  nodeSelector:</span><br><span class="line">    disktype: ssd</span><br></pre></td></tr></table></figure>
+<h4 id="nodeAffinity示例"><a href="#nodeAffinity示例" class="headerlink" title="nodeAffinity示例"></a>nodeAffinity示例</h4><p>nodeAffinity目前支持两种：requiredDuringSchedulingIgnoredDuringExecution和preferredDuringSchedulingIgnoredDuringExecution，分别代表必须满足条件和优选条件。比如下面的例子代表调度到包含标签kubernetes.io/e2e-az-name并且值为e2e-az1或e2e-az2的Node上，并且优选还带有标签another-node-label-key=another-node-label-value的Node。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">with-node-affinity</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  affinity:</span></span><br><span class="line"><span class="attr">    nodeAffinity:</span></span><br><span class="line"><span class="attr">      requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line"><span class="attr">        nodeSelectorTerms:</span></span><br><span class="line"><span class="attr">        - matchExpressions:</span></span><br><span class="line"><span class="attr">          - key:</span> <span class="string">kubernetes.io/e2e-az-name</span></span><br><span class="line"><span class="attr">            operator:</span> <span class="string">In</span></span><br><span class="line"><span class="attr">            values:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">e2e-az1</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">e2e-az2</span></span><br><span class="line"><span class="attr">      preferredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line"><span class="attr">      - weight:</span> <span class="number">1</span></span><br><span class="line"><span class="attr">        preference:</span></span><br><span class="line"><span class="attr">          matchExpressions:</span></span><br><span class="line"><span class="attr">          - key:</span> <span class="string">another-node-label-key</span></span><br><span class="line"><span class="attr">            operator:</span> <span class="string">In</span></span><br><span class="line"><span class="attr">            values:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">another-node-label-value</span></span><br><span class="line"><span class="attr">  containers:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">with-node-affinity</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">gcr.io/google_containers/pause:2.0</span></span><br></pre></td></tr></table></figure>
+<h4 id="podAffinity示例"><a href="#podAffinity示例" class="headerlink" title="podAffinity示例"></a>podAffinity示例</h4><p>podAffinity基于Pod的标签来选择Node，仅调度到满足条件Pod所在的Node上，支持podAffinity和podAntiAffinity。这个功能比较绕，以下面的例子为例：</p>
+<ul>
+<li>如果一个“Node所在Zone中包含至少一个带有security=S1标签且运行中的Pod”，那么可以调度到该Node</li>
+<li>不调度到“包含至少一个带有security=S2标签且运行中Pod”的Node上</li>
+</ul>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">with-pod-affinity</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  affinity:</span></span><br><span class="line"><span class="attr">    podAffinity:</span></span><br><span class="line"><span class="attr">      requiredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line"><span class="attr">      - labelSelector:</span></span><br><span class="line"><span class="attr">          matchExpressions:</span></span><br><span class="line"><span class="attr">          - key:</span> <span class="string">security</span></span><br><span class="line"><span class="attr">            operator:</span> <span class="string">In</span></span><br><span class="line"><span class="attr">            values:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">S1</span></span><br><span class="line"><span class="attr">        topologyKey:</span> <span class="string">failure-domain.beta.kubernetes.io/zone</span></span><br><span class="line"><span class="attr">    podAntiAffinity:</span></span><br><span class="line"><span class="attr">      preferredDuringSchedulingIgnoredDuringExecution:</span></span><br><span class="line"><span class="attr">      - weight:</span> <span class="number">100</span></span><br><span class="line"><span class="attr">        podAffinityTerm:</span></span><br><span class="line"><span class="attr">          labelSelector:</span></span><br><span class="line"><span class="attr">            matchExpressions:</span></span><br><span class="line"><span class="attr">            - key:</span> <span class="string">security</span></span><br><span class="line"><span class="attr">              operator:</span> <span class="string">In</span></span><br><span class="line"><span class="attr">              values:</span></span><br><span class="line"><span class="bullet">              -</span> <span class="string">S2</span></span><br><span class="line"><span class="attr">          topologyKey:</span> <span class="string">kubernetes.io/hostname</span></span><br><span class="line"><span class="attr">  containers:</span></span><br><span class="line"><span class="attr">  - name:</span> <span class="string">with-pod-affinity</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">gcr.io/google_containers/pause:2.0</span></span><br></pre></td></tr></table></figure>
+<h4 id="静态Pod"><a href="#静态Pod" class="headerlink" title="静态Pod"></a>静态Pod</h4><p>除了DaemonSet，还可以使用静态Pod来在每台机器上运行指定的Pod，这需要kubelet在启动的时候指定manifest目录：</p>
+<p><code>kubelet --pod-manifest-path=/etc/kubernetes/manifests</code></p>
+<p>然后将所需要的Pod定义文件放到指定的manifest目录中。</p>
+<p>注意：静态Pod不能通过API Server来删除，但可以通过删除manifest文件来自动删除对应的Pod。</p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/18/k8s-4-StatefulSet-有状态服务/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/08/18/k8s-4-StatefulSet-有状态服务/" itemprop="url">
+                  k8s-4 StatefulSet/有状态服务
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2020-08-18 12:26:02" itemprop="dateCreated datePublished" datetime="2020-08-18T12:26:02+08:00">2020-08-18</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/k8s/" itemprop="url" rel="index"><span itemprop="name">k8s</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>StatefulSet是为了解决有状态服务的问题（对应Deployments和ReplicaSets是为无状态服务而设计），其应用场景包括</p>
+<ul>
+<li>稳定的持久化存储，即Pod重新调度后还是能访问到相同的持久化数据，基于PVC来实现</li>
+<li>稳定的网络标志，即Pod重新调度后其PodName和HostName不变，基于Headless Service（即没有Cluster IP的Service）来实现</li>
+<li>有序部署，有序扩展，即Pod是有顺序的，在部署或者扩展的时候要依据定义的顺序依次依次进行（即从0到N-1，在下一个Pod运行之前所有之前的Pod必须都是Running和Ready状态），基于init containers来实现</li>
+<li>有序收缩，有序删除（即从N-1到0）</li>
+</ul>
+<p>从上面的应用场景可以发现，StatefulSet由以下几个部分组成：</p>
+<ul>
+<li>用于定义网络标志（DNS domain）的<strong>Headless Service</strong></li>
+<li>用于创建PersistentVolumes的<strong>volumeClaimTemplates</strong></li>
+<li>定义具体应用的<strong>StatefulSet</strong></li>
+</ul>
+<p>StatefulSet中每个Pod的DNS格式为<code>statefulSetName-{0..N-1}.serviceName.namespace.svc.cluster.local</code>，其中</p>
+<ul>
+<li><code>serviceName</code>为Headless Service的名字<br>0..N-1为Pod所在的序号，从0开始到N-1</li>
+<li><code>statefulSetName</code>为StatefulSet的名字</li>
+<li><code>namespace</code>为服务所在的namespace，Headless Servic和StatefulSet必须在相同的namespace</li>
+<li><code>.cluster.local</code>为Cluster Domain，</li>
+</ul>
+<h2 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h2><p>以一个简单的nginx服务web.yaml为例：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">  labels:</span></span><br><span class="line"><span class="attr">    app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  ports:</span></span><br><span class="line"><span class="attr">  - port:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">    name:</span> <span class="string">web</span></span><br><span class="line"><span class="attr">  clusterIP:</span> <span class="string">None</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">StatefulSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">web</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  serviceName:</span> <span class="string">"nginx"</span></span><br><span class="line"><span class="attr">  replicas:</span> <span class="number">2</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">        image:</span> <span class="string">gcr.io/google_containers/nginx-slim:0.8</span></span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">          name:</span> <span class="string">web</span></span><br><span class="line"><span class="attr">        volumeMounts:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">www</span></span><br><span class="line"><span class="attr">          mountPath:</span> <span class="string">/usr/share/nginx/html</span></span><br><span class="line"><span class="attr">  volumeClaimTemplates:</span></span><br><span class="line"><span class="attr">  - metadata:</span></span><br><span class="line"><span class="attr">      name:</span> <span class="string">www</span></span><br><span class="line"><span class="attr">      annotations:</span></span><br><span class="line">        <span class="string">volume.alpha.kubernetes.io/storage-class:</span> <span class="string">anything</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      accessModes:</span> <span class="string">[</span> <span class="string">"ReadWriteOnce"</span> <span class="string">]</span></span><br><span class="line"><span class="attr">      resources:</span></span><br><span class="line"><span class="attr">        requests:</span></span><br><span class="line"><span class="attr">          storage:</span> <span class="number">1</span><span class="string">Gi</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create -f web.yaml</span><br><span class="line">service <span class="string">"nginx"</span> created</span><br><span class="line">statefulset <span class="string">"web"</span> created</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看创建的headless service和statefulset</span></span><br><span class="line">$ kubectl get service nginx</span><br><span class="line">NAME      CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE</span><br><span class="line">nginx     None         &lt;none&gt;        80/TCP    1m</span><br><span class="line">$ kubectl get statefulset web</span><br><span class="line">NAME      DESIRED   CURRENT   AGE</span><br><span class="line">web       2         2         2m</span><br><span class="line"></span><br><span class="line"><span class="comment"># 根据volumeClaimTemplates自动创建PVC（在GCE中会自动创建kubernetes.io/gce-pd类型的volume）</span></span><br><span class="line">$ kubectl get pvc</span><br><span class="line">NAME        STATUS    VOLUME                                     CAPACITY   ACCESSMODES   AGE</span><br><span class="line">www-web-0   Bound     pvc-d064a004-d8d4-11e6-b521-42010a800002   1Gi        RWO           16s</span><br><span class="line">www-web-1   Bound     pvc-d06a3946-d8d4-11e6-b521-42010a800002   1Gi        RWO           16s</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看创建的Pod，他们都是有序的</span></span><br><span class="line">$ kubectl get pods -l app=nginx</span><br><span class="line">NAME      READY     STATUS    RESTARTS   AGE</span><br><span class="line">web-0     1/1       Running   0          5m</span><br><span class="line">web-1     1/1       Running   0          4m</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用nslookup查看这些Pod的DNS</span></span><br><span class="line">$ kubectl run -i --tty --image busybox dns-test --restart=Never --rm /bin/sh</span><br><span class="line">/ <span class="comment"># nslookup web-0.nginx</span></span><br><span class="line">Server:    10.0.0.10</span><br><span class="line">Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local</span><br><span class="line"></span><br><span class="line">Name:      web-0.nginx</span><br><span class="line">Address 1: 10.244.2.10</span><br><span class="line">/ <span class="comment"># nslookup web-1.nginx</span></span><br><span class="line">Server:    10.0.0.10</span><br><span class="line">Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local</span><br><span class="line"></span><br><span class="line">Name:      web-1.nginx</span><br><span class="line">Address 1: 10.244.3.12</span><br><span class="line">/ <span class="comment"># nslookup web-0.nginx.default.svc.cluster.local</span></span><br><span class="line">Server:    10.0.0.10</span><br><span class="line">Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local</span><br><span class="line"></span><br><span class="line">Name:      web-0.nginx.default.svc.cluster.local</span><br><span class="line">Address 1: 10.244.2.10</span><br></pre></td></tr></table></figure>
+<p><strong>为什么需要 headless service 无头服务？</strong><br>在用Deployment时，每一个Pod名称是没有顺序的，是随机字符串，因此是Pod名称是无序的，但是在statefulset中要求必须是有序 ，每一个pod不能被随意取代，pod重建后pod名称还是一样的。而pod IP是变化的，所以是以Pod名称来识别。pod名称是pod唯一性的标识符，必须持久稳定有效。这时候要用到无头服务，它可以给每个Pod一个唯一的名称 。</p>
+<p><strong>为什么需要volumeClaimTemplate？</strong><br>对于有状态的副本集都会用到持久存储，对于分布式系统来讲，它的最大特点是数据是不一样的，所以各个节点不能使用同一存储卷，每个节点有自已的专用存储，但是如果在Deployment中的Pod template里定义的存储卷，是所有副本集共用一个存储卷，数据是相同的，因为是基于模板来的 ，而statefulset中每个Pod都要自已的专有存储卷，所以statefulset的存储卷就不能再用Pod模板来创建了，于是statefulSet使用volumeClaimTemplate，称为卷申请模板，它会为每个Pod生成不同的pvc，并绑定pv， 从而实现各pod有专用存储。这就是为什么要用volumeClaimTemplate的原因。</p>
+<p>还可以进行其他的操作</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 扩容</span></span><br><span class="line">$ kubectl scale statefulset web --replicas=5</span><br><span class="line"></span><br><span class="line"><span class="comment"># 缩容</span></span><br><span class="line">$ kubectl patch statefulset web -p <span class="string">'&#123;"spec":&#123;"replicas":3&#125;&#125;'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 镜像更新（目前还不支持直接更新image，需要patch来间接实现）</span></span><br><span class="line">$ kubectl patch statefulset web --<span class="built_in">type</span>=<span class="string">'json'</span> -p=<span class="string">'[&#123;"op": "replace", "path": "/spec/template/spec/containers/0/image", "value":"gcr.io/google_containers/nginx-slim:0.7"&#125;]'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除StatefulSet和Headless Service</span></span><br><span class="line">$ kubectl delete statefulset web</span><br><span class="line">$ kubectl delete service nginx</span><br><span class="line"></span><br><span class="line"><span class="comment"># StatefulSet删除后PVC还会保留着，数据不再使用的话也需要删除</span></span><br><span class="line">$ kubectl delete pvc www-web-0 www-web-1</span><br></pre></td></tr></table></figure>
+<h4 id="zookeeper"><a href="#zookeeper" class="headerlink" title="zookeeper"></a>zookeeper</h4><p>另外一个更能说明StatefulSet强大功能的示例为zookeeper.yaml。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">zk-headless</span></span><br><span class="line"><span class="attr">  labels:</span></span><br><span class="line"><span class="attr">    app:</span> <span class="string">zk-headless</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  ports:</span></span><br><span class="line"><span class="attr">  - port:</span> <span class="number">2888</span></span><br><span class="line"><span class="attr">    name:</span> <span class="string">server</span></span><br><span class="line"><span class="attr">  - port:</span> <span class="number">3888</span></span><br><span class="line"><span class="attr">    name:</span> <span class="string">leader-election</span></span><br><span class="line"><span class="attr">  clusterIP:</span> <span class="string">None</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    app:</span> <span class="string">zk</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">zk-config</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line"><span class="attr">  ensemble:</span> <span class="string">"zk-0;zk-1;zk-2"</span></span><br><span class="line">  <span class="string">jvm.heap:</span> <span class="string">"2G"</span></span><br><span class="line"><span class="attr">  tick:</span> <span class="string">"2000"</span></span><br><span class="line"><span class="attr">  init:</span> <span class="string">"10"</span></span><br><span class="line"><span class="attr">  sync:</span> <span class="string">"5"</span></span><br><span class="line">  <span class="string">client.cnxns:</span> <span class="string">"60"</span></span><br><span class="line">  <span class="string">snap.retain:</span> <span class="string">"3"</span></span><br><span class="line">  <span class="string">purge.interval:</span> <span class="string">"1"</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">policy/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PodDisruptionBudget</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">zk-budget</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    matchLabels:</span></span><br><span class="line"><span class="attr">      app:</span> <span class="string">zk</span></span><br><span class="line"><span class="attr">  minAvailable:</span> <span class="number">2</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">StatefulSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">zk</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  serviceName:</span> <span class="string">zk-headless</span></span><br><span class="line"><span class="attr">  replicas:</span> <span class="number">3</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">zk</span></span><br><span class="line"><span class="attr">      annotations:</span></span><br><span class="line">        <span class="string">pod.alpha.kubernetes.io/initialized:</span> <span class="string">"true"</span></span><br><span class="line">        <span class="string">scheduler.alpha.kubernetes.io/affinity:</span> <span class="string">&gt;</span></span><br><span class="line"><span class="string">            &#123;</span></span><br><span class="line"><span class="string">              "podAntiAffinity": &#123;</span></span><br><span class="line"><span class="string">                "requiredDuringSchedulingRequiredDuringExecution": [&#123;</span></span><br><span class="line"><span class="string">                  "labelSelector": &#123;</span></span><br><span class="line"><span class="string">                    "matchExpressions": [&#123;</span></span><br><span class="line"><span class="string">                      "key": "app",</span></span><br><span class="line"><span class="string">                      "operator": "In",</span></span><br><span class="line"><span class="string">                      "values": ["zk-headless"]</span></span><br><span class="line"><span class="string">                    &#125;]</span></span><br><span class="line"><span class="string">                  &#125;,</span></span><br><span class="line"><span class="string">                  "topologyKey": "kubernetes.io/hostname"</span></span><br><span class="line"><span class="string">                &#125;]</span></span><br><span class="line"><span class="string">              &#125;</span></span><br><span class="line"><span class="string">            &#125;</span></span><br><span class="line"><span class="string"></span><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">k8szk</span></span><br><span class="line"><span class="attr">        imagePullPolicy:</span> <span class="string">Always</span></span><br><span class="line"><span class="attr">        image:</span> <span class="string">gcr.io/google_samples/k8szk:v1</span></span><br><span class="line"><span class="attr">        resources:</span></span><br><span class="line"><span class="attr">          requests:</span></span><br><span class="line"><span class="attr">            memory:</span> <span class="string">"4Gi"</span></span><br><span class="line"><span class="attr">            cpu:</span> <span class="string">"1"</span></span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">2181</span></span><br><span class="line"><span class="attr">          name:</span> <span class="string">client</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">2888</span></span><br><span class="line"><span class="attr">          name:</span> <span class="string">server</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">3888</span></span><br><span class="line"><span class="attr">          name:</span> <span class="string">leader-election</span></span><br><span class="line"><span class="attr">        env:</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">name</span> <span class="string">:</span> <span class="string">ZK_ENSEMBLE</span></span><br><span class="line"><span class="attr">          valueFrom:</span></span><br><span class="line"><span class="attr">            configMapKeyRef:</span></span><br><span class="line"><span class="attr">              name:</span> <span class="string">zk-config</span></span><br><span class="line"><span class="attr">              key:</span> <span class="string">ensemble</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">name</span> <span class="string">:</span> <span class="string">ZK_HEAP_SIZE</span></span><br><span class="line"><span class="attr">          valueFrom:</span></span><br><span class="line"><span class="attr">            configMapKeyRef:</span></span><br><span class="line"><span class="attr">                name:</span> <span class="string">zk-config</span></span><br><span class="line"><span class="attr">                key:</span> <span class="string">jvm.heap</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">name</span> <span class="string">:</span> <span class="string">ZK_TICK_TIME</span></span><br><span class="line"><span class="attr">          valueFrom:</span></span><br><span class="line"><span class="attr">            configMapKeyRef:</span></span><br><span class="line"><span class="attr">                name:</span> <span class="string">zk-config</span></span><br><span class="line"><span class="attr">                key:</span> <span class="string">tick</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">name</span> <span class="string">:</span> <span class="string">ZK_INIT_LIMIT</span></span><br><span class="line"><span class="attr">          valueFrom:</span></span><br><span class="line"><span class="attr">            configMapKeyRef:</span></span><br><span class="line"><span class="attr">                name:</span> <span class="string">zk-config</span></span><br><span class="line"><span class="attr">                key:</span> <span class="string">init</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">name</span> <span class="string">:</span> <span class="string">ZK_SYNC_LIMIT</span></span><br><span class="line"><span class="attr">          valueFrom:</span></span><br><span class="line"><span class="attr">            configMapKeyRef:</span></span><br><span class="line"><span class="attr">                name:</span> <span class="string">zk-config</span></span><br><span class="line"><span class="attr">                key:</span> <span class="string">tick</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">name</span> <span class="string">:</span> <span class="string">ZK_MAX_CLIENT_CNXNS</span></span><br><span class="line"><span class="attr">          valueFrom:</span></span><br><span class="line"><span class="attr">            configMapKeyRef:</span></span><br><span class="line"><span class="attr">                name:</span> <span class="string">zk-config</span></span><br><span class="line"><span class="attr">                key:</span> <span class="string">client.cnxns</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">ZK_SNAP_RETAIN_COUNT</span></span><br><span class="line"><span class="attr">          valueFrom:</span></span><br><span class="line"><span class="attr">            configMapKeyRef:</span></span><br><span class="line"><span class="attr">                name:</span> <span class="string">zk-config</span></span><br><span class="line"><span class="attr">                key:</span> <span class="string">snap.retain</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">ZK_PURGE_INTERVAL</span></span><br><span class="line"><span class="attr">          valueFrom:</span></span><br><span class="line"><span class="attr">            configMapKeyRef:</span></span><br><span class="line"><span class="attr">                name:</span> <span class="string">zk-config</span></span><br><span class="line"><span class="attr">                key:</span> <span class="string">purge.interval</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">ZK_CLIENT_PORT</span></span><br><span class="line"><span class="attr">          value:</span> <span class="string">"2181"</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">ZK_SERVER_PORT</span></span><br><span class="line"><span class="attr">          value:</span> <span class="string">"2888"</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">ZK_ELECTION_PORT</span></span><br><span class="line"><span class="attr">          value:</span> <span class="string">"3888"</span></span><br><span class="line"><span class="attr">        command:</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">sh</span></span><br><span class="line"><span class="bullet">        -</span> <span class="bullet">-c</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">zkGenConfig.sh</span> <span class="string">&amp;&amp;</span> <span class="string">zkServer.sh</span> <span class="string">start-foreground</span></span><br><span class="line"><span class="attr">        readinessProbe:</span></span><br><span class="line"><span class="attr">          exec:</span></span><br><span class="line"><span class="attr">            command:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">"zkOk.sh"</span></span><br><span class="line"><span class="attr">          initialDelaySeconds:</span> <span class="number">15</span></span><br><span class="line"><span class="attr">          timeoutSeconds:</span> <span class="number">5</span></span><br><span class="line"><span class="attr">        livenessProbe:</span></span><br><span class="line"><span class="attr">          exec:</span></span><br><span class="line"><span class="attr">            command:</span></span><br><span class="line"><span class="bullet">            -</span> <span class="string">"zkOk.sh"</span></span><br><span class="line"><span class="attr">          initialDelaySeconds:</span> <span class="number">15</span></span><br><span class="line"><span class="attr">          timeoutSeconds:</span> <span class="number">5</span></span><br><span class="line"><span class="attr">        volumeMounts:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">datadir</span></span><br><span class="line"><span class="attr">          mountPath:</span> <span class="string">/var/lib/zookeeper</span></span><br><span class="line"><span class="attr">      securityContext:</span></span><br><span class="line"><span class="attr">        runAsUser:</span> <span class="number">1000</span></span><br><span class="line"><span class="attr">        fsGroup:</span> <span class="number">1000</span></span><br><span class="line"><span class="attr">  volumeClaimTemplates:</span></span><br><span class="line"><span class="attr">  - metadata:</span></span><br><span class="line"><span class="attr">      name:</span> <span class="string">datadir</span></span><br><span class="line"><span class="attr">      annotations:</span></span><br><span class="line">        <span class="string">volume.alpha.kubernetes.io/storage-class:</span> <span class="string">anything</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      accessModes:</span> <span class="string">[</span> <span class="string">"ReadWriteOnce"</span> <span class="string">]</span></span><br><span class="line"><span class="attr">      resources:</span></span><br><span class="line"><span class="attr">        requests:</span></span><br><span class="line"><span class="attr">          storage:</span> <span class="number">20</span><span class="string">Gi</span></span><br></pre></td></tr></table></figure>
+<p><code>kubectl create -f zookeeper.yaml</code></p>
+<h4 id="StatefulSet注意事项"><a href="#StatefulSet注意事项" class="headerlink" title="StatefulSet注意事项"></a>StatefulSet注意事项</h4><ol>
+<li>还在beta状态，需要kubernetes v1.5版本以上才支持</li>
+<li>所有Pod的Volume必须使用PersistentVolume或者是管理员事先创建好</li>
+<li>为了保证数据安全，删除StatefulSet时不会删除Volume</li>
+<li>StatefulSet需要一个Headless Service来定义DNS domain，需要在StatefulSet之前创建好</li>
+<li>目前StatefulSet还没有feature complete，比如更新操作还需要手动patch。</li>
+</ol>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/18/k8s-3-secret-环境变量/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/08/18/k8s-3-secret-环境变量/" itemprop="url">
+                  k8s-3 secret/环境变量
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2020-08-18 12:06:31" itemprop="dateCreated datePublished" datetime="2020-08-18T12:06:31+08:00">2020-08-18</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="Secret"><a href="#Secret" class="headerlink" title="Secret"></a>Secret</h2><hr>
+<p>Secret解决了密码、token、密钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
+<p>Secret有三种类型：</p>
+<ul>
+<li><p>Service Account</p>
+<blockquote>
+<p>用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的/run/secrets/kubernetes.io/serviceaccount目录中；</p>
+</blockquote>
+</li>
+<li><p>Opaque</p>
+<blockquote>
+<p>base64编码格式的Secret，用来存储密码、密钥等；</p>
+</blockquote>
+</li>
+<li><p>kubernetes.io/dockerconfigjson</p>
+<blockquote>
+<p>用来存储私有docker registry的认证信息。</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Opaque-Secret"><a href="#Opaque-Secret" class="headerlink" title="Opaque Secret"></a>Opaque Secret</h2><p>Opaque类型的数据是一个map类型，要求value是base64编码格式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> -n <span class="string">"admin"</span> | base64</span><br><span class="line">YWRtaW4=</span><br><span class="line">$ <span class="built_in">echo</span> -n <span class="string">"1f2d1e2e67df"</span> | base64</span><br><span class="line">MWYyZDFlMmU2N2Rm</span><br></pre></td></tr></table></figure>
+<p>secrets.yml</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: mysecret</span><br><span class="line"><span class="built_in">type</span>: Opaque</span><br><span class="line">data:</span><br><span class="line">  password: MWYyZDFlMmU2N2Rm</span><br><span class="line">  username: YWRtaW4=</span><br></pre></td></tr></table></figure>
+<p>接着，就可以创建secret了：kubectl create -f secrets.yml。</p>
+<p>创建好secret之后，有两种方式来使用它：</p>
+<ul>
+<li>以Volume方式</li>
+<li>以环境变量方式</li>
+</ul>
+<h4 id="将Secret挂载到Volume中"><a href="#将Secret挂载到Volume中" class="headerlink" title="将Secret挂载到Volume中"></a>将Secret挂载到Volume中</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    name: db</span><br><span class="line">  name: db</span><br><span class="line">spec:</span><br><span class="line">  volumes:</span><br><span class="line">  - name: secrets</span><br><span class="line">    secret:</span><br><span class="line">      secretName: mysecret</span><br><span class="line">  containers:</span><br><span class="line">  - image: gcr.io/my_project_id/pg:v1</span><br><span class="line">    name: db</span><br><span class="line">    volumeMounts:</span><br><span class="line">    - name: secrets</span><br><span class="line">      mountPath: <span class="string">"/etc/secrets"</span></span><br><span class="line">      readOnly: <span class="literal">true</span></span><br><span class="line">    ports:</span><br><span class="line">    - name: cp</span><br><span class="line">      containerPort: 5432</span><br><span class="line">      hostPort: 5432</span><br></pre></td></tr></table></figure>
+<h4 id="将Secret导出到环境变量中"><a href="#将Secret导出到环境变量中" class="headerlink" title="将Secret导出到环境变量中"></a>将Secret导出到环境变量中</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: extensions/v1beta1</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  name: wordpress-deployment</span><br><span class="line">spec:</span><br><span class="line">  replicas: 2</span><br><span class="line">  strategy:</span><br><span class="line">      <span class="built_in">type</span>: RollingUpdate</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        app: wordpress</span><br><span class="line">        visualize: <span class="string">"true"</span></span><br><span class="line">    spec:</span><br><span class="line">      containers:</span><br><span class="line">      - name: <span class="string">"wordpress"</span></span><br><span class="line">        image: <span class="string">"wordpress"</span></span><br><span class="line">        ports:</span><br><span class="line">        - containerPort: 80</span><br><span class="line">        env:</span><br><span class="line">        - name: WORDPRESS_DB_USER</span><br><span class="line">          valueFrom:</span><br><span class="line">            secretKeyRef:</span><br><span class="line">              name: mysecret</span><br><span class="line">              key: username</span><br><span class="line">        - name: WORDPRESS_DB_PASSWORD</span><br><span class="line">          valueFrom:</span><br><span class="line">            secretKeyRef:</span><br><span class="line">              name: mysecret</span><br><span class="line">              key: password</span><br></pre></td></tr></table></figure>
+<h4 id="kubernetes-io-dockerconfigjson"><a href="#kubernetes-io-dockerconfigjson" class="headerlink" title="kubernetes.io/dockerconfigjson"></a>kubernetes.io/dockerconfigjson</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create secret docker-registry myregistrykey --docker-server=DOCKER_REGISTRY_SERVER --docker-username=DOCKER_USER --docker-password=DOCKER_PASSWORD --docker-email=DOCKER_EMAIL</span><br><span class="line">secret <span class="string">"myregistrykey"</span> created.</span><br></pre></td></tr></table></figure>
+<p>也可以直接读取~/.docker/config.json的内容来创建：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ cat ~/.docker/config.json | base64</span><br><span class="line">$ cat &gt; myregistrykey.yaml &lt;&lt;EOF</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: myregistrykey</span><br><span class="line">data:</span><br><span class="line">  .dockerconfigjson: UmVhbGx5IHJlYWxseSByZWVlZWVlZWVlZWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGx5eXl5eXl5eXl5eXl5eXl5eXl5eSBsbGxsbGxsbGxsbGxsbG9vb29vb29vb29vb29vb29vb29vb29vb29vb25ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubmdnZ2dnZ2dnZ2dnZ2dnZ2dnZ2cgYXV0aCBrZXlzCg==</span><br><span class="line"><span class="built_in">type</span>: kubernetes.io/dockerconfigjson</span><br><span class="line">EOF</span><br><span class="line">$ kubectl create -f myregistrykey.yaml</span><br><span class="line"></span><br><span class="line">`</span><br></pre></td></tr></table></figure>
+<p>在创建Pod的时候，通过imagePullSecrets来引用刚创建的myregistrykey:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: foo</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: foo</span><br><span class="line">      image: janedoe/awesomeapp:v1</span><br><span class="line">  imagePullSecrets:</span><br><span class="line">    - name: myregistrykey</span><br></pre></td></tr></table></figure>
+<h4 id="Service-Account"><a href="#Service-Account" class="headerlink" title="Service Account"></a>Service Account</h4><p>Service Account用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的/run/secrets/kubernetes.io/serviceaccount目录中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl run nginx --image nginx</span><br><span class="line">deployment <span class="string">"nginx"</span> created</span><br><span class="line">$ kubectl get pods</span><br><span class="line">NAME                     READY     STATUS    RESTARTS   AGE</span><br><span class="line">nginx-3137573019-md1u2   1/1       Running   0          13s</span><br><span class="line">$ kubectl <span class="built_in">exec</span> nginx-3137573019-md1u2 ls /run/secrets/kubernetes.io/serviceaccount</span><br><span class="line">ca.crt</span><br><span class="line">namespace</span><br><span class="line">token</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/18/k8s-2-无状态应用-deployment/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/08/18/k8s-2-无状态应用-deployment/" itemprop="url">
+                  k8s-2 无状态应用/deployment
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2020-08-18 11:22:39" itemprop="dateCreated datePublished" datetime="2020-08-18T11:22:39+08:00">2020-08-18</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/k8s/" itemprop="url" rel="index"><span itemprop="name">k8s</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="使Master节点变为可以调度的node"><a href="#使Master节点变为可以调度的node" class="headerlink" title="使Master节点变为可以调度的node"></a>使Master节点变为可以调度的node</h2><h5 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h5><p><a href="#https://kubernetes.io/zh/docs/concepts/scheduling-eviction/taint-and-toleration/">https://kubernetes.io/zh/docs/concepts/scheduling-eviction/taint-and-toleration/</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看主节点名称</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># kubectl get nodes -A</span></span><br><span class="line">NAME           STATUS   ROLES    AGE     VERSION</span><br><span class="line">k8s1.hank.im   Ready    master   4d12h   v1.18.6</span><br><span class="line"><span class="comment"># 查看主节点Taint状态</span></span><br><span class="line">[root@k8s1 ~]<span class="comment"># kubectl describe  node k8s1.hank.im|grep Tain</span></span><br><span class="line">Taints:             node-role.kubernetes.io/master:NoSchedule</span><br></pre></td></tr></table></figure>
+<p>主节点为不可调度模式,更改为可调度模式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># kubectl taint node k8s1.hank.im node-role.kubernetes.io/master-</span></span><br><span class="line">node/k8s1.hank.im untainted</span><br><span class="line">[root@k8s1 ~]<span class="comment"># kubectl describe  node k8s1.hank.im|grep Tain</span></span><br><span class="line">Taints:             &lt;none&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="启动无状态应用nginx"><a href="#启动无状态应用nginx" class="headerlink" title="启动无状态应用nginx"></a>启动无状态应用nginx</h2><p>Kubernetes 跟 Docker 等很多项目最大的不同，就在于它不推荐你使用命令行的方式直接运行容器（虽然 Kubernetes 项目也支持这种方式，比如：kubectl run），而是希望你用 YAML 文件的方式，即：把容器的定义、参数、配置，统统记录在一个 YAML 文件中，然后用这样一句指令把它运行起来：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl create -f 我的配置文件</span><br></pre></td></tr></table></figure>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># application/nginx-deployment.yml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span>      <span class="comment"># deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">nginx-deployment</span> </span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    matchLabels:</span></span><br><span class="line"><span class="attr">      app:</span> <span class="string">nginx</span>      <span class="comment"># label slector</span></span><br><span class="line"><span class="attr">  replicas:</span> <span class="number">2</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">nginx</span>    <span class="comment"># labels 必须在matchlabels存在</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">        image:</span> <span class="attr">nginx:1.7.9</span> </span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">80</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># kubectl create -f application/nginx-deployment.yml</span></span><br><span class="line">[root@k8s1 application]<span class="comment"># kubectl get pods -l app=nginx</span></span><br><span class="line">NAME                                READY   STATUS    RESTARTS   AGE</span><br><span class="line">nginx-deployment-5bf87f5f59-5t5gj   1/1     Running   0          30m</span><br><span class="line">nginx-deployment-5bf87f5f59-7t74w   1/1     Running   0          30m</span><br><span class="line">	</span><br><span class="line">`</span><br></pre></td></tr></table></figure>
+<p>或者</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]<span class="comment"># kubectl get pods -l app=nginx</span></span><br></pre></td></tr></table></figure>
+<p>-l 是什么参数呢</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 application]<span class="comment"># kubectl get pods -h|grep  "\-l"</span></span><br><span class="line">-l, --selector=<span class="string">''</span>: Selector (label query) to filter on, supports <span class="string">'='</span>, <span class="string">'=='</span>, and <span class="string">'!='</span>.(e.g. -l key1=value1,key2=value2)</span><br></pre></td></tr></table></figure>
+<p>是yml文件中的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">selector:</span><br><span class="line">  matchLabels:</span><br><span class="line">    app: nginx      <span class="comment"># label slector</span></span><br></pre></td></tr></table></figure>
+<p>更改nginx版本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">spec:</span><br><span class="line">     containers:</span><br><span class="line">     - name: nginx</span><br><span class="line">       <span class="comment">#image: nginx:1.7.9 </span></span><br><span class="line">       image: nginx:1.8</span><br><span class="line">       ports:</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 application]<span class="comment">#  kubectl replace -f deployment.yaml</span></span><br><span class="line">deployment.apps/nginx-deployment replaced</span><br></pre></td></tr></table></figure>
+<p>使用<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f</span><br></pre></td></tr></table></figure></p>
+<p>就不用create/replace，如果配置文件有改动，apply会自动处理</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 application]<span class="comment"># kubectl get pods</span></span><br><span class="line">NAME                                READY   STATUS              RESTARTS   AGE</span><br><span class="line">nginx-deployment-5f8c6846ff-59khf   0/1     ContainerCreating   0          3m20s</span><br><span class="line">nginx-deployment-5f8c6846ff-qzcr7   0/1     ContainerCreating   0          3m20s</span><br><span class="line">nginx-deployment-5f8c6846ff-xtzkq   0/1     ContainerCreating   0          3m20s</span><br></pre></td></tr></table></figure>
+<p>发现一直在ContainerCreating</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 application]<span class="comment"># kubectl describe pod nginx-deployment-5f8c6846ff-59khf</span></span><br><span class="line">Name:           nginx-deployment-5f8c6846ff-59khf</span><br><span class="line">Namespace:      default</span><br><span class="line">Priority:       0</span><br><span class="line">Node:           k8s1.hank.im/192.168.232.201</span><br><span class="line">Start Time:     Mon, 17 Aug 2020 11:39:46 +0800</span><br><span class="line">Labels:         app=nginx</span><br><span class="line">                pod-template-hash=5f8c6846ff</span><br><span class="line">Annotations:    cni.projectcalico.org/podIP: 192.169.250.80/32</span><br><span class="line">                cni.projectcalico.org/podIPs: 192.169.250.80/32</span><br><span class="line">Status:         Pending</span><br><span class="line">IP:</span><br><span class="line">IPs:            &lt;none&gt;</span><br><span class="line">Controlled By:  ReplicaSet/nginx-deployment-5f8c6846ff</span><br><span class="line">Containers:</span><br><span class="line">  nginx:</span><br><span class="line">    Container ID:</span><br><span class="line">    Image:          nginx:1.8</span><br><span class="line">    Image ID:</span><br><span class="line">    Port:           80/TCP</span><br><span class="line">    Host Port:      0/TCP</span><br><span class="line">    State:          Waiting</span><br><span class="line">      Reason:       ContainerCreating</span><br><span class="line">    Ready:          False</span><br><span class="line">    Restart Count:  0</span><br><span class="line">    Environment:    &lt;none&gt;</span><br><span class="line">    Mounts:</span><br><span class="line">      /var/run/secrets/kubernetes.io/serviceaccount from default-token-jcdm4 (ro)</span><br><span class="line">Conditions:</span><br><span class="line">  Type              Status</span><br><span class="line">  Initialized       True</span><br><span class="line">apiVersion: apps/v1</span><br><span class="line">  Ready             False</span><br><span class="line">  ContainersReady   False</span><br><span class="line">  PodScheduled      True</span><br><span class="line">Volumes:</span><br><span class="line">  default-token-jcdm4:</span><br><span class="line">    Type:        Secret (a volume populated by a Secret)</span><br><span class="line">    SecretName:  default-token-jcdm4</span><br><span class="line">    Optional:    <span class="literal">false</span></span><br><span class="line">QoS Class:       BestEffort</span><br><span class="line">Node-Selectors:  &lt;none&gt;</span><br><span class="line">Tolerations:     node.kubernetes.io/not-ready:NoExecute <span class="keyword">for</span> 300s</span><br><span class="line">                 node.kubernetes.io/unreachable:NoExecute <span class="keyword">for</span> 300s</span><br><span class="line">Events:</span><br><span class="line">  Type     Reason       Age    From                   Message</span><br><span class="line">  ----     ------       ----   ----                   -------</span><br><span class="line">  Normal   Scheduled    4m14s  default-scheduler      Successfully assigned default/nginx-deployment-5f8c6846ff-59khf to k8s1.hank.im</span><br><span class="line">  Warning  FailedMount  4m13s  kubelet, k8s1.hank.im  MountVolume.SetUp failed <span class="keyword">for</span> volume <span class="string">"default-token-jcdm4"</span> : failed to sync secret cache: timed out waiting <span class="keyword">for</span> the condition</span><br><span class="line">  Normal   Pulling      4m11s  kubelet, k8s1.hank.im  Pulling image <span class="string">"nginx:1.8"</span></span><br></pre></td></tr></table></figure>
+<p>Pulling      4m11s  kubelet, k8s1.hank.im  Pulling image “nginx:1.8”<br>感情是nginx1.8下不来，那么我们用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 application]<span class="comment"># docker pull nginx:1.8</span></span><br></pre></td></tr></table></figure>
+<p>看一下为啥下不来吗，解决后，重新apply</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 application]<span class="comment"># kubectl get pods</span></span><br><span class="line">NAME                                READY   STATUS        RESTARTS   AGE</span><br><span class="line">nginx-deployment-5bf87f5f59-wj6ht   0/1     Terminating   0          3m12s</span><br><span class="line">nginx-deployment-5f8c6846ff-b7d84   1/1     Running       0          6s</span><br><span class="line">nginx-deployment-5f8c6846ff-gs8rs   1/1     Running       0          3s</span><br><span class="line">nginx-deployment-5f8c6846ff-zdk8g   1/1     Running       0          7s</span><br></pre></td></tr></table></figure>
+<p>Terminating 不用管，正在释放</p>
+<h2 id="给容器添加一个volume"><a href="#给容器添加一个volume" class="headerlink" title="给容器添加一个volume"></a>给容器添加一个volume</h2><p>接下来，我们再在这个 Deployment 中尝试声明一个 Volume。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">nginx-deployment</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    matchLabels:</span></span><br><span class="line"><span class="attr">      app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">  replicas:</span> <span class="number">2</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">        image:</span> <span class="attr">nginx:1.8</span></span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">        volumeMounts:</span></span><br><span class="line"><span class="attr">        - mountPath:</span> <span class="string">"/usr/share/nginx/html"</span></span><br><span class="line"><span class="attr">          name:</span> <span class="string">nginx-vol</span></span><br><span class="line"><span class="attr">      volumes:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">nginx-vol</span></span><br><span class="line"><span class="attr">        emptyDir:</span> <span class="string">&#123;&#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 application]<span class="comment"># kubectl apply -f deployment.yaml</span></span><br><span class="line">[root@k8s1 application]<span class="comment"># kubectl get pods</span></span><br><span class="line">NAME                               READY   STATUS    RESTARTS   AGE</span><br><span class="line">nginx-deployment-9754ccbdf-5b2rm   1/1     Running   0          27s</span><br><span class="line">nginx-deployment-9754ccbdf-nd4n2   1/1     Running   0          28s</span><br><span class="line">nginx-deployment-9754ccbdf-vm4vm   1/1     Running   0          29s</span><br></pre></td></tr></table></figure>
+<p>k8s已经启动新的nginx pod<br>当然，我们也可以启动一个在宿主机挂载的目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">...   </span><br><span class="line">   volumes:</span><br><span class="line">     - name: nginx-vol</span><br><span class="line">       hostPath: </span><br><span class="line">         path:  <span class="string">" /var/data"</span></span><br></pre></td></tr></table></figure>
+<p>接下来，你可以通过 kubectl get 指令，查看两个 Pod 被逐一更新的过程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">$ kubectl get pods</span><br><span class="line">NAME                                READY     STATUS              RESTARTS   AGE</span><br><span class="line">nginx-deployment-5c678cfb6d-v5dlh   0/1       ContainerCreating   0          4s</span><br><span class="line">nginx-deployment-67594d6bf6-9gdvr   1/1       Running             0          10m</span><br><span class="line">nginx-deployment-67594d6bf6-v6j7w   1/1       Running             0          10m</span><br><span class="line">$ kubectl get pods</span><br><span class="line">NAME                                READY     STATUS    RESTARTS   AGE</span><br><span class="line">nginx-deployment-5c678cfb6d-lg9lw   1/1       Running   0          8s</span><br><span class="line">nginx-deployment-5c678cfb6d-v5dlh   1/1       Running   0          19s</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 application]<span class="comment"># kubectl describe pod nginx-deployment-7f8d55f5f8-kqcr5</span></span><br><span class="line">Name:         nginx-deployment-7f8d55f5f8-kqcr5</span><br><span class="line">Namespace:    default</span><br><span class="line">Priority:     0</span><br><span class="line">Node:         k8s1.hank.im/192.168.232.201</span><br><span class="line">Start Time:   Mon, 17 Aug 2020 11:54:57 +0800</span><br><span class="line">Labels:       app=nginx</span><br><span class="line">              pod-template-hash=7f8d55f5f8</span><br><span class="line">Annotations:  cni.projectcalico.org/podIP: 192.169.250.93/32</span><br><span class="line">              cni.projectcalico.org/podIPs: 192.169.250.93/32</span><br><span class="line">Status:       Running</span><br><span class="line">IP:           192.169.250.93</span><br><span class="line">IPs:</span><br><span class="line">  IP:           192.169.250.93</span><br><span class="line">Controlled By:  ReplicaSet/nginx-deployment-7f8d55f5f8</span><br><span class="line">Containers:</span><br><span class="line">  nginx:</span><br><span class="line">    Container ID:   docker://995d2705f3dbe163d7439feddc7bfca1e554a8a856ed387c7377069b699c5bf5</span><br><span class="line">    Image:          nginx:1.8</span><br><span class="line">    Image ID:       docker-pullable://nginx@sha256:c97ee70c4048fe79765f7c2ec0931957c2898f47400128f4f3640d0ae5d60d10</span><br><span class="line">    Port:           80/TCP</span><br><span class="line">    Host Port:      0/TCP</span><br><span class="line">    State:          Running</span><br><span class="line">      Started:      Mon, 17 Aug 2020 11:54:58 +0800</span><br><span class="line">    Ready:          True</span><br><span class="line">    Restart Count:  0</span><br><span class="line">    Environment:    &lt;none&gt;</span><br><span class="line">    Mounts:</span><br><span class="line">      /usr/share/nginx/html from nginx-vol (rw)</span><br><span class="line">      /var/run/secrets/kubernetes.io/serviceaccount from default-token-jcdm4 (ro)</span><br><span class="line">Conditions:</span><br><span class="line">  Type              Status</span><br><span class="line">  Initialized       True</span><br><span class="line">  Ready             True</span><br><span class="line">  ContainersReady   True</span><br><span class="line">  PodScheduled      True</span><br><span class="line">Volumes:</span><br><span class="line">  nginx-vol:</span><br><span class="line">    Type:          HostPath (bare host directory volume)</span><br><span class="line">    Path:          /var/data</span><br><span class="line">    HostPathType:</span><br><span class="line">  default-token-jcdm4:</span><br><span class="line">    Type:        Secret (a volume populated by a Secret)</span><br><span class="line">    SecretName:  default-token-jcdm4</span><br><span class="line">    Optional:    <span class="literal">false</span></span><br><span class="line">QoS Class:       BestEffort</span><br><span class="line">Node-Selectors:  &lt;none&gt;</span><br><span class="line">Tolerations:     node.kubernetes.io/not-ready:NoExecute <span class="keyword">for</span> 300s</span><br><span class="line">                 node.kubernetes.io/unreachable:NoExecute <span class="keyword">for</span> 300s</span><br><span class="line">Events:</span><br><span class="line">  Type    Reason     Age   From                   Message</span><br><span class="line">  ----    ------     ----  ----                   -------</span><br><span class="line">  Normal  Scheduled  63s   default-scheduler      Successfully assigned default/nginx-deployment-7f8d55f5f8-kqcr5 to k8s1.hank.im</span><br><span class="line">  Normal  Pulled     62s   kubelet, k8s1.hank.im  Container image <span class="string">"nginx:1.8"</span> already present on machine</span><br><span class="line">  Normal  Created    62s   kubelet, k8s1.hank.im  Created container nginx</span><br><span class="line">  Normal  Started    62s   kubelet, k8s1.hank.im  Started container nginx</span><br><span class="line"></span><br><span class="line">`</span><br></pre></td></tr></table></figure>
+<p>Mounts:<br>      /usr/share/nginx/html from nginx-vol (rw)</p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/16/k8s-1-18-国服安装笔记/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1773,768 +2508,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/07/30/性能优化-内存篇-Linux内存是怎么工作的/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/07/30/性能优化-内存篇-Linux内存是怎么工作的/" itemprop="url">
-                  性能优化-内存篇 Linux内存是怎么工作的
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2020-07-30 14:52:35" itemprop="dateCreated datePublished" datetime="2020-07-30T14:52:35+08:00">2020-07-30</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">Edited on</span>
-                
-                <time title="Modified: 2020-08-01 11:04:36" itemprop="dateModified" datetime="2020-08-01T11:04:36+08:00">2020-08-01</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/系统优化/" itemprop="url" rel="index"><span itemprop="name">系统优化</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="内存映射"><a href="#内存映射" class="headerlink" title="内存映射"></a>内存映射</h3><p>说到内存，你能说出你现在用的这台计算机内存有多大吗？我估计你记得很清楚，因为这是我们购买时，首先考虑的一个重要参数，比方说，我的笔记本电脑内存就是 8GB 的 。</p>
-<p>我们通常所说的内存容量，就像我刚刚提到的 8GB，其实指的是物理内存。物理内存也称为主存，大多数计算机用的主存都是动态随机访问内存（DRAM）。只有内核才可以直接访问物理内存。那么，进程要访问内存时，该怎么办呢？</p>
-<p>Linux 内核给每个进程都提供了一个独立的虚拟地址空间，并且这个地址空间是连续的。这样，进程就可以很方便地访问内存，更确切地说是访问虚拟内存。</p>
-<p>虚拟地址空间的内部又被分为内核空间和用户空间两部分，不同字长（也就是单个 CPU 指令可以处理数据的最大长度）的处理器，地址空间的范围也不同。比如最常见的 32 位和 64 位系统，我画了两张图来分别表示它们的虚拟地址空间，如下所示：</p>
-<p><img src="/images/2020/07/29/8461d1a5-cbc6-43a6-8411-83cc51fdcfc1.png" alt="image.png"></p>
-<p>通过这里可以看出，32 位系统的内核空间占用 1G，位于最高处，剩下的 3G 是用户空间。而 64 位系统的内核空间和用户空间都是 128T，分别占据整个内存空间的最高和最低处，剩下的中间部分是未定义的。</p>
-<p>还记得进程的用户态和内核态吗？进程在用户态时，只能访问用户空间内存；只有进入内核态后，才可以访问内核空间内存。虽然每个进程的地址空间都包含了内核空间，但这些内核空间，其实关联的都是相同的物理内存。这样，进程切换到内核态后，就可以很方便地访问内核空间内存。</p>
-<p>既然每个进程都有一个这么大的地址空间，那么所有进程的虚拟内存加起来，自然要比实际的物理内存大得多。所以，并不是所有的虚拟内存都会分配物理内存，只有那些实际使用的虚拟内存才分配物理内存，并且分配后的物理内存，是通过内存映射来管理的。</p>
-<p>内存映射，其实就是将<strong>虚拟内存地址</strong>映射到<strong>物理内存地址</strong>。为了完成内存映射，内核为每个进程都维护了一张页表，记录虚拟地址与物理地址的映射关系，如下图所示：</p>
-<p><img src="/images/2020/07/29/4985c70f-aded-453d-9d5d-53611a380e1a.png" alt="image.png"></p>
-<p>页表实际上存储在 CPU 的内存管理单元 MMU 中，这样，正常情况下，处理器就可以直接通过硬件，找出要访问的内存。</p>
-<p>而当进程访问的虚拟地址在页表中查不到时，系统会产生一个缺页异常，进入内核空间分配物理内存、更新进程页表，最后再返回用户空间，恢复进程的运行。</p>
-<p>另外，我在 CPU 上下文切换的文章中曾经提到， TLB（Translation Lookaside Buffer，转译后备缓冲器）会影响 CPU 的内存访问性能，在这里其实就可以得到解释。</p>
-<p>TLB 其实就是 MMU 中页表的高速缓存。由于进程的虚拟地址空间是独立的，而 TLB 的访问速度又比 MMU 快得多，所以，通过减少进程的上下文切换，减少 TLB 的刷新次数，就可以提高 TLB 缓存的使用率，进而提高 CPU 的内存访问性能。</p>
-<p>不过要注意，MMU 并不以字节为单位来管理内存，而是规定了一个内存映射的最小单位，也就是页，通常是 4 KB 大小。这样，每一次内存映射，都需要关联 4 KB 或者 4KB 整数倍的内存空间。</p>
-<p>页的大小只有 4 KB ，导致的另一个问题就是，整个页表会变得非常大。比方说，仅 32 位系统就需要 100 多万个页表项（4GB/4KB），才可以实现整个地址空间的映射。为了解决页表项过多的问题，Linux 提供了两种机制，也就是多级页表和大页（HugePage）。</p>
-<p>多级页表就是把内存分成区块来管理，将原来的映射关系改成区块索引和区块内的偏移。由于虚拟内存空间通常只用了很少一部分，那么，多级页表就只保存这些使用中的区块，这样就可以大大地减少页表的项数。</p>
-<p>Linux 用的正是四级页表来管理内存页，如下图所示，虚拟地址被分为 5 个部分，前 4 个表项用于选择页，而最后一个索引表示页内偏移。</p>
-<p><img src="/images/2020/07/29/adfea2a4-cb35-4b0f-a584-28b7ed81df86.png" alt="image.png"></p>
-<p>再看大页，顾名思义，就是比普通页更大的内存块，常见的大小有 2MB 和 1GB。大页通常用在使用大量内存的进程上，比如 Oracle、DPDK 等。</p>
-<p>通过这些机制，在页表的映射下，进程就可以通过虚拟地址来访问物理内存了。那么具体到一个 Linux 进程中，这些内存又是怎么使用的呢？</p>
-<h3 id="虚拟内存空间分布"><a href="#虚拟内存空间分布" class="headerlink" title="虚拟内存空间分布"></a>虚拟内存空间分布</h3><p>首先，我们需要进一步了解虚拟内存空间的分布情况。最上方的内核空间不用多讲，下方的用户空间内存，其实又被分成了多个不同的段。以 32 位系统为例，我画了一张图来表示它们的关系</p>
-<p><img src="/images/2020/07/30/84a0c839-1610-4526-ad67-252a897947f7.png" alt="image.png"></p>
-<p>通过这张图你可以看到，用户空间内存，从低到高分别是五种不同的内存段。</p>
-<ul>
-<li>只读段，包括代码和常量等。</li>
-<li>数据段，包括全局变量等。</li>
-<li>堆，包括动态分配的内存，从低地址开始向上增长。文件映射段，包括动态库、共享内存等，从高地址开始向下增长。</li>
-<li>栈，包括局部变量和函数调用的上下文等。栈的大小是固定的，一般是 8 MB。</li>
-</ul>
-<p>在这五个内存段中，堆和文件映射段的内存是动态分配的。比如说，使用 C 标准库的 malloc() 或者 mmap() ，就可以分别在堆和文件映射段动态分配内存。</p>
-<p>其实 64 位系统的内存分布也类似，只不过内存空间要大得多。那么，更重要的问题来了，内存究竟是怎么分配的呢？</p>
-<h3 id="内存分配与回收"><a href="#内存分配与回收" class="headerlink" title="内存分配与回收"></a>内存分配与回收</h3><p>malloc() 是 C 标准库提供的内存分配函数，对应到系统调用上，有两种实现方式，即 brk() 和 mmap()。</p>
-<p>对小块内存（小于 128K），C 标准库使用 brk() 来分配，也就是通过移动堆顶的位置来分配内存。</p>
-<p>这些内存释放后并不会立刻归还系统，而是被缓存起来，这样就可以重复使用。而大块内存（大于 128K），则直接使用内存映射 mmap() 来分配，也就是在文件映射段找一块空闲内存分配出去。</p>
-<p>这两种方式，自然各有优缺点。brk() 方式的缓存，可以减少缺页异常的发生，提高内存访问效率。不过，由于这些内存没有归还系统，在内存工作繁忙时，频繁的内存分配和释放会造成内存碎片。</p>
-<p>而 mmap() 方式分配的内存，会在释放时直接归还系统，所以每次 mmap 都会发生缺页异常。在内存工作繁忙时，频繁的内存分配会导致大量的缺页异常，使内核的管理负担增大。这也是 malloc 只对大块内存使用 mmap 的原因。</p>
-<p>了解这两种调用方式后，我们还需要清楚一点，那就是，当这两种调用发生后，其实并没有真正分配内存。这些内存，都只在首次访问时才分配，也就是通过缺页异常进入内核中，再由内核来分配内存。</p>
-<p>整体来说，Linux 使用伙伴系统来管理内存分配。前面我们提到过，这些内存在 MMU 中以页为单位进行管理，伙伴系统也一样，以页为单位来管理内存，并且会通过相邻页的合并，减少内存碎片化（比如 brk 方式造成的内存碎片）。</p>
-<p>你可能会想到一个问题，如果遇到比页更小的对象，比如不到 1K 的时候，该怎么分配内存呢？实际系统运行中，确实有大量比页还小的对象，如果为它们也分配单独的页，那就太浪费内存了。</p>
-<p>所以，在用户空间，malloc 通过 brk() 分配的内存，在释放时并不立即归还系统，而是缓存起来重复利用。</p>
-<p>在内核空间，Linux 则通过 slab 分配器来管理小内存。你可以把 slab 看成构建在伙伴系统上的一个缓存，主要作用就是分配并释放内核中的小对象。</p>
-<p>对内存来说，如果只分配而不释放，就会造成内存泄漏，甚至会耗尽系统内存。所以，在应用程序用完内存后，还需要调用 free() 或 unmap() ，来释放这些不用的内存。</p>
-<p>当然，系统也不会任由某个进程用完所有内存。在发现内存紧张时，系统就会通过一系列机制来回收内存，比如下面这三种方式：</p>
-<ul>
-<li>回收缓存，比如使用 LRU（Least Recently Used）算法，回收最近使用最少的内存页面；</li>
-<li>回收不常访问的内存，把不常用的内存通过交换分区直接写到磁盘中；</li>
-<li>杀死进程，内存紧张时系统还会通过 OOM（Out of Memory），直接杀掉占用大量内存的进程。</li>
-</ul>
-<p>其中，第二种方式回收不常访问的内存时，会用到交换分区（以下简称 Swap）。Swap 其实就是把一块磁盘空间当成内存来用。它可以把进程暂时不用的数据存储到磁盘中（这个过程称为换出），当进程访问这些内存时，再从磁盘读取这些数据到内存中（这个过程称为换入）。</p>
-<p>所以，你可以发现，Swap 把系统的可用内存变大了。不过要注意，通常只在内存不足时，才会发生 Swap 交换。并且由于磁盘读写的速度远比内存慢，Swap 会导致严重的内存性能问题。</p>
-<p>第三种方式提到的 OOM（Out of Memory），其实是内核的一种保护机制。它监控进程的内存使用情况，并且使用 oom_score 为每个进程的内存使用情况进行评分：</p>
-<ul>
-<li>一个进程消耗的内存越大，oom_score 就越大；</li>
-<li>一个进程运行占用的 CPU 越多，oom_score 就越小。</li>
-</ul>
-<p>这样，进程的 oom_score 越大，代表消耗的内存越多，也就越容易被 OOM 杀死，从而可以更好保护系统。</p>
-<p>当然，为了实际工作的需要，管理员可以通过 /proc 文件系统，手动设置进程的 oom_adj ，从而调整进程的 oom_score。oom_adj 的范围是 [-17, 15]，数值越大，表示进程越容易被 OOM 杀死；数值越小，表示进程越不容易被 OOM 杀死，其中 -17 表示禁止 OOM。</p>
-<p>比如用下面的命令，你就可以把 sshd 进程的 oom_adj 调小为 -16，这样， sshd 进程就不容易被 OOM 杀死。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -16 &gt; /proc/$(pidof sshd)/oom_adj</span><br></pre></td></tr></table></figure>
-<h3 id="如何查看内存使用情况"><a href="#如何查看内存使用情况" class="headerlink" title="如何查看内存使用情况"></a>如何查看内存使用情况</h3><p>通过了解内存空间的分布，以及内存的分配和回收，我想你对内存的工作原理应该有了大概的认识。当然，系统的实际工作原理更加复杂，也会涉及其他一些机制，这里我只讲了最主要的原理。掌握了这些，你可以对内存的运作有一条主线认识，不至于脑海里只有术语名词的堆砌。</p>
-<p>那么在了解内存的工作原理之后，我们又该怎么查看系统内存使用情况呢？</p>
-<p>其实前面 CPU 内容的学习中，我们也提到过一些相关工具。在这里，你第一个想到的应该是 free 工具吧。下面是一个 free 的输出示例：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 注意不同版本的free输出可能会有所不同</span></span><br><span class="line">$ free</span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:        8169348      263524     6875352         668     1030472     7611064</span><br><span class="line">Swap:             0           0           0</span><br></pre></td></tr></table></figure>
-<p>你可以看到，free 输出的是一个表格，其中的数值都默认以字节为单位。表格总共有两行六列，这两行分别是物理内存 Mem 和交换分区 Swap 的使用情况，而六列中，每列数据的含义分别为：</p>
-<ul>
-<li>第一列，total 是总内存大小；</li>
-<li>第二列，used 是已使用内存的大小，包含了共享内存；</li>
-<li>第三列，free 是未使用内存的大小；</li>
-<li>第四列，shared 是共享内存的大小；</li>
-<li>第五列，buff/cache 是缓存和缓冲区的大小；</li>
-<li>最后一列，available 是新进程可用内存的大小。</li>
-</ul>
-<p>这里尤其注意一下，最后一列的可用内存 available 。available 不仅包含未使用内存，还包括了可回收的缓存，所以一般会比未使用内存更大。不过，并不是所有缓存都可以回收，因为有些缓存可能正在使用中。</p>
-<p>不过，我们知道，free 显示的是整个系统的内存使用情况。如果你想查看进程的内存使用情况，可以用 top 或者 ps 等工具。比如，下面是 top 的输出示例：</p>
-<p>这里尤其注意一下，最后一列的可用内存 available 。available 不仅包含未使用内存，还包括了可回收的缓存，所以一般会比未使用内存更大。不过，并不是所有缓存都可以回收，因为有些缓存可能正在使用中。</p>
-<p>不过，我们知道，free 显示的是整个系统的内存使用情况。如果你想查看进程的内存使用情况，可以用 top 或者 ps 等工具。比如，下面是 top 的输出示例：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 按下M切换到内存排序</span></span><br><span class="line">$ top</span><br><span class="line">...</span><br><span class="line">KiB Mem :  8169348 total,  6871440 free,   267096 used,  1030812 buff/cache</span><br><span class="line">KiB Swap:        0 total,        0 free,        0 used.  7607492 avail Mem</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND</span><br><span class="line">  430 root      19  -1  122360  35588  23748 S   0.0  0.4   0:32.17 systemd-journal</span><br><span class="line"> 1075 root      20   0  771860  22744  11368 S   0.0  0.3   0:38.89 snapd</span><br><span class="line"> 1048 root      20   0  170904  17292   9488 S   0.0  0.2   0:00.24 networkd-dispat</span><br><span class="line">    1 root      20   0   78020   9156   6644 S   0.0  0.1   0:22.92 systemd</span><br><span class="line">12376 azure     20   0   76632   7456   6420 S   0.0  0.1   0:00.01 systemd</span><br><span class="line">12374 root      20   0  107984   7312   6304 S   0.0  0.1   0:00.00 sshd</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p>top 输出界面的顶端，也显示了系统整体的内存使用情况，这些数据跟 free 类似，我就不再重复解释。我们接着看下面的内容，跟内存相关的几列数据，比如 VIRT、RES、SHR 以及 %MEM 等。</p>
-<p>这些数据，包含了进程最重要的几个内存使用情况，我们挨个来看。</p>
-<ul>
-<li>VIRT 是进程虚拟内存的大小，只要是进程申请过的内存，即便还没有真正分配物理内存，也会计算在内。</li>
-<li>RES 是常驻内存的大小，也就是进程实际使用的物理内存大小，但不包括 Swap 和共享内存。</li>
-<li>SHR 是共享内存的大小，比如与其他进程共同使用的共享内存、加载的动态链接库以及程序的代码段等。%MEM 是进程使用物理内存占系统总内存的百分比。</li>
-</ul>
-<p>除了要认识这些基本信息，在查看 top 输出时，你还要注意两点。</p>
-<p>第一，虚拟内存通常并不会全部分配物理内存。从上面的输出，你可以发现每个进程的虚拟内存都比常驻内存大得多。</p>
-<p>第二，共享内存 SHR 并不一定是共享的，比方说，程序的代码段、非共享的动态链接库，也都算在 SHR 里。当然，SHR 也包括了进程间真正共享的内存。所以在计算多个进程的内存使用时，不要把所有进程的 SHR 直接相加得出结果。</p>
-<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>今天，我们梳理了 Linux 内存的工作原理。对普通进程来说，它能看到的其实是内核提供的虚拟内存，这些虚拟内存还需要通过页表，由系统映射为物理内存。</p>
-<p>当进程通过 malloc() 申请内存后，内存并不会立即分配，而是在首次访问时，才通过缺页异常陷入内核中分配内存。</p>
-<p>由于进程的虚拟地址空间比物理内存大很多，Linux 还提供了一系列的机制，应对内存不足的问题，比如缓存的回收、交换分区 Swap 以及 OOM 等。</p>
-<p>当你需要了解系统或者进程的内存使用情况时，可以用 free 和 top 、ps 等性能工具。它们都是分析性能问题时最常用的性能工具，希望你能熟练使用它们，并真正理解各个指标的含义。</p>
-<p>— 侵权删 —</p>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/20/Consul-手动操作-查看-注销节点-服务/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/06/20/Consul-手动操作-查看-注销节点-服务/" itemprop="url">
-                  Consul 手动操作 查看 注销节点/服务
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2020-06-20 17:32:49" itemprop="dateCreated datePublished" datetime="2020-06-20T17:32:49+08:00">2020-06-20</time>
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/注册中心/" itemprop="url" rel="index"><span itemprop="name">注册中心</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="查看指定ip-services"><a href="#查看指定ip-services" class="headerlink" title="查看指定ip services"></a>查看指定ip services</h3><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/catalog/services| python -m json.tool</span><br><span class="line"></span><br><span class="line">curl -s http://10.0.2.26:8500/v1/agent/services | python -m json.tool</span><br></pre></td></tr></table></figure>
-<h3 id="查看指定ip-不健康的services"><a href="#查看指定ip-不健康的services" class="headerlink" title="查看指定ip 不健康的services"></a>查看指定ip 不健康的services</h3><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/health/state/critical | python -m json.tool</span><br></pre></td></tr></table></figure>
-<h3 id="查看本机配置"><a href="#查看本机配置" class="headerlink" title="查看本机配置"></a>查看本机配置</h3><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/agent/self | python -m json.tool</span><br></pre></td></tr></table></figure>
-<h3 id="返回本地agent的配置和成员信息"><a href="#返回本地agent的配置和成员信息" class="headerlink" title="返回本地agent的配置和成员信息"></a>返回本地agent的配置和成员信息</h3><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/agent/self| python -m json.tool</span><br></pre></td></tr></table></figure>
-<h3 id="查看集群服务端"><a href="#查看集群服务端" class="headerlink" title="查看集群服务端"></a>查看集群服务端</h3><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/status/peers</span><br></pre></td></tr></table></figure>
-<h3 id="查看leader"><a href="#查看leader" class="headerlink" title="查看leader"></a>查看leader</h3><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/status/leader</span><br></pre></td></tr></table></figure>
-<h3 id="查看集群所有节点-nodes"><a href="#查看集群所有节点-nodes" class="headerlink" title="查看集群所有节点 nodes"></a>查看集群所有节点 nodes</h3><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/catalog/nodes | python -m json.tool</span><br></pre></td></tr></table></figure>
-<h3 id="注销节点-consul重启导致node名冲突"><a href="#注销节点-consul重启导致node名冲突" class="headerlink" title="注销节点/consul重启导致node名冲突"></a>注销节点/consul重启导致node名冲突</h3><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/catalog/nodes | python -m json.tool |grep <span class="string">"Node"</span> <span class="comment"># 找到冲突节点的node名称</span></span><br><span class="line"></span><br><span class="line">curl -X PUT -H <span class="string">'application/json'</span> -d <span class="string">'&#123;"Datacenter": "dc1","Node": "consul_client71"&#125;'</span> http://10.0.2.26:8500/v1/catalog/deregister   <span class="comment"># 修改Node后的value ，重启节点重新注册</span></span><br></pre></td></tr></table></figure>
-<h2 id="注销服务"><a href="#注销服务" class="headerlink" title="注销服务"></a>注销服务</h2><h3 id="删除服务必须使用连接到服务注册的那个节点上的consul-agent上执行dregister"><a href="#删除服务必须使用连接到服务注册的那个节点上的consul-agent上执行dregister" class="headerlink" title="删除服务必须使用连接到服务注册的那个节点上的consul agent上执行dregister"></a>删除服务必须使用连接到服务注册的那个节点上的consul agent上执行dregister</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.0.2.26:8500/v1/agent/services | python -m json.tool|grep <span class="string">"ID"</span>. <span class="comment"># 查看这个ip的服务id</span></span><br><span class="line"></span><br><span class="line">curl --request PUT http://10.0.2.26:8500/v1/agent/service/deregister/msg-core-10-0-2-26-25105  <span class="comment"># 替换后边id名称</span></span><br></pre></td></tr></table></figure>
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/20/Consul作为内存型注册中心使用方式安装/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/06/20/Consul作为内存型注册中心使用方式安装/" itemprop="url">
-                  Consul作为内存型注册中心使用方式安装
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2020-06-20 17:30:14" itemprop="dateCreated datePublished" datetime="2020-06-20T17:30:14+08:00">2020-06-20</time>
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/注册中心/" itemprop="url" rel="index"><span itemprop="name">注册中心</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="1-单主服务端"><a href="#1-单主服务端" class="headerlink" title="1 单主服务端"></a>1 单主服务端</h2><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">root@vm10-0-8-11 shells]<span class="comment"># cat docker-compose-consul.yml</span></span><br><span class="line">version: <span class="string">'3'</span></span><br><span class="line">services:</span><br><span class="line">  consul_client:</span><br><span class="line">    container_name: consul_client</span><br><span class="line">    restart: always</span><br><span class="line">    image: hub.lingban.cn/consul:latest</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    <span class="built_in">command</span>:  agent -server -client 0.0.0.0 -<span class="built_in">bind</span> 10.0.8.10 -node consul_server3 -bootstrap-expect 1 -datacenter aiaas4 -ui</span><br><span class="line">    logging:</span><br><span class="line">      options:</span><br><span class="line">        max-size: <span class="string">'100m'</span></span><br><span class="line">        max-file: <span class="string">'10'</span></span><br></pre></td></tr></table></figure>
-<p>-datacenter 使用datacenter名称，其他agent不会主动加入不同名称的集群<br>-bootstrap-expect 1 设置为1，集群中第一个启动的为一个主，集群初始化时不用至少启动两个来选举主</p>
-<h2 id="2-多主模式"><a href="#2-多主模式" class="headerlink" title="2 多主模式"></a>2 多主模式</h2><hr>
-<p><strong>第一个主</strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@vm10-0-8-11 shells]<span class="comment"># cat docker-compose-consul.yml</span></span><br><span class="line">version: <span class="string">'3'</span></span><br><span class="line">services:</span><br><span class="line">  consul_client:</span><br><span class="line">    container_name: consul_client</span><br><span class="line">    restart: always</span><br><span class="line">    image: hub.lingban.cn/consul:latest</span><br><span class="line">    <span class="comment">#volumes:</span></span><br><span class="line">      <span class="comment">#- /data/aiaas/data/consul:/consul/data</span></span><br><span class="line">      <span class="comment">#- /data/aiaas/config/consul:/consul/config</span></span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    <span class="built_in">command</span>:  agent -server -client 0.0.0.0 -<span class="built_in">bind</span> 10.0.8.11 -node consul_server2 -bootstrap-expect 1 -datacenter aiaas4-test -ui</span><br><span class="line">    logging:</span><br><span class="line">      options:</span><br><span class="line">        max-size: <span class="string">'100m'</span></span><br><span class="line">        max-file: <span class="string">'10'</span></span><br></pre></td></tr></table></figure></p>
-<p>-datacenter aiaas4-test 使用datacenter名称，防止其他consul加入，或者主动加入错误节点<br>-bootstrap-expect 1 第一个主必须设置1，否则可能启动失败，需要等第二个节点加入选择才可用。<br>-bind 10.0.8.11 设置为本机ip<br>-node consul_server2 不同节点不同</p>
-<p><strong>第二个主</strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">version: <span class="string">'3'</span></span><br><span class="line">services:</span><br><span class="line">  consul_client:</span><br><span class="line">    container_name: consul_client</span><br><span class="line">    restart: always</span><br><span class="line">    image: hub.lingban.cn/consul:latest</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    <span class="built_in">command</span>:  agent -server -client 0.0.0.0 -<span class="built_in">bind</span> 10.0.8.12 -node consul_server3 -bootstrap-expect 2 -datacenter aiaas4-test -ui -retry-join 10.0.8.11</span><br><span class="line"> </span><br><span class="line">    logging:</span><br><span class="line">      options:</span><br><span class="line">        max-size: <span class="string">'100m'</span></span><br><span class="line">        max-file: <span class="string">'10'</span></span><br></pre></td></tr></table></figure></p>
-<p>-datacenter aiaas4-test 使用datacenter名称，防止其他consul加入，或者主动加入错误节点<br>-bootstrap-expect 2 第二个设置为2<br>-node consul_server3 不同节点名称不同</p>
-<h2 id="3-非主-从节点模式"><a href="#3-非主-从节点模式" class="headerlink" title="3 非主 从节点模式"></a>3 非主 从节点模式</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">version: <span class="string">'3'</span></span><br><span class="line">services:</span><br><span class="line">  consul_client:</span><br><span class="line">    container_name: consul_client</span><br><span class="line">    restart: always</span><br><span class="line">    image: hub.lingban.cn/consul:latest</span><br><span class="line">    <span class="comment">#volumes:</span></span><br><span class="line">    <span class="comment">#  - /data/aiaas/data/consul:/consul/data</span></span><br><span class="line">    <span class="comment">#  - /data/aiaas/config/consul:/consul/config</span></span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    <span class="built_in">command</span>:  agent -<span class="built_in">bind</span> 10.0.8.10 -client 0.0.0.0 -node consul_client1  -retry-join 10.0.8.11 -datacenter aiaas4-test -ui</span><br><span class="line">    logging:</span><br><span class="line">      options:</span><br><span class="line">        max-size: <span class="string">'100m'</span></span><br><span class="line">        max-file: <span class="string">'10'</span></span><br></pre></td></tr></table></figure>
-<p>没有-server 参数<br>-client 0.0.0.0 允许webui的浏览器访问<br>-retry-join 10.0.8.11 加入server<br>-datacenter aiaas4-test 加入指定集群</p>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/20/HOMER-SIP-抓包监控服务/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/06/20/HOMER-SIP-抓包监控服务/" itemprop="url">
-                  HOMER - SIP 抓包监控服务
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2020-06-20 17:25:31" itemprop="dateCreated datePublished" datetime="2020-06-20T17:25:31+08:00">2020-06-20</time>
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/语音电话/" itemprop="url" rel="index"><span itemprop="name">语音电话</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="一-什么是HOMER"><a href="#一-什么是HOMER" class="headerlink" title="一 什么是HOMER"></a>一 什么是HOMER</h2><hr>
-<blockquote>
-<p>HOMER是SIPCAPTURE堆栈的一部分：一个健壮的、运营商级的、模块化的VoIP和RTC捕获框架，用于分析和监视，支持所有主要的OSS语音平台和供应商不可知的捕获代理。HOMER在全球范围内部署了数千个部署，包括臭名昭著的行业供应商、语音网络运营商和财富500强企业，为使用和依赖VoIP服务和RTC技术的ITSP、VoIP提供商和主干供应商提供高级搜索、端到端分析和数据包深入分析功能—所有这些都是100%开源的</p>
-</blockquote>
-<h2 id="二-Homer安装-compose文件"><a href="#二-Homer安装-compose文件" class="headerlink" title="二 Homer安装  compose文件"></a>二 Homer安装  compose文件</h2><hr>
-<h3 id="1-存放位置"><a href="#1-存放位置" class="headerlink" title="1 存放位置"></a>1 存放位置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[jms_op@vm10-0-7-66 homer5]$ <span class="built_in">pwd</span></span><br><span class="line">/data/aiaas/shells/homer5</span><br></pre></td></tr></table></figure>
-<h4 id="2-Homer5-的heplify-server-与-homer-app、db的组合compose"><a href="#2-Homer5-的heplify-server-与-homer-app、db的组合compose" class="headerlink" title="2 Homer5 的heplify-server 与 homer-app、db的组合compose"></a>2 Homer5 的heplify-server 与 homer-app、db的组合compose</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line">[jms_op@vm10-0-7-66 homer5]$ cat ./docker-compose.yml</span><br><span class="line">version: <span class="string">'3.1'</span></span><br><span class="line"> </span><br><span class="line">networks:</span><br><span class="line">  monitor-net:</span><br><span class="line">    driver: bridge</span><br><span class="line"> </span><br><span class="line">services:</span><br><span class="line">  caddy:</span><br><span class="line">    image: hub.lingban.cn/homer/caddy:latest</span><br><span class="line">    container_name: caddy</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">"3000:3000"</span></span><br><span class="line">      - <span class="string">"9090:9090"</span></span><br><span class="line">      - <span class="string">"9093:9093"</span></span><br><span class="line">      - <span class="string">"9080:9080"</span></span><br><span class="line">    volumes:</span><br><span class="line">      - ./caddy/:/etc/caddy/</span><br><span class="line">    environment:</span><br><span class="line">      - ADMIN_USER=<span class="variable">$&#123;ADMIN_USER:-admin&#125;</span></span><br><span class="line">      - ADMIN_PASSWORD=<span class="variable">$&#123;ADMIN_PASSWORD:-admin&#125;</span></span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    labels:</span><br><span class="line">      org.label-schema.group: <span class="string">"monitoring"</span></span><br><span class="line"> </span><br><span class="line">  db:</span><br><span class="line">    container_name: db</span><br><span class="line">    image: hub.lingban.cn/homer/mariadb:latest</span><br><span class="line">    environment:</span><br><span class="line">      - <span class="string">"MYSQL_ROOT_PASSWORD="</span></span><br><span class="line">      - <span class="string">"MYSQL_ALLOW_EMPTY_PASSWORD=yes"</span></span><br><span class="line">      - <span class="string">"MYSQL_ROOT_HOST=%"</span></span><br><span class="line">    ports:</span><br><span class="line">      - 3306:3306</span><br><span class="line">    volumes:</span><br><span class="line">      - <span class="string">"/data/homer/data/mysql:/var/lib/mysql"</span></span><br><span class="line">      - <span class="string">"/data/homer/config/mysql:/etc/mysql"</span></span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    restart: unless-stopped</span><br><span class="line"> </span><br><span class="line">  adminer:</span><br><span class="line">    image: hub.lingban.cn/homer/adminer:latest</span><br><span class="line">    depends_on:</span><br><span class="line">      - db</span><br><span class="line">    ports:</span><br><span class="line">      - 8080:8080</span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    restart: unless-stopped</span><br><span class="line"> </span><br><span class="line">  heplify-server:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify-server:latest</span><br><span class="line">    container_name: heplify-server</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">"9096:9096"</span></span><br><span class="line">      - <span class="string">"9060:9060"</span></span><br><span class="line">      - <span class="string">"9060:9060/udp"</span></span><br><span class="line">    <span class="built_in">command</span>:</span><br><span class="line">      - <span class="string">'./heplify-server'</span></span><br><span class="line">    environment:</span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_HEPADDR=0.0.0.0:9060"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_ESADDR="</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBDRIVER=mysql"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBADDR=db:3306"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBUSER=root"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBPASS="</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_DBDROPDAYS=7"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_LOGLVL=info"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_LOGSTD=true"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_PROMADDR=0.0.0.0:9096"</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_PROMTARGETIP="</span></span><br><span class="line">      - <span class="string">"HEPLIFYSERVER_PROMTARGETNAME="</span></span><br><span class="line">      - TZ=Asia/Shanghai</span><br><span class="line">      - TIME_ZONE=Asia/Shanghai</span><br><span class="line">    volumes:</span><br><span class="line">      - /etc/localtime:/etc/localtime:ro</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    expose:</span><br><span class="line">      - 9096</span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    depends_on:</span><br><span class="line">      - db</span><br><span class="line">    labels:</span><br><span class="line">      org.label-schema.group: <span class="string">"monitoring"</span></span><br><span class="line"> </span><br><span class="line">  homer-webapp:</span><br><span class="line">    container_name: homer-webapp</span><br><span class="line">    image: hub.lingban.cn/homer/homer-webapp:latest</span><br><span class="line">    environment:</span><br><span class="line">      - <span class="string">"DB_HOST=db"</span></span><br><span class="line">      - <span class="string">"DB_USER=root"</span></span><br><span class="line">      - <span class="string">"DB_PASS="</span></span><br><span class="line">      - TZ=Asia/Shanghai</span><br><span class="line">      - TIME_ZONE=Asia/Shanghai</span><br><span class="line">    expose:</span><br><span class="line">      - 80</span><br><span class="line">    volumes:</span><br><span class="line">      - /etc/localtime:/etc/localtime:ro</span><br><span class="line">      - ./docker-compose.yml:/homer-semaphore/.bootstrapped</span><br><span class="line">      - /data/homer/data/homer-webapp/opt:/opt</span><br><span class="line"> </span><br><span class="line">    networks:</span><br><span class="line">      - monitor-net</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    depends_on:</span><br><span class="line">      - db</span><br></pre></td></tr></table></figure>
-<h2 id="二-Homer-heplify-探针-compose-文件"><a href="#二-Homer-heplify-探针-compose-文件" class="headerlink" title="二 Homer heplify 探针 compose 文件"></a>二 Homer heplify 探针 compose 文件</h2><hr>
-<h3 id="1-一般存放位置"><a href="#1-一般存放位置" class="headerlink" title="1 一般存放位置"></a>1 一般存放位置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[jms_op@vm10-0-2-23 homer]$ <span class="built_in">pwd</span></span><br><span class="line">/data/aiaas/shells/homer</span><br></pre></td></tr></table></figure>
-<h3 id="2-每种服务的不同探针compose文件"><a href="#2-每种服务的不同探针compose文件" class="headerlink" title="2 每种服务的不同探针compose文件"></a>2 每种服务的不同探针compose文件</h3><p>针对每种服务的打开端口不同，分别监控不同的udp范围<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">[jms_op@vm10-0-2-23 homer]$ cat docker-compose-homer-hep-fs.yml</span><br><span class="line">version: <span class="string">'2'</span></span><br><span class="line">services:</span><br><span class="line">  heplify_fs:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify:latest</span><br><span class="line">    <span class="built_in">command</span>: <span class="string">"./heplify -hs 10.0.7.66:9060 -pr 15060-15080 -e"</span></span><br><span class="line">    container_name: heplify_fs</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    volumes:</span><br><span class="line">      - /proc:/host/proc</span><br><span class="line">      - /sys:/host/sys</span><br><span class="line">      - /:/rootfs</span><br><span class="line"> </span><br><span class="line">[jms_op@vm10-0-2-23 homer]$ cat docker-compose-homer-hep-opensips.yml</span><br><span class="line">version: <span class="string">'2'</span></span><br><span class="line">services:</span><br><span class="line">  heplify_opensips:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify:latest</span><br><span class="line">    <span class="built_in">command</span>: <span class="string">"./heplify -hs 10.0.7.66:9060 -pr 6060 -e"</span></span><br><span class="line">    container_name: heplify_opensips</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    environment:</span><br><span class="line">      - TZ=Asia/Shanghai</span><br><span class="line">      - TIME_ZONE=Asia/Shanghai</span><br><span class="line">    volumes:</span><br><span class="line">      - /etc/localtime:/etc/localtime:ro</span><br><span class="line">      - /proc:/host/proc</span><br><span class="line">      - /sys:/host/sys</span><br><span class="line">      - /:/rootfs</span><br><span class="line"> </span><br><span class="line">[jms_op@vm10-0-2-23 homer]$ cat docker-compose-homer-hep-janus.yml</span><br><span class="line">version: <span class="string">'2'</span></span><br><span class="line">services:</span><br><span class="line">  heplify_janus:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify:latest</span><br><span class="line">    <span class="built_in">command</span>: <span class="string">"./heplify -hs 10.0.7.66:9060 -pr 30000-39999 -e"</span></span><br><span class="line">    container_name: heplify_janus</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    volumes:</span><br><span class="line">    - /proc:/host/proc</span><br><span class="line">    - /sys:/host/sys</span><br><span class="line">    - /:/rootfs</span><br><span class="line">    - /etc/localtime:/etc/localtime:ro</span><br><span class="line">    environment:</span><br><span class="line">    - TZ=Asia/Shanghai</span><br><span class="line">    - TIME_ZONE=Asia/Shanghai</span><br><span class="line"> </span><br><span class="line">[jms_op@vm10-0-2-23 homer]$ cat docker-compose-homer-hep-rtp.yml</span><br><span class="line">version: <span class="string">'2'</span></span><br><span class="line">services:</span><br><span class="line">  heplify_rtp_1:</span><br><span class="line">    image: hub.lingban.cn/homer/heplify:latest</span><br><span class="line">    <span class="built_in">command</span>: <span class="string">"./heplify -hs 10.0.7.66:9060 -pr 20000-29999 -e"</span></span><br><span class="line">    container_name: heplify_rtp</span><br><span class="line">    restart: unless-stopped</span><br><span class="line">    network_mode: <span class="string">"host"</span></span><br><span class="line">    volumes:</span><br><span class="line">      - /proc:/host/proc</span><br><span class="line">      - /sys:/host/sys</span><br><span class="line">      - /:/rootfs</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
   </nav>
 
 
@@ -2577,7 +2555,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">58</span>
+                    <span class="site-state-item-count">62</span>
                     <span class="site-state-item-name">posts</span>
                   </a>
                 </div>
@@ -2646,7 +2624,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">28</span>
+                      
+                    
+                    <span class="site-state-item-count">29</span>
                     <span class="site-state-item-name">categories</span>
                   </a>
                 </div>
@@ -2807,7 +2787,15 @@
                     
                       
                     
-                    <span class="site-state-item-count">74</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">78</span>
                     <span class="site-state-item-name">tags</span>
                   </a>
                 </div>
