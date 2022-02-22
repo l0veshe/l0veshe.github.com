@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta property="og:type" content="article">
+<meta property="og:title" content="高性能Mysql Schema与数据类型优化">
+<meta property="og:url" content="http://yoursite.com/2014/12/03/%E9%AB%98%E6%80%A7%E8%83%BDMysql-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:locale">
+<meta property="article:published_time" content="2014-12-03T12:33:51.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.954Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="mysql">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="mysql优化">
+<meta property="article:tag" content="schema">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2014/12/03/%E9%AB%98%E6%80%A7%E8%83%BDMysql-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>高性能Mysql Schema与数据类型优化 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2014/12/03/%E9%AB%98%E6%80%A7%E8%83%BDMysql-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          高性能Mysql Schema与数据类型优化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2014-12-03 20:33:51" itemprop="dateCreated datePublished" datetime="2014-12-03T20:33:51+08:00">2014-12-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MYSQL/" itemprop="url" rel="index"><span itemprop="name">MYSQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id=""><a href="#" class="headerlink" title=""></a><span id="more"></span></h2><!--more-->
+<h1 id="Schema与数据类型优化"><a href="#Schema与数据类型优化" class="headerlink" title="Schema与数据类型优化"></a>Schema与数据类型优化</h1><h2 id="此章序"><a href="#此章序" class="headerlink" title="此章序"></a>此章序</h2><p>良好的逻辑设计和物理设计师高性能的基石，应该根据系统将要执行的查询语句来设计schema。例如：<br>反范式的设计可以加快某些类型的查询。同时会让另一种查询变慢。<br>添加计数表和汇总表是一种很好的优化查询的方式，但这些表的维护成本可能更高。</p>
+<h2 id="一、选择优化的数据类型"><a href="#一、选择优化的数据类型" class="headerlink" title="一、选择优化的数据类型"></a>一、选择优化的数据类型</h2><h3 id="更小的数据类型通常更快"><a href="#更小的数据类型通常更快" class="headerlink" title="更小的数据类型通常更快"></a>更小的数据类型通常更快</h3><p>因为它们占用更少的磁盘，内存和CPU缓存。例如：整数<br>比字符操作代价更低。同时，我们应该选择MySQL的内建类型，比如表示日期时间不应该<br>用字符串来存储。</p>
+<h3 id="简单就好"><a href="#简单就好" class="headerlink" title="简单就好"></a>简单就好</h3><p>更少的CPU周期，整型比字符操作代价更低，因为字符集和校对规则（排序规则）使字符比较比整型比较更复杂。</p>
+<h3 id="尽量避免NULL"><a href="#尽量避免NULL" class="headerlink" title="尽量避免NULL"></a>尽量避免NULL</h3><p>如果查询中包含可为NULL的列，对Mysql来说更难优化，因为可为NULL的列使得索引、索引统计和值比较更复杂。<br>InnoDB使用单独的位（bit）存储NULL值，所以对于稀疏数据（较散NULL）有很好的空间效率。但这一点不适用与MyISAM<br>TIMESTAMP只使用DATETIME一半的存储空间。</p>
+<h2 id="1-整型类型"><a href="#1-整型类型" class="headerlink" title="1.整型类型"></a>1.整型类型</h2><h3 id="整数-whole-number"><a href="#整数-whole-number" class="headerlink" title="整数(whole number)"></a>整数(whole number)</h3><h3 id="实数-real-number"><a href="#实数-real-number" class="headerlink" title="实数(real number)"></a>实数(real number)</h3><p>TINYINT        8<br>SMALLINT    16<br>MEDIUMINT    24<br>INT        32<br>BIGINT        64</p>
+<p>可选UNSIGNED，不允许负值</p>
+<p>我们定义 INT(10),对于大多数应用没有意义：它不会限制值的合法范围，只是<br>规定了MySQL的一些交互工具用来显示的字符个数。对于存储来讲，INT(1) 与INT(15)是相同的。</p>
+<h2 id="2-实数类型"><a href="#2-实数类型" class="headerlink" title="2.实数类型"></a>2.实数类型</h2><p>实数是带有小数部分的数字。<br>然而，他们不只是为了存储小数部分，也可以使用DECIMAL存储比BIGINT还打的整数。<br>MYSQL即支持精确类型，也支持不精确类型。</p>
+<p>FLOAT和DOUBLE类型支持使用标准的浮点运算进行近似计算</p>
+<p>MYSQL5.0 + 中的DECIMAL类型允许最多65个数字。在计算中DECIMAL会转换为DOUBLE类型。<br>DECIMAL(18,9) 小数点左右各存储9个数字。</p>
+<h2 id="3-字符串类型"><a href="#3-字符串类型" class="headerlink" title="3.字符串类型"></a>3.字符串类型</h2><h3 id="VARCHAR和CHAR类型"><a href="#VARCHAR和CHAR类型" class="headerlink" title="VARCHAR和CHAR类型"></a>VARCHAR和CHAR类型</h3><h3 id="VARCHAR"><a href="#VARCHAR" class="headerlink" title="VARCHAR"></a>VARCHAR</h3><p>VARCHAR:<br>varchar是长度不固定的，比如说，你定义了varchar(20),当你插入abc，则在数据库中只占3个字节。<br>例外：如果MYSQL表使用ROW_FORMAT=FIXED创建的话，每一行都会使用定长存储，这会浪费空间。</p>
+<p>varchar2基本上等同于varchar，它是oracle自己定义的一个非工业标准varchar，不同在于，varchar2用null代替varchar的空字符串 </p>
+<p>VARCHAR节省了存储空间，所以对性能有帮助。但是，由于行是变长的，在UPDATE时可能使行变得比原来更长。</p>
+<p>INODB会把过长的VARCHAR存储为BLOB。</p>
+<h3 id="CHAR是定长的。"><a href="#CHAR是定长的。" class="headerlink" title="CHAR是定长的。"></a>CHAR是定长的。</h3><p>MYSQL会删除末尾空格。<br>CHAR适合存储很短的字符串，或者所有值都接近同一长度。<br>非常适合存储MD5.<br>不易产生碎片。</p>
+<p>与CHAR与VARCHAR类似的还有BINARY和VARBINARY，存储的是二进制字符串，填充值\0</p>
+<h3 id="BLOB与TEXT"><a href="#BLOB与TEXT" class="headerlink" title="BLOB与TEXT"></a>BLOB与TEXT</h3><p>都是为了存储很大的数据而设计的字符串数据类型，分别采用二进制和字符方式存储。<br>实际上，他们分别属于两组不同的数据类型家族:<br>字符类型是TINYTEXT,SMALLTEXT,TEXT,MEDIUMTEXT,LONGTEXT<br>对应的二进制类型是TINYBLOB,SMALLBLOB,BLOB,MEDIUMBLOB,LONGBLOB.</p>
+<p>MYSQL会针对每个BLOB和TEXT值当做一个独立的对象处理。<br>MYSQL会针对BLOB和TET列进行排序和其他类型是不同的。只针对最前max_sort_length字节而不是整个字符串做排序。或者使用ORDER BY SUSTRING(column,length)<br>不能索引。</p>
+<h2 id="ENUM枚举"><a href="#ENUM枚举" class="headerlink" title="ENUM枚举"></a>ENUM枚举</h2><p>数字-字符串映射关系查找表</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE enum_test(</span><br><span class="line">    -&gt; e ENUM(<span class="string">&#x27;fish&#x27;</span>, <span class="string">&#x27;apple&#x27;</span>, <span class="string">&#x27;dog&#x27;</span>) NOT NULL</span><br><span class="line">    -&gt; );</span><br><span class="line">mysql&gt; INSERT INTO enum_test(e) VALUES(<span class="string">&#x27;fish&#x27;</span>), (<span class="string">&#x27;dog&#x27;</span>),(<span class="string">&#x27;apple&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>此时存储的的世纪存储为整数，而不是字符串可以通过上下文环境检索看到这个双重属性:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT e + 0 FROM enum_test;</span><br><span class="line">-----</span><br><span class="line">e+0</span><br><span class="line">1</span><br><span class="line">3</span><br><span class="line">2</span><br><span class="line">-----</span><br></pre></td></tr></table></figure>
+<p>同时也是利用整数进行排序的：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT e FROM enum_test ORDER BY e;</span><br><span class="line">e</span><br><span class="line">fish</span><br><span class="line">apple</span><br><span class="line">dog</span><br><span class="line">-------</span><br></pre></td></tr></table></figure></p>
+<p>可以利用FIELD()函数来绕过这种限制，进行显式的制定排序顺序，但是这样无法利用索引消除排序。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT e FROM enum_test ORDER BY FIELD(e,<span class="string">&#x27;apple&#x27;</span>,<span class="string">&#x27;dog&#x27;</span>,<span class="string">&#x27;fish&#x27;</span>);</span><br><span class="line">---</span><br><span class="line">e</span><br><span class="line">fish</span><br><span class="line">dog</span><br><span class="line">fish</span><br><span class="line">----</span><br></pre></td></tr></table></figure></p>
+<p>枚举最不好的地方是添加或删除字符串必须使用ALTER TABLE。除非只能接受列表末尾添加元素，这样在mysql5.1中不用重建整表。</p>
+<h2 id="4-日期和时间类型"><a href="#4-日期和时间类型" class="headerlink" title="4.日期和时间类型"></a>4.日期和时间类型</h2><p>MYSQL能存储的最小时间粒度为妙(MariaDB支持微秒级别的事件类型)。但是Mysql也可以使用微秒级的粒度进行临时运算。</p>
+<h3 id="DATETIME"><a href="#DATETIME" class="headerlink" title="DATETIME"></a>DATETIME</h3><p>能保存大范围的值，从1001年到9999年，精度为秒。它把日期和时间封装格式为YYYYMMDDHHMMSS的整数中，与时区无关。<br>默认情况下，Mysql以一种可排序的，无歧义的格式显示DATE的值。ANSI标准。</p>
+<h3 id="TIMESTAMP"><a href="#TIMESTAMP" class="headerlink" title="TIMESTAMP"></a>TIMESTAMP</h3><p>TIMESTAMP类型保存了从1970年1月1日午夜一来的秒数。<br>和UNIX时间错一样。使用四个字节的存储空间。<br>只能表示1970年到2038年。<br>MYSQL提供了FROM_UNIXTIME()函数把UNIX时间戳转换为日期，并提供UNIX_TIMESTAMP()函数把日期转换为UNIX时间戳。</p>
+<h2 id="5-位数据类型"><a href="#5-位数据类型" class="headerlink" title="5.位数据类型"></a>5.位数据类型</h2><h3 id="BIT"><a href="#BIT" class="headerlink" title="BIT"></a>BIT</h3><p>避免使用。</p>
+<h3 id="SET"><a href="#SET" class="headerlink" title="SET"></a>SET</h3><p>需要ALTER TABLE<br>无索引</p>
+<h2 id="6-选择标识符-identifier"><a href="#6-选择标识符-identifier" class="headerlink" title="6.选择标识符(identifier)"></a>6.选择标识符(identifier)</h2><p>一般，边支付可能在另外的表中作为外键使用，所以为标识列选择数据类型时，应该选择跟关联表中使用相同的数据类型。</p>
+<p>小技巧<br>ENUM SET<br>对于标识列来说，ENUM和SET类型通常是一个糟糕的选择，尽管对某些只包含固定状态或者类型的静态“定义表”来说可能是没有问题的。</p>
+<p>字符串类型<br>避免使用，消耗空间。</p>
+<h1 id="二、Mysql-schema设计中的陷阱"><a href="#二、Mysql-schema设计中的陷阱" class="headerlink" title="二、Mysql schema设计中的陷阱"></a>二、Mysql schema设计中的陷阱</h1><p>太多的列<br>MyISAM的定长行结构实际上与服务器层的行结构正好匹配。<br>MySAIM的变长行结构和InnoDB的行结构则总是需要转换。<br>减少列</p>
+<p>太多的关联<br>关联最多61张表<br>单查询最好在12表内</p>
+<p>全能的枚举<br>注意不要过度的使用枚举(ENUM)例如<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE ... (</span><br><span class="line">   country enum(<span class="string">&#x27;1&#x27;</span>, <span class="string">&#x27;2&#x27;</span>, <span class="string">&#x27;3&#x27;</span>, <span class="string">&#x27;4&#x27;</span>, <span class="string">&#x27;5&#x27;</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure><br>每次新增一个新的条目，就要做一次ALTER TABLE，这是阻塞操作。<br>变向的枚举<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE ...(</span><br><span class="line">  is_default <span class="built_in">set</span>(<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;N&#x27;</span>) NOT NULL default <span class="string">&#x27;N&#x27;</span></span><br></pre></td></tr></table></figure></p>
+<p>非NULL<br>不要用NULL,尽量替代<br>很多其他的值会导致出现NULL</p>
+<p>MYSQL会在索引中存储NULL值，而ORACLE则不会。</p>
+<h1 id="三、范式和反范式"><a href="#三、范式和反范式" class="headerlink" title="三、范式和反范式"></a>三、范式和反范式</h1><p>首先你要找地儿，理解范式。</p>
+<h2 id="1-范式的优点以及缺点"><a href="#1-范式的优点以及缺点" class="headerlink" title="1.范式的优点以及缺点"></a>1.范式的优点以及缺点</h2><p>优化性能，优化schema进行范式化设计，尤其写密集。<br>范式化更新操作要比反范式快。<br>更新只需修改少量数据。<br>范式化表更小，更好的凡在内存里。<br>很少有多余的数据意味着，检索列表更少需要DISTINCT 或GROUP BU语句。</p>
+<h2 id="2-反范式的优点以及缺点"><a href="#2-反范式的优点以及缺点" class="headerlink" title="2.反范式的优点以及缺点"></a>2.反范式的优点以及缺点</h2><p>避免关联。<br>全表扫描，避免随机I/O<br>更有效使用索引策略</p>
+<h2 id="3-混用范式化和反范式化"><a href="#3-混用范式化和反范式化" class="headerlink" title="3.混用范式化和反范式化"></a>3.混用范式化和反范式化</h2><p>适当的反范式化加入较小的type。</p>
+<h1 id="四、缓存表和汇总表"><a href="#四、缓存表和汇总表" class="headerlink" title="四、缓存表和汇总表"></a>四、缓存表和汇总表</h1><p>提升性能最好的方法是在同一张表中保存衍生的冗余数据。（？）<br>（为了满足检索要求）有时候也需要创建一张独立的缓存表或汇总表。<br>缓存表：表示存储那些可以比较傲简单地从schema其他表获取（但每次比较慢）数据的表。<br>汇总表：保存的是group by语句聚合数据的表。</p>
+<h2 id="1-物化视图"><a href="#1-物化视图" class="headerlink" title="1.物化视图"></a>1.物化视图</h2><p>google</p>
+<h2 id="2-计数器表"><a href="#2-计数器表" class="headerlink" title="2.计数器表"></a>2.计数器表</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#每隔一天新增一个计数器</span></span><br><span class="line">mysql&gt; CREATE TABLE daily_hist_counter (</span><br><span class="line">-&gt; day date not nul,</span><br><span class="line">-&gt; slot tinyint unsigned not null,</span><br><span class="line">-&gt; cnt int unsigned not null,</span><br><span class="line">-&gt; primary key(day,slot)</span><br><span class="line">) ENGINE=InnoDB;</span><br><span class="line">-----</span><br><span class="line">mysql&gt; INSERT INTO daily_hit_counter(day,slot,cnt)</span><br><span class="line">-&gt; VALUES(CURRENT_DATE,RAND()*100,1)</span><br><span class="line">-&gt; ON DUPLICATE KEY UPDATE cnt = cnt +1;</span><br></pre></td></tr></table></figure>
+<p>希望减少表行数，以避免表变得太大，可以写一个周期执行的任务，合并所有结果到0号槽<br>并且删除所有其他槽</p>
+<h1 id="五、加快ALTER-TABLE操作的速度"><a href="#五、加快ALTER-TABLE操作的速度" class="headerlink" title="五、加快ALTER TABLE操作的速度"></a>五、加快ALTER TABLE操作的速度</h1><p>影子拷贝：创建新标，复制源表，更名</p>
+<h3 id="1-不重建表"><a href="#1-不重建表" class="headerlink" title="1.不重建表"></a>1.不重建表</h3><p>移除一个列的AUTO_INCREMENT属性<br>增加 移除 或更改ENUM和SET常量。</p>
+<p>替换.frm<br>1.创建一张有相同结构的空表，并进行所需要的修改。<br>2.执行FLUSH TABLES WITH READ LOCK 关闭所有正在使用的表，并且禁止任何表打开<br>3.交换.FRM文件<br>4.执行UNLOCK TABLES释放第二步锁。</p>
+<h3 id="2-快速创建MyISAM索引"><a href="#2-快速创建MyISAM索引" class="headerlink" title="2.快速创建MyISAM索引"></a>2.快速创建MyISAM索引</h3><p>为了高效地载入数据到MyISAM表中，有一个常用的技巧是先禁用索引、载入数据，然后重新启用索引：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; ALTER TABLE test.load_data DISABLE KEYS;</span><br><span class="line">-- load data</span><br><span class="line">mysql&gt; ALTER TABLE test.load_data ENABLE KEYS;</span><br></pre></td></tr></table></figure></p>
+<p>这个技巧能够发生作用，是因为构建索引地工作被延迟到数据完全载入以后，这个时候已经可以通过排序来构建索引了。<br>这个方法对唯一索引无效，因为DISABLE KEYS只对非唯一索引有效。</p>
+<p>INNODB方法<br>1.用需要地表结构创建一张表，但是不包括索引<br>2.载入数据到表中以构建.myd的文件<br>3.按照需要的结构创建另一外一张表，这次要包含索引。这会创建需要的。frm和。myi文件。<br>4.获取读锁并刷新新表。<br>5.重命名第二张表的。frm和。myi文件，让mysql认为是第一张表的文件<br>6。释放读锁<br>7.使用repari table来重建表的索引。该操作会通过排序来构建所有索引，包括唯一索引</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>尽量避免过度设计，<br>使用小而简单的合适数据类型<br>尽量使用相同的数据类型存储相似或相关的值<br>注意可变长字符串<br>尽量使用整形定义标志列<br>避免使用已经被MYSQL遗弃的提醒，例如指定浮点数的精度<br>小心使用enum和set</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"># mysql</a>
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/mysql%E4%BC%98%E5%8C%96/" rel="tag"># mysql优化</a>
+              <a href="/tags/schema/" rel="tag"># schema</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2014/12/02/Linux%E5%86%85%E6%A0%B8%E5%AD%A6%E4%B9%A0-I-O/" rel="prev" title="Linux内核学习:I/O">
+      <i class="fa fa-chevron-left"></i> Linux内核学习:I/O
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2014/12/09/%E9%AB%98%E6%80%A7%E8%83%BDMysql-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/" rel="next" title="高性能Mysql-创建高性能的索引">
+      高性能Mysql-创建高性能的索引 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-number">1.</span> <span class="nav-text"></span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96"><span class="nav-number"></span> <span class="nav-text">Schema与数据类型优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A4%E7%AB%A0%E5%BA%8F"><span class="nav-number">1.</span> <span class="nav-text">此章序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E9%80%89%E6%8B%A9%E4%BC%98%E5%8C%96%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">一、选择优化的数据类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9B%B4%E5%B0%8F%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E9%80%9A%E5%B8%B8%E6%9B%B4%E5%BF%AB"><span class="nav-number">2.1.</span> <span class="nav-text">更小的数据类型通常更快</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%B0%B1%E5%A5%BD"><span class="nav-number">2.2.</span> <span class="nav-text">简单就好</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%BD%E9%87%8F%E9%81%BF%E5%85%8DNULL"><span class="nav-number">2.3.</span> <span class="nav-text">尽量避免NULL</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%95%B4%E5%9E%8B%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">1.整型类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E6%95%B0-whole-number"><span class="nav-number">3.1.</span> <span class="nav-text">整数(whole number)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E6%95%B0-real-number"><span class="nav-number">3.2.</span> <span class="nav-text">实数(real number)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%AE%9E%E6%95%B0%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">2.实数类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%B1%BB%E5%9E%8B"><span class="nav-number">5.</span> <span class="nav-text">3.字符串类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#VARCHAR%E5%92%8CCHAR%E7%B1%BB%E5%9E%8B"><span class="nav-number">5.1.</span> <span class="nav-text">VARCHAR和CHAR类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VARCHAR"><span class="nav-number">5.2.</span> <span class="nav-text">VARCHAR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CHAR%E6%98%AF%E5%AE%9A%E9%95%BF%E7%9A%84%E3%80%82"><span class="nav-number">5.3.</span> <span class="nav-text">CHAR是定长的。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BLOB%E4%B8%8ETEXT"><span class="nav-number">5.4.</span> <span class="nav-text">BLOB与TEXT</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ENUM%E6%9E%9A%E4%B8%BE"><span class="nav-number">6.</span> <span class="nav-text">ENUM枚举</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%97%A5%E6%9C%9F%E5%92%8C%E6%97%B6%E9%97%B4%E7%B1%BB%E5%9E%8B"><span class="nav-number">7.</span> <span class="nav-text">4.日期和时间类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DATETIME"><span class="nav-number">7.1.</span> <span class="nav-text">DATETIME</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TIMESTAMP"><span class="nav-number">7.2.</span> <span class="nav-text">TIMESTAMP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%BD%8D%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-number">8.</span> <span class="nav-text">5.位数据类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BIT"><span class="nav-number">8.1.</span> <span class="nav-text">BIT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SET"><span class="nav-number">8.2.</span> <span class="nav-text">SET</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E9%80%89%E6%8B%A9%E6%A0%87%E8%AF%86%E7%AC%A6-identifier"><span class="nav-number">9.</span> <span class="nav-text">6.选择标识符(identifier)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81Mysql-schema%E8%AE%BE%E8%AE%A1%E4%B8%AD%E7%9A%84%E9%99%B7%E9%98%B1"><span class="nav-number"></span> <span class="nav-text">二、Mysql schema设计中的陷阱</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E8%8C%83%E5%BC%8F%E5%92%8C%E5%8F%8D%E8%8C%83%E5%BC%8F"><span class="nav-number"></span> <span class="nav-text">三、范式和反范式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%8C%83%E5%BC%8F%E7%9A%84%E4%BC%98%E7%82%B9%E4%BB%A5%E5%8F%8A%E7%BC%BA%E7%82%B9"><span class="nav-number">1.</span> <span class="nav-text">1.范式的优点以及缺点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%8F%8D%E8%8C%83%E5%BC%8F%E7%9A%84%E4%BC%98%E7%82%B9%E4%BB%A5%E5%8F%8A%E7%BC%BA%E7%82%B9"><span class="nav-number">2.</span> <span class="nav-text">2.反范式的优点以及缺点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%B7%B7%E7%94%A8%E8%8C%83%E5%BC%8F%E5%8C%96%E5%92%8C%E5%8F%8D%E8%8C%83%E5%BC%8F%E5%8C%96"><span class="nav-number">3.</span> <span class="nav-text">3.混用范式化和反范式化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E7%BC%93%E5%AD%98%E8%A1%A8%E5%92%8C%E6%B1%87%E6%80%BB%E8%A1%A8"><span class="nav-number"></span> <span class="nav-text">四、缓存表和汇总表</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE"><span class="nav-number">1.</span> <span class="nav-text">1.物化视图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E8%AE%A1%E6%95%B0%E5%99%A8%E8%A1%A8"><span class="nav-number">2.</span> <span class="nav-text">2.计数器表</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%8A%A0%E5%BF%ABALTER-TABLE%E6%93%8D%E4%BD%9C%E7%9A%84%E9%80%9F%E5%BA%A6"><span class="nav-number"></span> <span class="nav-text">五、加快ALTER TABLE操作的速度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%B8%8D%E9%87%8D%E5%BB%BA%E8%A1%A8"><span class="nav-number">0.1.</span> <span class="nav-text">1.不重建表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%BF%AB%E9%80%9F%E5%88%9B%E5%BB%BAMyISAM%E7%B4%A2%E5%BC%95"><span class="nav-number">0.2.</span> <span class="nav-text">2.快速创建MyISAM索引</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

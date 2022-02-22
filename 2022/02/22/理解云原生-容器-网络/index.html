@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="理解云原生(容器)网络本文需要读者熟悉 Ethernet（以太网）的基本原理和 Linux 系统的基本网络命令，以及 TCP&#x2F;IP 协议族并了解传统的网络模型和协议包的流转原理。文中涉及到 Linux 内核的具体实现时，均以内核 v4.19.215 版本为准。 一、内核网络包接收流程从网卡到内核协议栈    如图[1]，网络包到达 NC（Network Computer，本文指物理机）时，由 NI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理解云原生(容器)网络">
+<meta property="og:url" content="http://yoursite.com/2022/02/22/%E7%90%86%E8%A7%A3%E4%BA%91%E5%8E%9F%E7%94%9F-%E5%AE%B9%E5%99%A8-%E7%BD%91%E7%BB%9C/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="理解云原生(容器)网络本文需要读者熟悉 Ethernet（以太网）的基本原理和 Linux 系统的基本网络命令，以及 TCP&#x2F;IP 协议族并了解传统的网络模型和协议包的流转原理。文中涉及到 Linux 内核的具体实现时，均以内核 v4.19.215 版本为准。 一、内核网络包接收流程从网卡到内核协议栈    如图[1]，网络包到达 NC（Network Computer，本文指物理机）时，由 NI">
+<meta property="og:locale">
+<meta property="og:image" content="https://p9.toutiaoimg.com/origin/tos-cn-i-qvj2lq49k0/0e0b3444313e415fb1efc23e2a01da36?from=pc">
+<meta property="og:image" content="http://yoursite.com/images/2022/02/22/01.png">
+<meta property="og:image" content="http://yoursite.com/images/2022/02/22/01.png">
+<meta property="og:image" content="http://cxd2014.github.io/css/pics/napi/a8_fig3_en.jpg">
+<meta property="og:image" content="http://cxd2014.github.io/css/pics/napi/a8_fig4_en.jpg">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/2020052111443737.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80Mjc2NzYwNA==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img2018.cnblogs.com/blog/431521/201903/431521-20190328111434020-770645568.png">
+<meta property="og:image" content="https://developers.redhat.com/blog/wp-content/uploads/2018/10/bridge.png">
+<meta property="og:image" content="https://img2018.cnblogs.com/blog/431521/201903/431521-20190328111446013-471783189.png">
+<meta property="og:image" content="https://csulrong.github.io/assets/images/2020/interface_bundle.svg">
+<meta property="og:image" content="https://developers.redhat.com/blog/wp-content/uploads/2018/10/vlan_01.png">
+<meta property="og:image" content="https://developers.redhat.com/blog/wp-content/uploads/2018/10/vlan.png">
+<meta property="og:image" content="https://developers.redhat.com/blog/wp-content/uploads/2018/10/vxlan_01.png">
+<meta property="og:image" content="https://csulrong.github.io/assets/images/2020/macvlan.svg">
+<meta property="og:image" content="https://csulrong.github.io/assets/images/2020/macvlan-modes.svg">
+<meta property="og:image" content="https://csulrong.github.io/assets/images/2020/ipvlan.svg">
+<meta property="og:image" content="https://i.loli.net/2021/02/01/5NYEzLXpmPSg8on.jpg">
+<meta property="og:image" content="https://img-blog.csdn.net/20170905183028526?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvc2xkODgwMzEx/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="https://img-blog.csdn.net/20170905183049106?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvc2xkODgwMzEx/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191116213708229.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2N5eGluZGE=,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="http://yoursite.com/Users/hank/Downloads/59171924.jpeg">
+<meta property="og:image" content="http://yoursite.com/Users/hank/Library/Application%20Support/typora-user-images/image-20211130100600016.png">
+<meta property="og:image" content="http://yoursite.com/Users/hank/Library/Application%20Support/typora-user-images/image-20211130100647223.png">
+<meta property="og:image" content="http://yoursite.com/Users/hank/Library/Application%20Support/typora-user-images/image-20211130100637053.png">
+<meta property="og:image" content="http://yoursite.com/Users/hank/Library/Application%20Support/typora-user-images/image-20211201174800174.png">
+<meta property="og:image" content="http://yoursite.com/Users/hank/Downloads/79500079.jpeg">
+<meta property="article:published_time" content="2022-02-22T13:41:50.000Z">
+<meta property="article:modified_time" content="2022-02-22T13:48:52.879Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://p9.toutiaoimg.com/origin/tos-cn-i-qvj2lq49k0/0e0b3444313e415fb1efc23e2a01da36?from=pc">
+
+<link rel="canonical" href="http://yoursite.com/2022/02/22/%E7%90%86%E8%A7%A3%E4%BA%91%E5%8E%9F%E7%94%9F-%E5%AE%B9%E5%99%A8-%E7%BD%91%E7%BB%9C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>理解云原生(容器)网络 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2022/02/22/%E7%90%86%E8%A7%A3%E4%BA%91%E5%8E%9F%E7%94%9F-%E5%AE%B9%E5%99%A8-%E7%BD%91%E7%BB%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          理解云原生(容器)网络
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-02-22 21:41:50 / Modified: 21:48:52" itemprop="dateCreated datePublished" datetime="2022-02-22T21:41:50+08:00">2022-02-22</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="理解云原生-容器-网络"><a href="#理解云原生-容器-网络" class="headerlink" title="理解云原生(容器)网络"></a>理解云原生(容器)网络</h1><p>本文需要读者熟悉 Ethernet（以太网）的基本原理和 Linux 系统的基本网络命令，以及 TCP/IP 协议族并了解传统的网络模型和协议包的流转原理。文中涉及到 Linux 内核的具体实现时，均以内核 v4.19.215 版本为准。</p>
+<h2 id="一、内核网络包接收流程"><a href="#一、内核网络包接收流程" class="headerlink" title="一、内核网络包接收流程"></a>一、内核网络包接收流程</h2><p><strong>从网卡到内核协议栈</strong></p>
+<p><img src="https://p9.toutiaoimg.com/origin/tos-cn-i-qvj2lq49k0/0e0b3444313e415fb1efc23e2a01da36?from=pc" alt="一文理解 K8s 容器网络虚拟化" style="zoom:50%;" /></p>
+<p><img src="/images/2022/02/22/01.png" alt="image.jpg"></p>
+<p><img src="/images/2022/02/22/01.png" alt="一文理解 K8s 容器网络虚拟化" style="zoom:50%;" /></p>
+<p>如图[1]，网络包到达 NC（Network Computer，本文指物理机）时，由 NIC（Network Interface Controller，网络接口控制器，俗称网卡）设备处理，NIC 以中断的方式向内核传递消息。Linux 内核的中断处理分为上半部（Top Half）和下半部（Bottom Half）。上半部需要尽快处理掉和硬件相关的工作并返回，下半部由上半部激活来处理后续比较耗时的工作。</p>
+<p>具体到 NIC 的处理流程如下：<strong>当 NIC 收到数据时</strong>，<strong>会以 DMA 方式将数据拷贝到 Ring Buffer (接收队列) 里描述符指向的映射内存区域</strong>，拷贝完成后会触发中断通知 CPU 进行处理。这里可以使用 ethtool -g {设备名，如eth0} / ip -s link 命令查看 RX/TX （接收/发送）队列的大小。<strong>CPU 识别到中断后跳转到 NIC 的中断处理函数开始执行</strong>。此时要区分 NIC 的工作模式，在早先的非 NAPI（New API）[2]模式下，中断上半部更新相关的寄存器信息，查看接收队列并分配 sk_buff 结构指向接收到的数据，最后调用 netif_rx() 把 sk_buff 递交给内核处理。在 netif_rx() 的函数的流程中，这个分配的 sk_buff 结构被放入 input_pkt_queue队列后，会把一个虚拟设备加入poll_list 轮询队列并触发软中断 NET_RX_SOFTIRQ 激活中断下半部。此时中断上半部就结束了，详细的处理流程可以参见 net/core/dev.c 的 netif_rx() -&gt; netif_rx_internal() -&gt; enqueue_to_backlog() 过程。下半部 NET_RX_SOFTIRQ 软中断对应的处理函数是 net_rx_action()，这个函数会调用设备注册的 poll() 函数进行处理。非 NAPI 的情况下这个虚拟设备的 poll() 函数固定指向 process_backlog() 函数。这个函数将 sk_buff 从 input_pkt_queue 移动到 process_queue 中，调用 __netif_receive_skb() 函数将其投递给协议栈，最后协议栈相关代码会根据协议类型调用相应的接口进行后续的处理。特别地，这里的 enqueue_to_backlog() 以及 process_backlog() 函数也用于和启用了 RPS 机制后的相关逻辑。</p>
+<p>非 NAPI（New API）模式下每个网络包的到达都会触发一次中断处理流程，这么做降低了整体的处理能力，已经过时了。现在大多数 NIC 都支持 NAPI 模式了。<strong>NAPI 模式下在首包触发 NIC 中断后，设备就会被加入轮询队列进行轮询操作以提升效率</strong>，轮询过程中不会产生新的中断。为了支持 NAPI，<strong>每个 CPU 维护了一个叫 softnet_data 的结构，其中有一个 poll_list 字段放置所有的轮询设备</strong>。此时中断上半部很简单，<strong>只需要更新 NIC 相关的寄存器信息，以及把设备加入poll_list 轮询队列并触发软中断 NET_RX_SOFTIRQ就结束了</strong>。中断下半部的处理依旧是 net_rx_action() 来调用设备驱动提供的 poll() 函数。只是 poll() 此时指向的就是设备驱动提供的轮询处理函数了（而不是非 NAPI 模式下的内核函数 process_backlog()）。这个设备驱动提供的轮询 poll() 函数最后也会调用 __netif_receive_skb() 函数把 sk_buff 提交给协议栈处理。</p>
+<p>非 NAPI 模式和 NAPI 模式下的流程对比如下（其中灰色底色是设备驱动要实现的，其他都是内核自身的实现）：</p>
+<p>图3、图4分别展示了非NAPI和NAPI模型中数据包接收处理过程的时序图：<br><img src="http://cxd2014.github.io/css/pics/napi/a8_fig3_en.jpg" alt="a8_fig3_en"><br>图3 - 非NAPI模型的时序图<br><img src="http://cxd2014.github.io/css/pics/napi/a8_fig4_en.jpg" alt="a8_fig4_en"><br>图4 - NAPI模型的时序图</p>
+<h2 id="一、介绍"><a href="#一、介绍" class="headerlink" title="一、介绍"></a>一、介绍</h2><p>随着容器逐步取代虚拟机，成为现在云基础架构的标准，这些容器的网络管理模块都离不开 Linux 虚拟网络设备。事实上，了解常用的 Linux 虚拟网络设备对于我们理解容器网络以及其他依赖于容器的基础网络架构实现都大有裨益。现在开始，我们就来看看常见的 Linux 虚拟网络设备有哪些以及它们的典型使用场景。</p>
+<p><strong>术语</strong></p>
+<p>虚拟网络接口（<strong>Virtual network interface</strong> - VIF ）是网络接口虚拟化的一种抽象表示。它可能会也可能不会直接对应于实际的网络接口控制器(NIC)。</p>
+<ul>
+<li><p>操作系统级虚拟化</p>
+<blockquote>
+<p>在操作系统(OS)内核中，通常在内存中保存一个虚拟网络接口表。这允许系统存储和操作网络接口信息，独立于相关联的物理接口，它可以直连物理接口、隧道或桥接接口。也可以与网络连接相关的系统进程组成“互联网”。</p>
+</blockquote>
+</li>
+<li><p>应用级虚拟化</p>
+<blockquote>
+<p>当应用程序虚拟化或抽象网络接口时，也使用术语 VIF。这种用法很少见，因为大多数软件不需要涉及网络接口细节，并且可能已经通过操作系统抽象。</p>
+</blockquote>
+</li>
+</ul>
+<p>回环(loopback)</p>
+<h2 id="二、常用虚拟网络设备"><a href="#二、常用虚拟网络设备" class="headerlink" title="二、常用虚拟网络设备"></a>二、常用虚拟网络设备</h2><p><strong>网络设备的驱动程序</strong>并不直接与<strong>内核中的协议栈</strong>交互，而是通过<strong>内核的网络设备管理模块</strong>作为中间桥梁。这样做的好处是，驱动程序不需要了解网络协议栈的细节，协议栈也不需要针对特定驱动处理数据包。</p>
+<p>对于<strong>内核网络设备管理模块</strong>来说，<strong>虚拟设备和物理设备</strong>没有区别，都是<strong>网络设备</strong>，都能<strong>配置 IP 地址</strong>，甚至从逻辑上来看，虚拟网络设备和物理网络设备都<strong>类似于管道</strong>，从任意一端接收到的数据将从另外一端发送出去。比如物理网卡的两端分别是协议栈与外面的物理网络，从外面物理网络接收到的数据包会转发给协议栈，相反，应用程序通过协议栈发送过来的数据包会通过物理网卡发送到外面的物理网络。但是对于具体将数据包发送到哪里，怎么发送，不同的网络设备有不同的驱动实现，与内核设备管理模块以及协议栈没关系。</p>
+<p>总的来说，虚拟网络设备与物理网络设备没有什么区别，它们的一端连接着内核协议栈，而另一端的行为是什么取决于不同网络设备的驱动实现。</p>
+<h3 id="0-预备"><a href="#0-预备" class="headerlink" title="0. 预备"></a>0. 预备</h3><h4 id="0-1-net-tools-iproute2-新旧网络命令"><a href="#0-1-net-tools-iproute2-新旧网络命令" class="headerlink" title="0.1 net-tools / iproute2 - 新旧网络命令"></a>0.1 net-tools / iproute2 - 新旧网络命令</h4><p>如今很多系统管理员依然通过组合使用诸如ifconfig、route、arp和netstat等命令行工具（统称为net-tools）来配置网络功能，解决网络故障。net-tools起源于BSD的TCP/IP工具箱，后来成为老版本Linux内核中配置网络功能的工具。</p>
+<p><strong>但自2001年起，Linux社区已经对其停止维护。</strong>同时，一些Linux发行版比如Arch Linux和CentOS/RHEL 7则已经完全抛弃了net-tools，只支持iproute2，命令包括ss, ip。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install iproute2</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/2020052111443737.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80Mjc2NzYwNA==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" style="zoom:50%;" /></p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>老用法</th>
+<th>新用法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>路由表</td>
+<td>netstat -r/route</td>
+<td>ip route</td>
+</tr>
+<tr>
+<td>网络接口统计信息</td>
+<td>netstat -i</td>
+<td>ip -s link</td>
+</tr>
+<tr>
+<td>组播</td>
+<td>netstat -g</td>
+<td>ip maddr</td>
+</tr>
+<tr>
+<td>网络接口地址和链路</td>
+<td>ifconfig</td>
+<td>ip addr /ip link</td>
+</tr>
+<tr>
+<td>ARP</td>
+<td>arp</td>
+<td>ip neigh</td>
+</tr>
+<tr>
+<td>隧道</td>
+<td>iptunnel</td>
+<td>ip tunnel</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>功能老用法新用法路由表netstat -r/routeip route网络接口统计信息netstat -iip -s link组播netstat -gip maddr网络接口地址和链路ifconfigip addr /ip linkARParpip neigh隧道iptunnelip tunnel功能老用法新用法路由表netstat -r/routeip route网络接口统计信息netstat -iip -s link组播netstat -gip maddr网络接口地址和链路ifconfigip addr /ip linkARParpip neigh隧道iptunnelip tunnel######</p>
+<h4 id="0-2-IP-NETNS-网络命名空间"><a href="#0-2-IP-NETNS-网络命名空间" class="headerlink" title="0.2 IP-NETNS - 网络命名空间"></a>0.2 IP-NETNS - 网络命名空间</h4><p><code>ip netns</code> 命令是用来管理 <strong>网络命名空间</strong> 的，网络命名空间可以实现 <strong>网络隔离</strong>。每个网络命名空间都提供了一个完全独立的网络协议栈，包括网络设备接口、IPV4 和 IPV6 协议栈、IP路由表、防火墙规则、端口、sockets 等。像 docker 就是利用 Linux 的网络命名空间来实现容器网络的隔离。</p>
+<p>默认情况下，进程从其父进程继承其网络命名空间。最初，所有进程共享来自 init 进程的相同默认网络命名空间。</p>
+<p>网络命名空间位于<code>/var/run/netns/&lt;NAME&gt;</code></p>
+<h5 id="命令介绍"><a href="#命令介绍" class="headerlink" title="命令介绍"></a>命令介绍</h5><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>用法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ip netns list</td>
+<td>列出网络命名空间。此命令显示的是 “/var/run/netns” 中的所有网络命名空间。</td>
+</tr>
+<tr>
+<td>ip netns add NAME</td>
+<td>添加网络命名空间</td>
+</tr>
+<tr>
+<td>ip [-all] netns delete [NAME]</td>
+<td>删除网络命名空间</td>
+</tr>
+<tr>
+<td>ip [-all] netns exec [NAME] cmd …</td>
+<td>在指定的网络命名空间中执行命令</td>
+</tr>
+<tr>
+<td>ip netns set NAME NETNSID</td>
+<td>给网络命名空间分配id</td>
+</tr>
+<tr>
+<td>ip netns identify [PID]</td>
+<td>查看进程的网络命名空间</td>
+</tr>
+<tr>
+<td>ip netns monitor</td>
+<td>监控对网络命名空间的操作</td>
+</tr>
+<tr>
+<td>ip netns pids NAME</td>
+<td>查找使用此网络命名空间并将其作为主要网络命名空间的进程。此命令会从 /proc 目录中遍历</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>用法含义ip netns list列出网络命名空间。此命令显示的是 “/var/run/netns” 中的所有网络命名空间。ip netns add NAME添加网络命名空间ip [-all] netns delete [NAME]删除网络命名空间ip [-all] netns exec [NAME] cmd …在指定的网络命名空间中执行命令ip netns set NAME NETNSID给网络命名空间分配idip netns identify [PID]查看进程的网络命名空间ip netns monitor监控对网络命名空间的操作ip netns pids NAME查找使用此网络命名空间并将其作为主要网络命名空间的进程。此命令会从 /proc 目录中遍历用法含义ip netns list列出网络命名空间。此命令显示的是 “/var/run/netns” 中的所有网络命名空间。ip netns add NAME添加网络命名空间ip [-all] netns delete [NAME]删除网络命名空间ip [-all] netns exec [NAME] cmd …在指定的网络命名空间中执行命令ip netns set NAME NETNSID给网络命名空间分配idip netns identify [PID]查看进程的网络命名空间ip netns monitor监控对网络命名空间的操作ip netns pids NAME查找使用此网络命名空间并将其作为主要网络命名空间的进程。此命令会从 /proc 目录中遍历##### 示例</p>
+<p>添加并列出network space，随后删除所有的network space。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# ip netns add test1</span><br><span class="line">root@10:~# ip netns add test2</span><br><span class="line">root@10:~# ip netns ls</span><br><span class="line">test2</span><br><span class="line">test1</span><br><span class="line">root@10:~# ip -all netns del</span><br><span class="line">root@10:~# ip netns ls</span><br></pre></td></tr></table></figure>
+<p>创建的网络命名空间是可以在 /var/run/netns 路径下看到。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# ip netns add test1</span><br><span class="line">root@10:~# ip netns add test2</span><br><span class="line">root@10:~# cd /var/run/netns/</span><br><span class="line">root@10:~#:/var/run/netns# ls</span><br><span class="line">test1  test2</span><br><span class="line">root@10:~# ip -all netns del</span><br></pre></td></tr></table></figure>
+<p>使用 exec 命令在网络命名空间中执行命令，查看 test1 的网卡信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# ip netns exec test1 ip a</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br></pre></td></tr></table></figure>
+<p>网络命名空间除了网络是虚拟的以外，文件系统完全和当前系统共享，也就是说所有本地可以使用的命令都可以在网络命名空间中使用。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# ip netns exec test1 ls</span><br><span class="line">app  backup.tar  cp1  perf.data  registry_latest.tar  test  test_0.1.tar  test-bind  ubuntu-test.tar</span><br><span class="line">root@10:~# ip netns exec test1 pwd</span><br><span class="line">/root</span><br></pre></td></tr></table></figure>
+<p>进入网络命名空间可以用 exec 执行 bash 即可。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# ip netns add test1</span><br><span class="line">root@10:~# ip netns exec test1 bash</span><br><span class="line">root@10:~# ip a</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">root@10:~# exit</span><br></pre></td></tr></table></figure>
+<p>–all 选项可以在所有网络命名空间中执行命令。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# ip netns add test2</span><br><span class="line">root@10:~# ip -all netns exec ip a</span><br><span class="line"></span><br><span class="line">netns: test2</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line"></span><br><span class="line">netns: test1</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">root@10:~# ip -all netns del</span><br></pre></td></tr></table></figure>
+<p>使用 ip netns set NAME NETNSID 给网络命名空间分配ID。该ID仅在当前网络命名空间中有效，如果指定了关键字“ auto”，则将会自动选择一个可用的nsid。内核将在某些 netlink 消息中使用此ID，如果在内核需要时未分配ID，则它将由内核自动分配。注意 ID 分配后，将无法更改。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# ip netns add cp</span><br><span class="line">root@10:~# ip netns </span><br><span class="line">cp</span><br><span class="line">root@10:~# ip netns set cp 6</span><br><span class="line">root@10:~# ip netns </span><br><span class="line">cp (id: 6)</span><br></pre></td></tr></table></figure>
+<p>使用 ip netns monitor 监控网络命名空间的添加和删除事件，只能监控添加和删除。</p>
+<p><strong>终端1</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip netns monitor</span><br></pre></td></tr></table></figure>
+<p><strong>终端2</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# ip netns del cp</span><br><span class="line">root@10:~# ip netns add cp</span><br></pre></td></tr></table></figure>
+<p>终端1会返回</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">delete cp</span><br><span class="line">add cp</span><br></pre></td></tr></table></figure>
+<p>以下两个示例以 docker 容器为例，在没做一些设置前，使用 ip netns 命令是无法管理分配给 docker 容器的网络命名空间，至于如何使用 ip netns 命令管理分配给容器的网络命名空间，下面扩展中有介绍到。在做下面示例时请先做好以下设置。</p>
+<p>生成一个docker，用ip netns查看网络命名空间显示网卡和docker内部显示网卡是否一致</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# docker run --rm -d --name bb busybox tail -f /etc/hosts</span><br><span class="line">root@10:~# pid=$(ps aux|grep /hosts|grep -v grep|awk &#x27;&#123;print $2&#125;&#x27;)</span><br><span class="line">root@10:~# ln -s  /proc/$&#123;pid&#125;/ns/net  /var/run/netns/bb</span><br><span class="line">root@10:~# ip netns exec bb bash</span><br><span class="line">root@10:~# ip a</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">13: eth0@if14: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default</span><br><span class="line">    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">    inet 172.17.0.2/16 brd 172.17.255.255 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">root@10:~#:~ exit</span><br><span class="line">root@10:~#:~ docker exec -it bb sh</span><br><span class="line">/ # ip a</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">13: eth0@if14: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1500 qdisc noqueue</span><br><span class="line">    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.17.0.2/16 brd 172.17.255.255 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">/ # exit</span><br><span class="line"></span><br><span class="line">root@10:~#:~ docker stop bb  # 清理实验docker</span><br><span class="line">root@10:~#:~ ip netns del bb  # 清理软链接</span><br></pre></td></tr></table></figure>
+<p>生成一个docker，用<code>ip netns identify &lt;PID&gt;</code> 和<code>ip netns pid &lt;NAME&gt;</code>比对</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root@10:~# docker run --rm -d --name bb busybox tail -f /etc/hosts</span><br><span class="line">root@10:~# pid=$(ps aux|grep /hosts|grep -v grep|awk &#x27;&#123;print $2&#125;&#x27;)</span><br><span class="line">root@10:~# ln -s  /proc/$&#123;pid&#125;/ns/net  /var/run/netns/bb</span><br><span class="line">root@10:~# ip netns identify $&#123;pid&#125;</span><br><span class="line">bb</span><br><span class="line">root@10:~# ip netns pids bb</span><br><span class="line">11421</span><br><span class="line">root@10:~ docker stop bb  # 清理实验docker</span><br><span class="line">root@10:~ ip netns del bb  # 清理软链接</span><br></pre></td></tr></table></figure>
+<h3 id="1-虚拟网络设备"><a href="#1-虚拟网络设备" class="headerlink" title="1. 虚拟网络设备"></a>1. 虚拟网络设备</h3><h4 id="1-1-VETH-虚拟以太网设备"><a href="#1-1-VETH-虚拟以太网设备" class="headerlink" title="1. 1 VETH -  虚拟以太网设备"></a>1. 1 VETH -  虚拟以太网设备</h4><p>该VETH设备是虚拟以太网设备。他们可以充当网络命名空间之间的隧道以创建通往另一个命名空间中的物理网络设备，但也可以是用作独立的网络设备。当任一设备关闭时，该对的链路状态为关闭。</p>
+<p>和 tap/tun 设备不同的是，它都是成对出现的。一端连着协议栈，一端彼此相连着。</p>
+<p>正因为有这个特性，它常常充当着一个桥梁，连接着各种虚拟网络设备，典型的例子像“两个 namespace 之间的连接”，“Bridge、OVS 之间的连接”，“Docker 容器之间的连接” 等等，以此构建出非常复杂的虚拟网络结构，比如 OpenStack Neutron。</p>
+<h5 id="命令介绍-1"><a href="#命令介绍-1" class="headerlink" title="命令介绍"></a>命令介绍</h5><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">用法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ip link add  netns  type veth peer  netns</td>
+<td>添加虚拟以太网设备对</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>用法含义ip link add  netns  type veth peer  netns添加虚拟以太网设备对用法含义ip link add <p1-name> netns <p1-ns> type veth peer <p2-name> netns <p2-ns>添加虚拟以太网设备对veth设备总是成对创建的。可以使用以下命令创建，可以不指定netns：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip link add &lt;p1-name&gt; type veth peer name &lt;p2-name&gt;</span><br></pre></td></tr></table></figure>
+<p>在上面，p1-name和p2-name是分配给两个相连的端点。</p>
+<p>在一对设备上传输的数据包立即在另一台设备上收到。当任一设备关闭时该对的链路状态为关闭。</p>
+<p>一对veth 的一端放在一个网络命名空间和另一个网络命名空间中的另一端，从而允许网络命名空间之间的通信。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip link add &lt;p1-name&gt; netns &lt;p1-ns&gt; type veth peer &lt;p2-name&gt; netns &lt;p2-ns&gt;</span><br></pre></td></tr></table></figure>
+<h5 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h5><p>直接相连是最简单的方式，如下图，一对 veth-pair 直接将两个 namespace 连接在一起。</p>
+<p><img src="https://img2018.cnblogs.com/blog/431521/201903/431521-20190328111434020-770645568.png" alt="img" style="zoom:80%;" /></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># 创建 namespace</span><br><span class="line">ip netns a ns1</span><br><span class="line">ip netns a ns2</span><br><span class="line"></span><br><span class="line"># 创建一对 veth-pair veth0 veth1</span><br><span class="line">ip l a veth0 type veth peer name veth1</span><br><span class="line"></span><br><span class="line"># 将 veth0 veth1 分别加入两个 ns</span><br><span class="line">ip l set veth0 netns ns1</span><br><span class="line">ip l s veth1 netns ns2</span><br><span class="line"></span><br><span class="line"># 给两个 veth0 veth1 配上 IP 并启用</span><br><span class="line">ip netns exec ns1 ip addr add 10.1.1.2/24 dev veth0</span><br><span class="line">ip netns exec ns1 ip link set veth0 up</span><br><span class="line">ip netns exec ns2 ip a a 10.1.1.3/24 dev veth1</span><br><span class="line">ip netns exec ns2 ip l s veth1 up</span><br><span class="line"></span><br><span class="line"># 从 veth0 ping veth1</span><br><span class="line">[root@localhost ~]# ip netns exec ns1 ping 10.1.1.3</span><br><span class="line">PING 10.1.1.3 (10.1.1.3) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.1.1.3: icmp_seq=1 ttl=64 time=0.073 ms</span><br><span class="line">64 bytes from 10.1.1.3: icmp_seq=2 ttl=64 time=0.068 ms</span><br></pre></td></tr></table></figure>
+<p>清理实验虚拟设备</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip netns del ns2</span><br><span class="line">ip netns del ns1</span><br><span class="line">ip l d veth1</span><br></pre></td></tr></table></figure>
+<h4 id="1-2-Bridge-虚拟网桥"><a href="#1-2-Bridge-虚拟网桥" class="headerlink" title="1.2 Bridge - 虚拟网桥"></a>1.2 Bridge - 虚拟网桥</h4><p>Linux 网桥的行为类似于网络交换机。它在连接到它的接口之间转发数据包。它通常用于在路由器、网关或主机上的 VM 和网络命名空间之间转发数据包。它还支持 STP、VLAN 过滤器和组播侦听。bridge 可以工作在二层(链路层)，也可以工作在三层（IP 网路层）。</p>
+<p>网桥默认是一个二层设备，工作在链路层，主要是根据MAC学习来转发数据到不同的port。</p>
+<p><img src="https://developers.redhat.com/blog/wp-content/uploads/2018/10/bridge.png" alt="桥图" style="zoom: 80%;" /></p>
+<h5 id="命令介绍-2"><a href="#命令介绍-2" class="headerlink" title="命令介绍"></a>命令介绍</h5><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">用法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ip link add  type bridge</td>
+<td>添加bridge设备</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link show [] type bridge</td>
+<td>显示类别为bridge的设备</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link delete  type bridge</td>
+<td>删除bridge设备</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>用法含义ip link add  type bridge添加bridge设备ip link show [] type bridge显示类别为bridge的设备ip link delete  type bridge删除bridge设备用法含义ip link add <bridge name> type bridge添加bridge设备ip link show [<bridge name>] type bridge显示类别为bridge的设备ip link delete <bridge name> type bridge删除bridge设备##### 用法</p>
+<p>把bridge当作一个交换机，中转两个netns的流量</p>
+<p><img src="https://img2018.cnblogs.com/blog/431521/201903/431521-20190328111446013-471783189.png" alt="img"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"># 创建两个网络命名空间</span><br><span class="line">ip netns add ns1</span><br><span class="line">ip netns add ns2</span><br><span class="line"></span><br><span class="line"># 首先创建 bridge br0</span><br><span class="line">ip link add br0 type bridge</span><br><span class="line">ip l set br0 up </span><br><span class="line"></span><br><span class="line"># 然后创建两对 veth-pair （虚拟网卡veth0与虚拟网卡br-veth0）</span><br><span class="line">ip l a veth0 type veth peer name br-veth0</span><br><span class="line">ip l a veth1 type veth peer name br-veth1</span><br><span class="line">ip link show type veth # 查看一下所有veth</span><br><span class="line"></span><br><span class="line"># 分别将两对 veth-pair 加入两个 ns 和 br0</span><br><span class="line">ip l s veth0 netns ns1</span><br><span class="line">ip l s br-veth0 master br0</span><br><span class="line">ip l s br-veth0 up # 这个好像必须要开启，类似于交换机的网卡插口</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip link show type veth # 查看ns1空间的网卡，发现veth0已经加入到ns1空间，不在默认空间中了</span><br><span class="line">ip link show type veth # 这时候 br-veth0@veth0变为 br-veth0@if11</span><br><span class="line"></span><br><span class="line">ip l s veth1 netns ns2</span><br><span class="line">ip l s br-veth1 master br0</span><br><span class="line">ip l s br-veth1 up  </span><br><span class="line"></span><br><span class="line"># 给两个 ns 中的 veth 配置 IP 并启用</span><br><span class="line">ip netns exec ns1 ip a a 10.1.1.2/24 dev veth0</span><br><span class="line">ip netns exec ns1 ip l s veth0 up</span><br><span class="line"></span><br><span class="line">ip netns exec ns2 ip a a 10.1.1.3/24 dev veth1</span><br><span class="line">ip netns exec ns2 ip l s veth1 up</span><br><span class="line"></span><br><span class="line"># veth0 ping veth1</span><br><span class="line">[root@localhost ~]# ip netns exec ns1 ping 10.1.1.3</span><br><span class="line">PING 10.1.1.3 (10.1.1.3) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.1.1.3: icmp_seq=1 ttl=64 time=0.060 ms</span><br><span class="line">64 bytes from 10.1.1.3: icmp_seq=2 ttl=64 time=0.105 ms</span><br><span class="line"></span><br><span class="line">--- 10.1.1.3 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 received, 0% packet loss, time 999ms</span><br><span class="line">rtt min/avg/max/mdev = 0.060/0.082/0.105/0.024 ms</span><br><span class="line"></span><br><span class="line"># 清理</span><br><span class="line">ip netns del ns1</span><br><span class="line">ip netns del ns2</span><br><span class="line">ip link del br0</span><br></pre></td></tr></table></figure>
+<h4 id="1-3-bonded和team-接口捆绑-了解"><a href="#1-3-bonded和team-接口捆绑-了解" class="headerlink" title="1.3 bonded和team - 接口捆绑(了解)"></a>1.3 bonded和team - 接口捆绑(了解)</h4><p>接口捆绑将多个网络接口组合成一个逻辑接口，从而提供冗余和带宽聚合。Linux提供了bonded和team两个driver。</p>
+<p><a target="_blank" rel="noopener" href="https://www.kernel.org/doc/Documentation/networking/bonding.txt">官方</a> <a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/news/35726">腾讯云社区 </a></p>
+<p><img src="https://csulrong.github.io/assets/images/2020/interface_bundle.svg" alt="接口捆绑" style="zoom:80%;" /></p>
+<p>bonding和teaming这两个术语因为都跟接口捆绑或链路聚合有关，它们也经常被混为一谈，但Linux在实现上是有区别的。</p>
+<p>使用如下命令，创建一个bonded接口<code>bond1</code>，将主机上的两个物理接口<code>eth0</code>和<code>eth1</code>捆绑成一个逻辑的聚合接口，该聚合接口工作在主备模式，提供了链路的冗余和备份。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip link add bond1 type bond miimon 100 mode active-backup</span><br><span class="line">ip link set eth0 master bond1</span><br><span class="line">ip link set eth1 master bond1</span><br></pre></td></tr></table></figure>
+<p>teaming可以作为接口聚合的首选方案，因为它提供了比bonding更全面的功能和特性。关于两者在功能特性上的具体区别，可以参考<a target="_blank" rel="noopener" href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/configuring_and_managing_networking/configuring-network-teaming_configuring-and-managing-networking#comparison-of-network-teaming-and-bonding-features_configuring-network-teaming">Comparison of network teaming and bonding features</a>。</p>
+<p>在下面的命令行中，使用<code>teamd</code>创建一个<code>team0</code>聚合接口，并将主机上的<code>eth0</code>和<code>eth1</code>加入到这个聚合接口。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">teamd -o -n -U -d -t team0 -c &#x27;&#123;&quot;runner&quot;: &#123;&quot;name&quot;: &quot;loadbalance&quot;&#125;,&quot;link_watch&quot;: &#123;&quot;name&quot;: &quot;ethtool&quot;&#125;&#125;&#x27;</span><br><span class="line">ip link set eth0 down</span><br><span class="line">ip link set eth1 down</span><br><span class="line">teamdctl team0 port add eth0</span><br><span class="line">teamdctl team0 port add eth1</span><br></pre></td></tr></table></figure>
+<h4 id="1-4-VLAN-虚拟-LAN"><a href="#1-4-VLAN-虚拟-LAN" class="headerlink" title="1.4 VLAN - 虚拟 LAN"></a>1.4 VLAN - 虚拟 LAN</h4><p>VLAN，又名虚拟 LAN，通过向网络数据包添加标签来分隔广播域。VLAN 允许网络管理员在同一交换机下或不同交换机之间对主机进行分组。</p>
+<p>Linux 虚拟 VLAN 设备是对<a target="_blank" rel="noopener" href="https://www.shangyang.me/2017/01/02/network-switcher/#802-1-q-交换机">802.1.q 交换机</a>的模拟，通过一个母网卡模拟出多个子网卡，母设备相当于现实世界交换机的 TRUNK 端口用来连接上级网络，子设备相当于交换机的端口用来连接下级网络</p>
+<p><img src="https://developers.redhat.com/blog/wp-content/uploads/2018/10/vlan_01.png" alt="VLAN 头"  /></p>
+<p><a target="_blank" rel="noopener" href="https://www.redhat.com/sysadmin/vlans-configuration">redhat例子</a></p>
+<h5 id="命令介绍-3"><a href="#命令介绍-3" class="headerlink" title="命令介绍"></a>命令介绍</h5><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">用法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ip link add link  name  type vlan id</td>
+<td>添加vlanip</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link show [] type vlan</td>
+<td>显示类别为vlan的设备</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link delete  type vlan</td>
+<td>删除vlan设备</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>用法含义ip link add link  name  type vlan id添加vlanipip link show [] type vlan显示类别为vlan的设备ip link delete  type vlan删除vlan设备用法含义ip link add link <real eth> name <virtual eth> type vlan id <id>添加vlanipip link show [<virtual eth>] type vlan显示类别为vlan的设备ip link delete <virtual eth> type vlan删除vlan设备##### 用法</p>
+<p>当您想要在 VM、命名空间或主机中分离子网时，请使用 VLAN。</p>
+<p>创建 VLAN 的方法如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip link add link eth0 name eth0.2 type vlan id 2</span><br><span class="line"># ip link add link eth0 name eth0.3 type vlan id 3</span><br></pre></td></tr></table></figure>
+<p>这将添加名称为 VLAN 2 和名称为<code>eth0.2</code>VLAN 3 <code>eth0.3</code>。拓扑如下所示：</p>
+<p><a target="_blank" rel="noopener" href="https://developers.redhat.com/blog/wp-content/uploads/2018/10/vlan.png"><img src="https://developers.redhat.com/blog/wp-content/uploads/2018/10/vlan.png" alt="VLAN拓扑"></a></p>
+<p><strong><em>注意\</em></strong>：配置 VLAN 时，需要确保与主机相连的交换机能够处理 VLAN 标签，例如将交换机端口设置为中继模式。</p>
+<p>此设备需要交换机支持，故不做server之间联通尝试。</p>
+<p>理解：</p>
+<p>在上图的switch上，有三个vlan，每个vlan分别网段是</p>
+<ul>
+<li>10.8.0.0/24</li>
+<li>10.8.1.0/24</li>
+<li>10.81.2.0/24</li>
+</ul>
+<p>然后这台switch开启trunk功能（允许多vlan流量）</p>
+<p>然后server配置了10.81.0.5的ip，</p>
+<p>eth0.2开启了10.8.1.x的ip,添加该网段路由后,可以访问10.8.1.0/24网段</p>
+<p>eth0.3开启了10.8.2.x的ip,添加该网段路由后,可以访问10.81.2.0/24网段</p>
+<h4 id="1-5-VXLAN-虚拟局域网-overlay"><a href="#1-5-VXLAN-虚拟局域网-overlay" class="headerlink" title="1.5 VXLAN - 虚拟局域网(overlay)"></a>1.5 VXLAN - 虚拟局域网(overlay)</h4><p>VXLAN（Virtual eXtensible Local Area Network）是一种隧道协议，旨在解决IEEE 802.1q中VLAN ID（4,096）有限的问题。</p>
+<p>使用 24 位网段 ID，又名 VXLAN 网络标识符 (VNI)，VXLAN 最多允许 2^24 (16,777,216) 个虚拟 LAN，这是 VLAN 容量的 4,096 倍。</p>
+<p>VXLAN 将带有 VXLAN 标头的第 2 层帧封装成一个 UDP-IP 数据包，如下所示：</p>
+<p><img src="https://developers.redhat.com/blog/wp-content/uploads/2018/10/vxlan_01.png" alt="VXLAN 将带有 VXLAN 标头的第 2 层帧封装到 UDP-IP 数据包中"></p>
+<p>它是一种 overlay 技术，通过三层的网络来搭建虚拟的二层网络。rfc7348 (参考资料1) 上的介绍是这样的：</p>
+<blockquote>
+<p>A framework for overlaying virtualized layer 2 networks over lay 3 networks.</p>
+</blockquote>
+<p>每一个技术出来都有它要解决的问题，VXLAN 也不例外，那么我们先看看 VXLAN 到底要解决哪些问题。</p>
+<ul>
+<li>虚拟化（虚拟机和容器）的兴起使得一个数据中心会有成千上万的机器需要通信，而传统的 VLAN 技术只能支持 4096 个网络上限，已经满足不了不断扩展的数据中心规模</li>
+<li>越来越多的数据中心（尤其是公有云服务）需要提供多租户的功能，不同用户之间需要独立地分配 ip 和 MAC 地址，如何保证这个功能的扩展性和正确性也是一个待解决的问题</li>
+<li>云计算业务对业务灵活性要求很高，虚拟机可能会大规模迁移，并保证网络一直可用，也就是大二层的概念。解决这个问题同时保证二层的广播域不会过分扩大，也是云计算网络的要求</li>
+</ul>
+<p>传统二层+三层的网络在应对这些要求时变得力不从心，虽然很多改进型的技术比如堆叠、SVF、TRILL 等能够增加二层的范围，努力改进经典网络，但是要做到对网络改动小同时保证灵活性高却非常困难。</p>
+<p>为了解决这些问题，有很多方案被提出来，vxlan 就是其中之一。vxlan 是 VMware、Cisco 等一众大型企业共同推出的，目前标准文档在 <a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc7348">RFC7348</a>。</p>
+<p>它将链路层的以太网包封装到 UDP 包中进行传输。VXLAN 最初是由 VMware、Cisco 开发，主要解决云环境下多租户的二层网络隔离。我们常听到公有云厂商宣称支持 VPC (virtual private cloud)，实际底层就是使用 VXLAN 实现的。</p>
+<p><a target="_blank" rel="noopener" href="https://vincent.bernat.ch/en/blog/2017-vxlan-linux#unicast-with-static-l2-entries">案例</a></p>
+<h5 id="命令介绍-4"><a href="#命令介绍-4" class="headerlink" title="命令介绍"></a>命令介绍</h5><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">用法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ip link add   type vxlan id  dstport  remote  local  dev</td>
+<td>添加vxlan</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link show dev  type vxlan</td>
+<td>显示类别为vxlan的设备</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link delete  type vxlan</td>
+<td>删除vxlan设备</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>用法含义ip link add   type vxlan id  dstport  remote  local  dev添加vxlanip link show dev  type vxlan显示类别为vxlan的设备ip link delete  type vxlan删除vxlan设备用法含义ip link add <vlan name>  type vxlan id <id> dstport <vtep dsp port> remote <remote ip> local <local ip> dev <eth>添加vxlanip link show dev <vlan name> type vxlan显示类别为vxlan的设备ip link delete <vlan  name> type vxlan删除vxlan设备vlan name: 创建一个名字为<vlan name>，类型为 <code>vxlan</code> 的网络 interface，</p>
+<p>id:  指定 VNI 的值，这个值可以在 1 到 2^24 之间</p>
+<p>vtep dsp port: vtep 通信的端口，linux 默认使用 8472</p>
+<p>remote ip: 对方 vtep 的地址，类似于点对点协议</p>
+<p>local ip: 当前节点 vtep 要使用的 IP 地址</p>
+<p>eth: 当节点用于 vtep 通信的网卡设备，用来读取 IP 地址</p>
+<p>更多资料： <a target="_blank" rel="noopener" href="https://cizixs.com/2017/09/28/linux-vxlan/">https://cizixs.com/2017/09/28/linux-vxlan/</a></p>
+<h4 id="1-6-MACVLAN和IPVLAN"><a href="#1-6-MACVLAN和IPVLAN" class="headerlink" title="1.6 MACVLAN和IPVLAN"></a>1.6 MACVLAN和IPVLAN</h4><h5 id="MACVLAN-网卡虚拟化技术-性能极好"><a href="#MACVLAN-网卡虚拟化技术-性能极好" class="headerlink" title="MACVLAN - 网卡虚拟化技术 - 性能极好"></a><strong>MACVLAN</strong> - 网卡虚拟化技术 - <strong>性能极好</strong></h5><p>使用VLAN，可以在单个接口上创建多个虚拟接口，通过VLAN tag对数据包进行过滤。使用macvlan，可以在单个接口上创建多个虚拟接口，这些虚拟接口都有自己的MAC地址。</p>
+<p>在不用macvlan时，如果要把虚拟机或者网络命名空间连接到物理网络，需要创建TAP或者veth设备，并且附加到Linux bridge上，同时，需要把物理接口接到bridge上用来连接到物理网络。但是，使用macvlan之后，网络命名空间就可以直接通过macvlan绑定到物理接口，而无需bridge。如下图所示。</p>
+<p><img src="https://csulrong.github.io/assets/images/2020/macvlan.svg" alt="macvlan"></p>
+<p>MACVLAN有4种模式，如下图所示。</p>
+<p><img src="https://csulrong.github.io/assets/images/2020/macvlan-modes.svg" alt="macvlan的4种模式"></p>
+<p>其中，最常用的是bridge模式。以下命令创建两个bridge模式的macvlan实例，分别分配到两个不同的网络命名空间。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ip link add macv1 link eth0 type macvlan mode bridge</span><br><span class="line">ip link add macv2 link eth0 type macvlan mode bridge</span><br><span class="line">ip netns add net1</span><br><span class="line">ip netns add net2</span><br><span class="line">ip link set macv1 netns net1</span><br><span class="line">ip link set macv2 netns net2</span><br></pre></td></tr></table></figure>
+<h6 id="命令介绍-5"><a href="#命令介绍-5" class="headerlink" title="命令介绍"></a>命令介绍</h6><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">用法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ip link add  link  type macvlan mode bridge</td>
+<td>添加mac vlan</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link show [ ] type macvlan</td>
+<td>显示类别为macvlan的设备</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link delete   type macvlan</td>
+<td>删除macvlan设备</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>用法含义ip link add  link  type macvlan mode bridge添加mac vlanip link show [ ] type macvlan显示类别为macvlan的设备ip link delete   type macvlan删除macvlan设备用法含义ip link add <macvlan name> link <eth> type macvlan mode bridge添加mac vlanip link show [ <macvlan name>] type macvlan显示类别为macvlan的设备ip link delete  <macvlan name> type macvlan删除macvlan设备###### 示例</p>
+<p>创建两个macvlan</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip link add link ens3 name macv1 type macvlan mode bridge</span><br><span class="line"># ip link add link ens3 name macv2 type macvlan mode bridge</span><br></pre></td></tr></table></figure>
+<p>查看创建的macvlan</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip link show type macvlan</span><br></pre></td></tr></table></figure>
+<p>创建namespace</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip netns add ns1</span><br><span class="line"># ip netns add ns2</span><br></pre></td></tr></table></figure>
+<p>将macvlan接口插入到namespace</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip link set macv1 netns ns1</span><br><span class="line"># ip link set macv2 netns ns2</span><br></pre></td></tr></table></figure>
+<p>设置网卡IP,设置网卡UP状态</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec ns1 ip addr add 10.81.2.5/24 dev macv1</span><br><span class="line"># ip netns exec ns2 ip addr add 10.81.2.6/24 dev macv2</span><br><span class="line"># ip netns exec ns1 ip link set macv1 up</span><br><span class="line"># ip netns exec ns2 ip link set macv2 up</span><br></pre></td></tr></table></figure>
+<p>查看网卡ip</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec ns1 ip a</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">2: tunl0@NONE: &lt;NOARP&gt; mtu 1480 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/ipip 0.0.0.0 brd 0.0.0.0</span><br><span class="line">13: macv1@if2: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default qlen 1000</span><br><span class="line">    link/ether 66:00:7a:e1:75:7b brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">    inet 10.81.2.5/24 scope global macv1</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::6400:7aff:fee1:757b/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line"># ip netns exec ns2 ip a</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">2: tunl0@NONE: &lt;NOARP&gt; mtu 1480 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/ipip 0.0.0.0 brd 0.0.0.0</span><br><span class="line">14: macv2@if2: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default qlen 1000</span><br><span class="line">    link/ether ba:d8:5b:4d:a0:13 brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">    inet 10.81.2.6/24 scope global macv2</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::b8d8:5bff:fe4d:a013/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure>
+<p>macvlan ip互通</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@10 ~]# ip netns exec ns1 bash</span><br><span class="line">[root@10 ~]# ip a</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">2: tunl0@NONE: &lt;NOARP&gt; mtu 1480 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/ipip 0.0.0.0 brd 0.0.0.0</span><br><span class="line">13: macv1@if2: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default qlen 1000</span><br><span class="line">    link/ether 66:00:7a:e1:75:7b brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">    inet 10.81.2.5/24 scope global macv1</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::6400:7aff:fee1:757b/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">[root@10 ~]# ping 10.81.2.6</span><br><span class="line">PING 10.81.2.6 (10.81.2.6) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.81.2.6: icmp_seq=1 ttl=64 time=0.053 ms</span><br><span class="line">64 bytes from 10.81.2.6: icmp_seq=2 ttl=64 time=0.050 ms</span><br><span class="line">^C</span><br><span class="line">--- 10.81.2.6 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 received, 0% packet loss, time 999ms</span><br><span class="line">rtt min/avg/max/mdev = 0.050/0.051/0.053/0.007 ms</span><br></pre></td></tr></table></figure>
+<p>清理</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip netns del ns1</span><br><span class="line"># ip netns del ns2</span><br></pre></td></tr></table></figure>
+<p>注： Docker macvlan 只支持 bridge 模式。</p>
+<p>扩展阅读：<a target="_blank" rel="noopener" href="https://fuckcloudnative.io/posts/netwnetwork-virtualization-macvlan/">https://fuckcloudnative.io/posts/netwnetwork-virtualization-macvlan/</a></p>
+<h5 id="IPVLAN"><a href="#IPVLAN" class="headerlink" title="IPVLAN"></a><strong>IPVLAN</strong></h5><p>| <em>linux kernel 3.19 开始支持 ipvlan但是比较稳定推荐的版本是 &gt;=4.2（因为 docker 对之前版本的支持有 bug）,具体代码见内核目录：</em><code>/drivers/net/ipvlan/</code>**</p>
+<p>ipvlan和macvlan非常类似，最大的不同之处在于ipvlan虚拟子接口具有和其父接口相同的mac地址。如下图所示：</p>
+<p><img src="https://csulrong.github.io/assets/images/2020/ipvlan.svg" alt="ipvlan"></p>
+<p><strong>L2:</strong></p>
+<p>ipvlan L2 模式和 macvlan bridge 模式工作原理很相似，父接口作为交换机来转发子接口的数据。同一个网络的子接口可以通过父接口来转发数据，而如果想发送到其他网络，报文则会通过父接口的路由转发出去。</p>
+<p>ipvlan接口会处理二层广播和组播报文</p>
+<p><strong>L3:</strong></p>
+<p>ipvlan 有点像路由器的功能，它在各个虚拟网络和主机网络之间进行不同网络报文的路由转发工作。只要父接口相同，即使虚拟机/容器不在同一个网络，也可以互相 ping 通对方，因为 ipvlan 会在中间做报文的转发工作。</p>
+<p>​    ipvlan接口不会处理二层广播和组播报文</p>
+<p>使用如下命令，在父接口<code>eth0</code>上创建两个ipvlan虚拟设备，并分别添加到两个不同的网络命名空间。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ip link add ipv1 link eth0 type ipvlan mode l2</span><br><span class="line">ip link add ipv2 link eth0 type ipvlan mode l2</span><br><span class="line">ip netns add net1</span><br><span class="line">ip netns add net2</span><br><span class="line">ip link set dev ipv1 netns net1</span><br><span class="line">ip link set dev ipv2 netns net2</span><br></pre></td></tr></table></figure>
+<h6 id="命令介绍-6"><a href="#命令介绍-6" class="headerlink" title="命令介绍"></a>命令介绍</h6><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">用法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ip link add  link  type ipvlan mode bridge</td>
+<td>添加ipvlan</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link show [ ] type ipvlan</td>
+<td>显示类别为ipvlan的设备</td>
+</tr>
+<tr>
+<td style="text-align:left">ip link delete   type ipvlan</td>
+<td>删除ipvlan设备</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>用法含义ip link add  link  type ipvlan mode bridge添加ipvlanip link show [ ] type ipvlan显示类别为ipvlan的设备ip link delete   type ipvlan删除ipvlan设备用法含义ip link add <macvlan name> link <eth> type ipvlan mode bridge添加ipvlanip link show [ <macvlan name>] type ipvlan显示类别为ipvlan的设备ip link delete  <macvlan name> type ipvlan删除ipvlan设备###### 示例</p>
+<p>创建两个l3的ipvlan</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip link add link ens3 ipvlan1 type ipvlan mode l3</span><br><span class="line"># ip link add link ens3 ipvlan2 type ipvlan mode l3</span><br></pre></td></tr></table></figure>
+<p>查看mac地址,mac地址相同</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@10 ~]# ip link show dev ens3</span><br><span class="line">2: ens3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 52:54:00:1f:b1:3c brd ff:ff:ff:ff:ff:ff</span><br><span class="line">[root@10 ~]# ip link show type ipvlan</span><br><span class="line">5: ipvlan1@ens3: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 52:54:00:1f:b1:3c brd ff:ff:ff:ff:ff:ff</span><br><span class="line">6: ipvlan2@ens3: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 52:54:00:1f:b1:3c brd ff:ff:ff:ff:ff:ff</span><br></pre></td></tr></table></figure>
+<p>创建ns绑定接口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># ip netns add ns1</span><br><span class="line"># ip netns add ns2</span><br><span class="line"># ip link set ipvlan1 netns ns1</span><br><span class="line"># ip link set ipvlan2 netns ns2</span><br></pre></td></tr></table></figure>
+<p>配置IP</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec ns1 ip addr add 10.81.2.5/24 dev ipvlan1</span><br><span class="line"># ip netns exec ns2 ip addr add 10.81.2.6/24 dev ipvlan2</span><br><span class="line"># ip netns exec ns1 ip link set ipvlan1 up</span><br><span class="line"># ip netns exec ns2 ip link set ipvlan2 up</span><br></pre></td></tr></table></figure>
+<p>增加路由 (理论上不用加)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec ns1 route add default dev ipvlan1</span><br><span class="line"># ip netns exec ns2 route add default dev ipvlan2</span><br></pre></td></tr></table></figure>
+<p>ping测试</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec ns1 route</span><br><span class="line">Kernel IP routing table</span><br><span class="line">Destination     Gateway         Genmask         Flags Metric Ref    Use Iface</span><br><span class="line">10.81.2.0       0.0.0.0         255.255.255.0   U     0      0        0 ipvlan1</span><br><span class="line"># ip netns exec ns1 ping 10.81.2.6</span><br><span class="line">PING 10.81.2.6 (10.81.2.6) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.81.2.6: icmp_seq=1 ttl=64 time=0.034 ms</span><br><span class="line">64 bytes from 10.81.2.6: icmp_seq=2 ttl=64 time=0.057 ms</span><br><span class="line">64 bytes from 10.81.2.6: icmp_seq=3 ttl=64 time=0.058 ms</span><br><span class="line">^C</span><br><span class="line">--- 10.81.2.6 ping statistics ---</span><br><span class="line">3 packets transmitted, 3 received, 0% packet loss, time 2063ms</span><br><span class="line">rtt min/avg/max/mdev = 0.034/0.049/0.058/0.013 ms</span><br></pre></td></tr></table></figure>
+<p>L3模式中没有ARP包</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip net exec ns1 tcpdump -ni ipvlan1 -p arp</span><br></pre></td></tr></table></figure>
+<p>清理</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip netns del ns1</span><br><span class="line"># ip netns del ns2</span><br></pre></td></tr></table></figure>
+<p>注：l2模式操作同l3</p>
+<h4 id="x-1-7-TUN-TAP"><a href="#x-1-7-TUN-TAP" class="headerlink" title="x 1.7 TUN/TAP"></a>x 1.7 TUN/TAP</h4><p>TUN/TAP 虚拟网络设备一端连着协议栈，另外一端不是物理网络，而是另外一个处于用户空间的应用程序。也就是说，协议栈发给 TUN/TAP 的数据包能被这个应用程序读取到，当然应用程序能直接向 TUN/TAP 发送数据包。</p>
+<p>一个典型的使用 TUN/TAP 网络设备的例子如下图所示：</p>
+<p><img src="https://i.loli.net/2021/02/01/5NYEzLXpmPSg8on.jpg" alt="network-device-tun-tap.jpg"></p>
+<p>OS向连接到TUN/TAP设备的用户空间程序发送报文；用户空间程序可像物理口发送报文那像向TUN/TAP口发送报文，在这种情况下，TUN/TAP设备发送（或注入）报文到OS协议栈，就像报文从物理端口收到一样。</p>
+<blockquote>
+<p>Note: TUN 和 TAP 设备的区别在于，TUN 设备是一个虚拟的端到端 IP 层设备，也就是说用户空间的应用程序通过 TUN 设备只能读写 IP 网络数据包（三层），而 TAP 设备是一个虚拟的链路层设备，通过 TAP 设备能读写链路层数据包（二层）。如果使用 Linux 网络工具包 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Iproute2">iproute2</a> 来创建网络设备 TUN/TAP 设备 则需要指定 <code>--dev tun</code> 和 <code>--dev tap</code> 来区分。</p>
+</blockquote>
+<h6 id="tap-tun在libvirt中的应用"><a href="#tap-tun在libvirt中的应用" class="headerlink" title="tap/tun在libvirt中的应用"></a>tap/tun在libvirt中的应用</h6><p><img src="https://img-blog.csdn.net/20170905183028526?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvc2xkODgwMzEx/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="这里写图片描述"></p>
+<p>@<a target="_blank" rel="noopener" href="https://blog.csdn.net/sld880311/article/details/77854651">https://blog.csdn.net/sld880311/article/details/77854651</a></p>
+<h6 id="vpn"><a href="#vpn" class="headerlink" title="vpn"></a>vpn</h6><p><img src="https://img-blog.csdn.net/20170905183049106?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvc2xkODgwMzEx/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="这里写图片描述"></p>
+<h2 id="三-、容器网络"><a href="#三-、容器网络" class="headerlink" title="三 、容器网络"></a>三 、容器网络</h2><h4 id="1-单机容器网络"><a href="#1-单机容器网络" class="headerlink" title="1. 单机容器网络"></a>1. 单机容器网络</h4><h5 id="原生实现"><a href="#原生实现" class="headerlink" title="原生实现"></a>原生实现</h5><p>见二，1.1，1.2实验</p>
+<h5 id="docker实现"><a href="#docker实现" class="headerlink" title="docker实现"></a>docker实现</h5><p>通过docker创建的网桥进行单机容器通信</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker network create -d bridge --subnet=172.16.10.0/24 --gateway=172.16.10.1  docker-bri</span><br><span class="line">docker run -itd  --name bb1 --network=docker-bri --ip=172.16.10.174 busybox  tail -f  /etc/hosts</span><br><span class="line">docker run -itd  --name bb2 --network=docker-bri --ip=172.16.10.175 busybox  tail -f  /etc/hosts</span><br><span class="line">docker exec -it bb1 ping 172.16.10.175</span><br></pre></td></tr></table></figure>
+<h4 id="2-用macvlan实现跨主机-docker通信"><a href="#2-用macvlan实现跨主机-docker通信" class="headerlink" title="2. 用macvlan实现跨主机 docker通信"></a>2. 用macvlan实现跨主机 docker通信</h4><h5 id="原生实现-1"><a href="#原生实现-1" class="headerlink" title="原生实现"></a>原生实现</h5><p><a target="_blank" rel="noopener" href="https://docs.docker.com/network/macvlan/">https://docs.docker.com/network/macvlan/</a></p>
+<p>node1执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># node1</span><br><span class="line"></span><br><span class="line">ip link add eth0.10.5 link eth0 type macvlan mode bridge</span><br><span class="line">ip netns add ns1</span><br><span class="line">ip link set eth0.10.5 netns ns1</span><br><span class="line">ip netns exec ns1 ip addr add 172.16.10.5/24 dev eth0.10.5</span><br><span class="line">ip netns exec ns1 ip link set dev eth0.10.5 up</span><br><span class="line"># 添加路由，否则无路由会弃包</span><br><span class="line">ip netns exec ns1 ip route add 172.16.20.0/24 dev eth0.10.5  scope global</span><br><span class="line"></span><br><span class="line">ip link add eth0.20.5 link eth0 type macvlan mode bridge</span><br><span class="line">ip netns add ns2</span><br><span class="line">ip link set eth0.20.5 netns ns2</span><br><span class="line">ip netns exec ns2 ip addr add 172.16.20.5/24 dev eth0.20.5</span><br><span class="line">ip netns exec ns2 ip link set dev eth0.20.5 up</span><br><span class="line">ip netns exec ns2 ip route add 172.16.10.0/24 dev eth0.20.5  scope global</span><br></pre></td></tr></table></figure>
+<p>node2执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ip link add eth0.10.6 link eth0 type macvlan mode bridge</span><br><span class="line">ip netns add ns1</span><br><span class="line">ip link set eth0.10.6 netns ns1</span><br><span class="line">ip netns exec ns1 ip addr add 172.16.10.6/24 dev eth0.10.6</span><br><span class="line">ip netns exec ns1 ip link set dev eth0.10.6 up</span><br><span class="line">ip netns exec ns1 ip route add 172.16.20.0/24 dev eth0.10.6  scope global</span><br><span class="line"></span><br><span class="line">ip link add eth0.20.6 link eth0 type macvlan mode bridge</span><br><span class="line">ip netns add ns2</span><br><span class="line">ip link set eth0.20.6 netns ns2</span><br><span class="line">ip netns exec ns2 ip addr add 172.16.20.6/24 dev eth0.20.6</span><br><span class="line">ip netns exec ns2 ip link set dev eth0.20.6 up</span><br><span class="line">ip netns exec ns2 ip route add 172.16.10.0/24 dev eth0.20.6  scope global</span><br></pre></td></tr></table></figure>
+<p>node3执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">ip link add link ens3 dev ens3.10.1 type macvlan mode bridge</span><br><span class="line">ip link set dev ens3.10.1 up</span><br><span class="line">ip addr add 172.16.10.1/24 brd  172.16.10.254 dev ens3.10.1</span><br><span class="line">iptables -t nat -A POSTROUTING -o ens3.10.1 -j MASQUERADE</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">ip link add link ens3 dev ens3.20.1 type macvlan mode bridge</span><br><span class="line">ip link set dev ens3.20.1 up</span><br><span class="line">ip addr add 172.16.20.1/24 brd  172.16.20.254 dev ens3.20.1</span><br><span class="line">iptables -t nat -A POSTROUTING -o ens3.20.1 -j MASQUERADE</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 打通172.16.10.0/24 与172.16.20.0/24</span><br><span class="line">iptables -A FORWARD -i ens3.10.1 -o ens3.20.1 -m state --state RELATED,ESTABLISHED -j ACCEPT</span><br><span class="line">iptables -A FORWARD -i ens3.20.1 -o ens3.10.1 -m state --state RELATED,ESTABLISHED -j ACCEPT</span><br><span class="line"></span><br><span class="line">iptables -A FORWARD -i ens3.10.1 -o ens3.20.1 -j ACCEPT</span><br><span class="line">iptables -A FORWARD -i ens3.20.1 -o ens3.10.1 -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>node1测试</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip netns exec ns1 ping -t 5 172.16.10.6</span><br><span class="line">ip netns exec ns1 ping -t 5 172.16.20.6</span><br><span class="line">ip netns exec ns2 ping -t 5 172.16.20.6</span><br></pre></td></tr></table></figure>
+<p>清理实验</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ip netns del ns1</span><br><span class="line">ip netns del ns2</span><br><span class="line">ip link del bridge</span><br><span class="line">ip link del eth0.10</span><br><span class="line">ip link del eth0.20</span><br><span class="line">ip link del br0</span><br><span class="line">ip link del br-veth0</span><br><span class="line">ip link del ens3.10.1</span><br><span class="line">ip link del ens3.20.1</span><br></pre></td></tr></table></figure>
+<h5 id="docker实现-1"><a href="#docker实现-1" class="headerlink" title="docker实现"></a>docker实现</h5><p>机器a 10.81.2.123</p>
+<p>机器b 10.81.2.124</p>
+<p>机器c  10.81.2.125</p>
+<p>在a,b两台机器上执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#设置网络10</span><br><span class="line">ip link add link ens3 dev ens3.10 type macvlan mode bridge</span><br><span class="line">ip link set dev ens3.10 up</span><br><span class="line">docker network create -d macvlan --subnet=172.16.10.0/24 --gateway=172.16.10.1 -o parent=ens3.10 mac_net10</span><br><span class="line"> </span><br><span class="line">#设置网络20</span><br><span class="line">ip link add link ens3 dev ens3.20 type macvlan mode bridge</span><br><span class="line">ip link set dev ens3.20 up</span><br><span class="line">docker network create -d macvlan --subnet=172.16.20.0/24 --gateway=172.16.20.1 -o parent=ens3.20 mac_net20</span><br></pre></td></tr></table></figure>
+<p>在10.81.2.123上面</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ip addr add 172.16.10.4/24 brd  172.16.10.254 dev ens3.10</span><br><span class="line">ip addr add 172.16.20.4/24 brd  172.16.20.254 dev ens3.20</span><br><span class="line"></span><br><span class="line">docker run -itd  --name vm172-10 --network=mac_net10 --ip=172.16.10.174 busybox  tail -f  /etc/hosts</span><br><span class="line">docker run -itd  --name vm172-20 --network=mac_net20 --ip=172.16.20.174 busybox  tail -f  /etc/hosts</span><br></pre></td></tr></table></figure>
+<p>在10.81.2.124上面</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ip addr add 172.16.10.5/24 brd 172.16.10.254 dev ens3.10</span><br><span class="line">ip addr add 172.16.20.5/24 brd 172.16.20.254 dev ens3.20</span><br><span class="line"></span><br><span class="line">docker run -itd --name vm172-10 --network=mac_net10 --ip=172.16.10.175 busybox  tail -f  /etc/hosts</span><br><span class="line">docker run -itd --name vm172-20 --network=mac_net20 --ip=172.16.20.175 busybox  tail -f  /etc/hosts</span><br></pre></td></tr></table></figure>
+<p>拓扑图如下：</p>
+<p><img src="https://img-blog.csdnimg.cn/20191116213708229.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2N5eGluZGE=,size_16,color_FFFFFF,t_70" alt="img"></p>
+<p>c机器上执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#设置网络10</span><br><span class="line">ip link add link ens3 dev ens3.10 type macvlan mode bridge</span><br><span class="line">ip link set dev ens3.10 up</span><br><span class="line"></span><br><span class="line">#设置网络20</span><br><span class="line">ip link add link ens3 dev ens3.20 type macvlan mode bridge</span><br><span class="line">ip link set dev ens3.20 up</span><br><span class="line"></span><br><span class="line"># 设置网关IP</span><br><span class="line">ip addr add 172.16.10.1/24 brd  172.16.10.254 dev ens3.10</span><br><span class="line">ip addr add 172.16.20.1/24 brd  172.16.20.254 dev ens3.20</span><br><span class="line"></span><br><span class="line"># 打开ip转发</span><br><span class="line">echo 1 &gt;&gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line">sysctl -p</span><br></pre></td></tr></table></figure>
+<p>使用iptables增加路由转发策略</p>
+<p>默认同网段不用开启iptables转发</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 开启ens3.10，ens3.20的路由转发表</span><br><span class="line">iptables -t nat -A POSTROUTING -o ens3.10 -j MASQUERADE</span><br><span class="line">iptables -t nat -A POSTROUTING -o ens3.20 -j MASQUERADE</span><br><span class="line"></span><br><span class="line"># 开启ens3.10到ens3.20的转发链 </span><br><span class="line">iptables -A FORWARD -i ens3.10 -o ens3.20 -m state --state RELATED,ESTABLISHED -j ACCEPT</span><br><span class="line">iptables -A FORWARD -i ens3.20 -o ens3.10 -m state --state RELATED,ESTABLISHED -j ACCEPT</span><br><span class="line">iptables -A FORWARD -i ens3.10 -o ens3.20 -j ACCEPT</span><br><span class="line">iptables -A FORWARD -i ens3.20 -o ens3.10 -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>机器a上分别执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it vm172-10 sh</span><br><span class="line">ping 172.16.10.175</span><br><span class="line">ping 172.16.20.175</span><br></pre></td></tr></table></figure>
+<p>可以看到，网络都可以打到</p>
+<p>我们做一个ping实验</p>
+<p>在a机器pingb机器的20网段ip</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@10 ~]# docker exec -it vm172-10 sh</span><br><span class="line">/ # ping 172.16.20.175</span><br><span class="line">PING 172.16.20.175 (172.16.20.175): 56 data bytes</span><br><span class="line">64 bytes from 172.16.20.175: seq=0 ttl=63 time=1.835 ms</span><br><span class="line">64 bytes from 172.16.20.175: seq=1 ttl=63 time=1.799 ms</span><br></pre></td></tr></table></figure>
+<p>然后在a机器上执行抓包</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@10 ~]# tcpdump -i ens3 icmp -vvvv</span><br><span class="line">tcpdump: listening on ens3, link-type EN10MB (Ethernet), capture size 262144 bytes</span><br><span class="line">00:32:15.649372 IP (tos 0x0, ttl 64, id 47280, offset 0, flags [DF], proto ICMP (1), length 84)</span><br><span class="line">    172.16.10.174 &gt; 172.16.20.175: ICMP echo request, id 24, seq 12, length 64</span><br><span class="line">00:32:15.651995 IP (tos 0x0, ttl 63, id 52843, offset 0, flags [none], proto ICMP (1), length 84)</span><br><span class="line">    172.16.20.175 &gt; 172.16.10.174: ICMP echo reply, id 24, seq 12, length 64</span><br><span class="line">00:32:16.649569 IP (tos 0x0, ttl 64, id 47612, offset 0, flags [DF], proto ICMP (1), length 84)</span><br><span class="line">    172.16.10.174 &gt; 172.16.20.175: ICMP echo request, id 24, seq 13, length 64</span><br><span class="line">00:32:16.650745 IP (tos 0x0, ttl 63, id 53644, offset 0, flags [none], proto ICMP (1), length 84)</span><br></pre></td></tr></table></figure>
+<p>a,b清理脚本</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">ip link set br0 down</span><br><span class="line">ip link del br0</span><br><span class="line">ip link del veth1</span><br><span class="line">ip link del vxlan100</span><br><span class="line">ip link del veth0</span><br><span class="line">ip netns del docker1</span><br><span class="line">ip netns del docker2</span><br><span class="line">docker stop vm172-20</span><br><span class="line">docker stop vm172-10</span><br><span class="line">ip link del ens3.10</span><br><span class="line">ip link del ens3.20</span><br></pre></td></tr></table></figure>
+<h4 id="3-用IPvlan实现跨主机-docker通信"><a href="#3-用IPvlan实现跨主机-docker通信" class="headerlink" title="3. 用IPvlan实现跨主机 docker通信"></a>3. 用IPvlan实现跨主机 docker通信</h4><h5 id="原生实现-docker实现"><a href="#原生实现-docker实现" class="headerlink" title="原生实现/docker实现"></a>原生实现/docker实现</h5><p>可以参照macvlan方式自己实现一下。</p>
+<h4 id="4-用vxlan实现跨主机docker通信"><a href="#4-用vxlan实现跨主机docker通信" class="headerlink" title="4. 用vxlan实现跨主机docker通信"></a>4. 用vxlan实现跨主机docker通信</h4><p><strong>VXLAN</strong>将链路层的以太网包封装到 UDP 包中进行传输。</p>
+<h5 id="4-1-实现方案一"><a href="#4-1-实现方案一" class="headerlink" title="4.1 实现方案一"></a>4.1 实现方案一</h5><p>参照 <a target="_blank" rel="noopener" href="https://github.com/coreos/flannel">Flannel</a> 的实现方案：</p>
+<p><img src="/Users/hank/Downloads/59171924.jpeg" alt="59171924"></p>
+<p>这里实验机1为10.81.2.124（31.183）</p>
+<p>实验机2为10.81.2.125（31.192）</p>
+<ul>
+<li><strong>配置内核参数，允许 IP forwarding</strong></li>
+</ul>
+<p>分别在 Node-1、Node-2 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysctl net.ipv4.conf.all.forwarding=1</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>创建“容器”</strong></li>
+</ul>
+<p>在 Node-1 上执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip netns add docker1</span></span><br></pre></td></tr></table></figure>
+<p>在 Node-2 上执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip netns add docker2</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>创建 Veth pairs</strong></li>
+</ul>
+<p>分别在 Node-1、Node-2 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip link add veth0 type veth peer name veth1</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>将 Veth 的一端放入“容器”</strong></li>
+</ul>
+<p>在 Node-1 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip link set veth0 netns docker1</span><br></pre></td></tr></table></figure>
+<p>在 Node-2 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip link set veth0 netns docker2</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>创建 bridge</strong></li>
+</ul>
+<p>分别在 Node-1、Node-2 上创建 bridge br0：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip link add br0 type bridge</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>将 Veth 的另一端接入 bridge</strong></li>
+</ul>
+<p>分别在 Node-1、Node-2 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip link set veth1 master br0</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>为”容器“内的网卡分配 IP 地址，并激活上线</strong></li>
+</ul>
+<p>在 Node-1 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec docker1 ip addr add 172.18.10.2/24 dev veth0</span><br><span class="line"># ip netns exec docker1 ip link set veth0 up</span><br></pre></td></tr></table></figure>
+<p>在 Node-2 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec docker2 ip addr add 172.18.20.2/24 dev veth0</span><br><span class="line"># ip netns exec docker2 ip link set veth0 up</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>Veth 另一端的网卡激活上线</strong></li>
+</ul>
+<p>分别在 Node-1、Node-2 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip link set veth1 up</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>为 bridge 分配 IP 地址，激活上线</strong></li>
+</ul>
+<p>在 Node-1 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip addr add 172.18.10.1/24 dev br0</span><br><span class="line"># ip link set br0 up</span><br></pre></td></tr></table></figure>
+<p>在 Node-2 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip addr add 172.18.20.1/24 dev br0</span><br><span class="line"># ip link set br0 up</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>将 bridge 设置为“容器”的缺省网关</strong></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec docker1 route add default gw 172.18.10.1 veth0</span><br><span class="line"># ip netns exec docker2 route add default gw 172.18.20.1 veth0</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>创建 VXLAN 虚拟网卡</strong></li>
+</ul>
+<p>VXLAN 需要在宿主机上创建一个虚拟网络设备对 VXLAN 的包进行封装和解封装，实现这个功能的设备称为 <strong>VTEP</strong>(VXLAN Tunnel Endpoint)。<strong>宿主机之间通过 VTEP 建立“隧道”</strong>，在其中传输虚拟二层网络包。</p>
+<p>在 Node-1 创建 vxlan100：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># ip link add vxlan100 type vxlan \</span><br><span class="line">    id 100 \</span><br><span class="line">    local 10.81.2.124 \</span><br><span class="line">    dev ens3 \</span><br><span class="line">    dstport 4789 \</span><br><span class="line">    nolearning</span><br></pre></td></tr></table></figure>
+<p>为 vxlan100 分配 IP 地址，然后激活：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip addr add 172.18.10.0/32 dev vxlan100</span><br><span class="line"># ip link set vxlan100 up</span><br></pre></td></tr></table></figure>
+<p>为了让 Node-1 上访问 172.18.20.0/24 网段的数据包能进入“隧道”，我们需要增加如下的路由规则：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip route add 172.18.20.0/24 dev vxlan100</span><br></pre></td></tr></table></figure>
+<p>在 Node-2 上执行相应的命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># ip link add vxlan100 type vxlan \</span><br><span class="line">    id 100 \</span><br><span class="line">    local 10.81.2.125 \</span><br><span class="line">    dev eth0 \</span><br><span class="line">    dstport 4789 \</span><br><span class="line">    nolearning</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># ip addr add 172.18.20.0/32 dev vxlan100</span><br><span class="line"># ip link set vxlan100 up</span><br><span class="line"># ip route add 172.18.10.0/24 dev vxlan100 scope global</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>手动更新 ARP 和 FDB</strong></li>
+</ul>
+<p>虚拟设备 vxlan100 会用 <strong>ARP</strong> 和 <strong>FDB</strong>(forwarding database) 数据库中记录的信息，填充网络协议包，建立节点间转发虚拟网络数据包的“隧道”。</p>
+<p>我们知道，在二层网络上传输 IP 包，需要先根据目的 IP 地址查询到目的 MAC 地址，这就是 ARP (Address Resolution Protocol) 协议的作用。我们应该可以通过 ARP 查询到其他节点上容器 IP 地址对应的 MAC 地址，然后填充在 VXLAN 内层的网络包中。</p>
+<p>FDB 是记录网桥设备转发数据包的规则。虚拟网络数据包根据上面定义的路由规则，从 br0 进入了本机的 vxlan100 “隧道”入口，应该可以在 FDB 中查询到“隧道”出口的 MAC 地址应该如何到达，这样，两个 VTEP 就能完成”隧道“的建立。</p>
+<p>VXLAN 为了建立节点间的“隧道”，需要一种机制，能让一个节点的加入、退出信息通知到其他节点，可以采用 <code>multicast</code> 的方式进行节点的自动发现，也有很多 <code>Unicast</code> 的方案，这篇文章 <a target="_blank" rel="noopener" href="https://vincent.bernat.ch/en/blog/2017-vxlan-linux"></a> 有很详细的介绍。总之就是要找到一种方式，能够更新每个节点的 ARP 和 FDB 数据库。</p>
+<p>如果是使用 <a target="_blank" rel="noopener" href="https://github.com/coreos/flannel">Flannel</a>，它在节点启动的时候会采用某种机制自动更新其他节点的 ARP 和 FDB 数据库。现在我们的实验只能在两个节点上手动更新 ARP 和 FDB。</p>
+<p>Node-1 上 vxlan100 的 MAC 地址是<code>ba:87:be:06:67:76</code> Node-2 上 vxlan100 的 MAC 地址是<code>fe:c7:fe:ba:ec:ed</code></p>
+<p>然后在 Node-1 上增加 ARP 和 FDB 的记录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip neighbor add 172.18.20.2 lladdr ba:87:be:06:67:76 dev vxlan100</span><br><span class="line"># bridge fdb append ba:87:be:06:67:76 dev vxlan100 dst 10.81.2.125</span><br></pre></td></tr></table></figure>
+<p>我们可以确认下执行结果：</p>
+<p><img src="/Users/hank/Library/Application Support/typora-user-images/image-20211130100600016.png" alt="image-20211130100600016" style="zoom:50%;" /></p>
+<p>ARP 中已经记录了 Node-2 上容器 IP 对应的 MAC 地址。再看看 FDB 的情况：</p>
+<p><img src="/Users/hank/Library/Application Support/typora-user-images/image-20211130100647223.png" alt="image-20211130100647223" style="zoom:67%;" /></p>
+<p><img src="/Users/hank/Library/Application Support/typora-user-images/image-20211130100637053.png" alt="image-20211130100637053" style="zoom:50%;" /></p>
+<p>根据最后一条新增规则，我们可以知道如何到达 Node-2 上“隧道”的出口 vxlan100。“隧道”两端是使用 UDP 进行传输，即容器间通讯的二层网络包是靠 UDP 在宿主机之间通信。</p>
+<p>类似的，在 Node-2 上执行下面的命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ip neighbor add 172.18.10.2 lladdr 3a:a8:78:a9:8d:6f dev vxlan100</span><br><span class="line"># bridge fdb append 3a:a8:78:a9:8d:6f dev vxlan100 dst 10.81.2.124</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>测试容器的跨节点通信</strong></li>
+</ul>
+<p>现在，容器 docker1 和 docker2 之间就可以相互访问了。</p>
+<p>我们从 docker1 访问 docker2，在 Node-1 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec docker1 ping -c 3 172.18.20.2</span><br></pre></td></tr></table></figure>
+<p>同样可以从 docker2 访问 docker1，在 Node-2 上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec docker2 ping -c 3 172.18.10.2</span><br></pre></td></tr></table></figure>
+<p>在测试过程中如果需要 troubleshooting，可以使用 tcpdump 在 veth1、br0、vxlan100 等虚拟设备上抓包，确认网络包是按照预定路线在转发：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># tcpdump -i vxlan100 -n</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>测试环境恢复</strong></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ip link set br0 down</span><br><span class="line">ip link del br0</span><br><span class="line">ip link set vxlan100 down</span><br><span class="line">ip link del vxlan100</span><br><span class="line">ip link set veth1 down</span><br><span class="line">ip link del veth1</span><br><span class="line">ip netns del docker1</span><br><span class="line">ip netns del docker2</span><br></pre></td></tr></table></figure>
+<p>发现就是普通的icmp协议，没经过任何的snat dnat，单纯的2层单播。</p>
+<p><img src="/Users/hank/Library/Application Support/typora-user-images/image-20211201174800174.png" alt="image-20211201174800174"></p>
+<h5 id="4-2-实现方案二"><a href="#4-2-实现方案二" class="headerlink" title="4.2 实现方案二"></a>4.2 实现方案二</h5><p>Docker 原生的 <a target="_blank" rel="noopener" href="https://docs.docker.com/network/overlay/">overlay driver</a> 底层也是使用 VXLAN 技术，但实现方案和 <a target="_blank" rel="noopener" href="https://github.com/coreos/flannel">Flannel</a> 略有不同：</p>
+<p><img src="/Users/hank/Downloads/79500079.jpeg" alt="79500079"></p>
+<p>我们可以看到，vxlan100 被“插”在了虚拟交换机 br0 上，虚拟网络数据包从 br0 到 vxlan100 不是通过本机路由，而是 vxlan100 根据 FDB 直接进行了转发。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"># 在 Node-1 上执行</span><br><span class="line"># sysctl net.ipv4.conf.all.forwarding=1</span><br><span class="line"># ip netns add docker1</span><br><span class="line"># ip link add veth0 type veth peer name veth1</span><br><span class="line"># ip link set veth0 netns docker1</span><br><span class="line"># ip link add br0 type bridge</span><br><span class="line"># ip link set veth1 master br0</span><br><span class="line"></span><br><span class="line"># ip link show </span><br><span class="line"># ip netns exec docker1 ip addr add 172.18.10.2/24 dev veth0</span><br><span class="line"># ip netns exec docker1 ip link set veth0 up</span><br><span class="line"># ip link set veth1 up</span><br><span class="line"></span><br><span class="line"># ip link set br0 up</span><br><span class="line"># ip netns exec docker1 route add default veth0</span><br><span class="line"># ip link add vxlan100 type vxlan \</span><br><span class="line">    id 100 \</span><br><span class="line">    local 10.81.2.124 \</span><br><span class="line">    dev ens3 \</span><br><span class="line">    dstport 4789 \</span><br><span class="line">    nolearning \</span><br><span class="line">    proxy</span><br><span class="line"># ip link set vxlan100 up</span><br><span class="line"># ip link set vxlan100 master br0</span><br><span class="line"></span><br><span class="line"># ip addr add 172.18.10.0/32 dev vxlan100</span><br><span class="line"></span><br><span class="line"># [docker2 的 MAC 地址] ip netns exec docker2 ip a 获得veth0网卡mac地址 a6:62:a3:39:a0:7b</span><br><span class="line"># ip neigh add 172.18.20.2 lladdr a6:62:a3:39:a0:7b dev vxlan100</span><br><span class="line"># bridge fdb append a6:62:a3:39:a0:7b  dev vxlan100 dst 10.81.2.125</span><br><span class="line"></span><br><span class="line"># 在 Node-2 上执行</span><br><span class="line"># sysctl net.ipv4.conf.all.forwarding=1</span><br><span class="line"></span><br><span class="line"># ip netns add docker2</span><br><span class="line"># ip link add veth0 type veth peer name veth1</span><br><span class="line"># ip link set veth0 netns docker2</span><br><span class="line"># ip link add br0 type bridge</span><br><span class="line"># ip link set veth1 master br0</span><br><span class="line"></span><br><span class="line"># ip netns exec docker2 ip addr add 172.18.20.2/24 dev veth0</span><br><span class="line"># ip netns exec docker2 ip link set veth0 up</span><br><span class="line"># ip link set veth1 up</span><br><span class="line"></span><br><span class="line"># ip link set br0 up</span><br><span class="line"># ip netns exec docker2 route add default veth0</span><br><span class="line"># ip link add vxlan100 type vxlan \</span><br><span class="line">    id 100 \</span><br><span class="line">    local 10.81.2.125 \</span><br><span class="line">    dev eth0 \</span><br><span class="line">    dstport 4789 \</span><br><span class="line">    nolearning \</span><br><span class="line">    proxy</span><br><span class="line"></span><br><span class="line"># ip link set vxlan100 up</span><br><span class="line"># ip link set vxlan100 master br0</span><br><span class="line"># ip addr add 172.18.20.0/32 dev vxlan100</span><br><span class="line"></span><br><span class="line"># docker1 的 MAC 地址 96:f8:79:59:51:88</span><br><span class="line"># ip neigh add 172.18.10.2 lladdr 96:f8:79:59:51:88 dev vxlan100</span><br><span class="line"># bridge fdb append 96:f8:79:59:51:88 dev vxlan100 dst 10.81.2.124</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>测试环境恢复</strong></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ip link set br0 down</span><br><span class="line">ip link del br0</span><br><span class="line">ip link  del veth1</span><br><span class="line">ip link del vxlan100</span><br><span class="line">ip link  del veth0</span><br><span class="line">ip netns del docker1</span><br><span class="line">ip netns del docker2</span><br></pre></td></tr></table></figure>
+<h5 id="4-3-docker实现"><a href="#4-3-docker实现" class="headerlink" title="4.3 docker实现"></a>4.3 docker实现</h5><ul>
+<li><p>node1 执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">docker network create   --driver bridge   --subnet=172.19.0.0/24   --attachable  -o &quot;com.docker.network.bridge.name&quot;=&quot;docker-bri&quot; docker-bri</span><br><span class="line"></span><br><span class="line">docker run -d --rm --network docker-bri --ip 172.19.0.2  --name bb1 busybox:latest tail -f /etc/hosts</span><br><span class="line">ip link add vxlan100 type vxlan \</span><br><span class="line">    id 100 \</span><br><span class="line">    local 10.81.2.125 \</span><br><span class="line">    dev eth0 \</span><br><span class="line">    dstport 4789 \</span><br><span class="line">    nolearning </span><br><span class="line"></span><br><span class="line">ip addr add 172.19.0.0/32 dev vxlan100</span><br><span class="line">ip link set vxlan100 up</span><br><span class="line">ip route add 172.19.1.0/24 dev vxlan100  scope global</span><br><span class="line"></span><br><span class="line">#--- node1上测试netns与docker之间通信</span><br><span class="line">ip netns add docker-netns1</span><br><span class="line">ip link add veth0 type veth peer name veth1</span><br><span class="line">ip link set veth0 netns docker-netns1</span><br><span class="line">ip link set veth1 master docker-bri</span><br><span class="line">ip netns exec docker-netns1 ip link set veth0 up</span><br><span class="line">ip link set veth1 up</span><br><span class="line">ip netns exec docker-netns1 ip addr add 172.19.0.8/24 dev veth0</span><br><span class="line">docker exec -it bb1 ip a</span><br><span class="line">ip netns exec docker-netns1 ip a</span><br><span class="line">ip netns exec docker-netns1 ping 172.19.0.2 #  本地docker和netns网路2层联通</span><br><span class="line">#----</span><br></pre></td></tr></table></figure></li>
+<li><p>node2 执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">* docker network create   --driver bridge   --subnet=172.19.1.0/24   --attachable  -o &quot;com.docker.network.bridge.name&quot;=&quot;docker-bri&quot; docker-bri</span><br><span class="line">  docker run -d --rm --network docker-bri --ip 172.19.1.2 --name bb2 busybox:latest tail -f /etc/hosts</span><br><span class="line"></span><br><span class="line">ip link add vxlan100 type vxlan \</span><br><span class="line">    id 100 \</span><br><span class="line">    local 10.81.2.126 \</span><br><span class="line">    dev eth0 \</span><br><span class="line">    dstport 4789 \</span><br><span class="line">    nolearning </span><br><span class="line"></span><br><span class="line">ip addr add 172.19.1.0/32 dev vxlan100</span><br><span class="line">ip link set vxlan100 up</span><br><span class="line">ip route add 172.19.0.0/24 dev vxlan100  scope global</span><br></pre></td></tr></table></figure></li>
+<li><p>node1 执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#--- node1执行 node2的vxlan100的Mac地址</span><br><span class="line">ip neigh add 172.19.1.0 lladdr 46:a2:fe:a0:7a:9a dev vxlan100</span><br><span class="line">#ip neigh add 172.19.1.2 lladdr 46:a2:fe:a0:7a:9a dev vxlan100</span><br><span class="line">bridge fdb append              46:a2:fe:a0:7a:9a dev vxlan100 dst 10.81.2.126</span><br></pre></td></tr></table></figure></li>
+<li><p>node2执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#--- node2执行 node1的vxlan100的Mac地址</span><br><span class="line">ip neigh add 172.19.0.0 lladdr be:e7:0e:8c:20:64 dev vxlan100</span><br><span class="line">ip neigh add 172.19.0.2 lladdr be:e7:0e:8c:20:64 dev vxlan100</span><br><span class="line">bridge fdb append              be:e7:0e:8c:20:64 dev vxlan100 dst 10.81.2.125</span><br></pre></td></tr></table></figure></li>
+<li><p>node1 执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it bb1 ping 172.19.1.2</span><br></pre></td></tr></table></figure></li>
+<li><p>node2 执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it bb2 ping 172.19.0.2</span><br></pre></td></tr></table></figure></li>
+<li><p>实验清理</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker stop bb1</span><br><span class="line">docker stop bb2</span><br><span class="line">docker network rm docker-bri</span><br><span class="line">ip link del vxlan100</span><br><span class="line">ip netns del docker-netns1</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="四、-Kubernetes的常用网络组件"><a href="#四、-Kubernetes的常用网络组件" class="headerlink" title="四、 Kubernetes的常用网络组件"></a>四、 Kubernetes的常用网络组件</h2><h3 id="1"><a href="#1" class="headerlink" title="1."></a>1.</h3><p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/244307">https://developer.aliyun.com/article/244307</a></p>
+<h2 id="IP-HELP"><a href="#IP-HELP" class="headerlink" title="　IP HELP"></a>　IP HELP</h2><p><a target="_blank" rel="noopener" href="https://access.redhat.com/sites/default/files/attachments/rh_ip_command_cheatsheet_1214_jcs_print.pdf">redhat</a></p>
+<h3 id="IP-LINK-HELP"><a href="#IP-LINK-HELP" class="headerlink" title="IP LINK HELP"></a>IP LINK HELP</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">Usage: ip link add [link DEV] [ name ] NAME</span><br><span class="line">                   [ txqueuelen PACKETS ]</span><br><span class="line">                   [ address LLADDR ]</span><br><span class="line">                   [ broadcast LLADDR ]</span><br><span class="line">                   [ mtu MTU ] [index IDX ]</span><br><span class="line">                   [ numtxqueues QUEUE_COUNT ]</span><br><span class="line">                   [ numrxqueues QUEUE_COUNT ]</span><br><span class="line">                   type TYPE [ ARGS ]</span><br><span class="line"></span><br><span class="line">       ip link delete &#123; DEVICE | dev DEVICE | group DEVGROUP &#125; type TYPE [ ARGS ]</span><br><span class="line"></span><br><span class="line">       ip link set &#123; DEVICE | dev DEVICE | group DEVGROUP &#125;</span><br><span class="line">                          [ &#123; up | down &#125; ]</span><br><span class="line">                          [ type TYPE ARGS ]</span><br><span class="line">                          [ arp &#123; on | off &#125; ]</span><br><span class="line">                          [ dynamic &#123; on | off &#125; ]</span><br><span class="line">                          [ multicast &#123; on | off &#125; ]</span><br><span class="line">                          [ allmulticast &#123; on | off &#125; ]</span><br><span class="line">                          [ promisc &#123; on | off &#125; ]</span><br><span class="line">                          [ trailers &#123; on | off &#125; ]</span><br><span class="line">                          [ carrier &#123; on | off &#125; ]</span><br><span class="line">                          [ txqueuelen PACKETS ]</span><br><span class="line">                          [ name NEWNAME ]</span><br><span class="line">                          [ address LLADDR ]</span><br><span class="line">                          [ broadcast LLADDR ]</span><br><span class="line">                          [ mtu MTU ]</span><br><span class="line">                          [ netns &#123; PID | NAME &#125; ]</span><br><span class="line">                          [ link-netnsid ID ]</span><br><span class="line">                          [ alias NAME ]</span><br><span class="line">                          [ vf NUM [ mac LLADDR ]</span><br><span class="line">                                   [ vlan VLANID [ qos VLAN-QOS ] [ proto VLAN-PROTO ] ]</span><br><span class="line">                                   [ rate TXRATE ]</span><br><span class="line">                                   [ max_tx_rate TXRATE ]</span><br><span class="line">                                   [ min_tx_rate TXRATE ]</span><br><span class="line">                                   [ spoofchk &#123; on | off&#125; ]</span><br><span class="line">                                   [ query_rss &#123; on | off&#125; ]</span><br><span class="line">                                   [ state &#123; auto | enable | disable&#125; ] ]</span><br><span class="line">                                   [ trust &#123; on | off&#125; ] ]</span><br><span class="line">                                   [ node_guid &#123; eui64 &#125; ]</span><br><span class="line">                                   [ port_guid &#123; eui64 &#125; ]</span><br><span class="line">                          [ xdp &#123; off |</span><br><span class="line">                                  object FILE [ section NAME ] [ verbose ] |</span><br><span class="line">                                  pinned FILE &#125; ]</span><br><span class="line">                          [ master DEVICE ][ vrf NAME ]</span><br><span class="line">                          [ nomaster ]</span><br><span class="line">                          [ addrgenmode &#123; eui64 | none | stable_secret | random &#125; ]</span><br><span class="line">                          [ protodown &#123; on | off &#125; ]</span><br><span class="line"></span><br><span class="line">       ip link show [ DEVICE | group GROUP ] [up] [master DEV] [vrf NAME] [type TYPE]</span><br><span class="line"></span><br><span class="line">       ip link xstats type TYPE [ ARGS ]</span><br><span class="line"></span><br><span class="line">       ip link afstats [ dev DEVICE ]</span><br><span class="line"></span><br><span class="line">       ip link help [ TYPE ]</span><br><span class="line"></span><br><span class="line">TYPE := &#123; vlan | veth | vcan | dummy | ifb | macvlan | macvtap |</span><br><span class="line">          bridge | bond | team | ipoib | ip6tnl | ipip | sit | vxlan |</span><br><span class="line">          gre | gretap | ip6gre | ip6gretap | vti | nlmon | team_slave |</span><br><span class="line">          bond_slave | ipvlan | geneve | bridge_slave | vrf | macsec &#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/02/22/centos7-%E6%9B%B4%E6%96%B0%E5%86%85%E6%A0%B8/" rel="prev" title="centos7 更新内核">
+      <i class="fa fa-chevron-left"></i> centos7 更新内核
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%90%86%E8%A7%A3%E4%BA%91%E5%8E%9F%E7%94%9F-%E5%AE%B9%E5%99%A8-%E7%BD%91%E7%BB%9C"><span class="nav-number">1.</span> <span class="nav-text">理解云原生(容器)网络</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E5%8C%85%E6%8E%A5%E6%94%B6%E6%B5%81%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">一、内核网络包接收流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.2.</span> <span class="nav-text">一、介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%B8%B8%E7%94%A8%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C%E8%AE%BE%E5%A4%87"><span class="nav-number">1.3.</span> <span class="nav-text">二、常用虚拟网络设备</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#0-%E9%A2%84%E5%A4%87"><span class="nav-number">1.3.1.</span> <span class="nav-text">0. 预备</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#0-1-net-tools-iproute2-%E6%96%B0%E6%97%A7%E7%BD%91%E7%BB%9C%E5%91%BD%E4%BB%A4"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">0.1 net-tools &#x2F; iproute2 - 新旧网络命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#0-2-IP-NETNS-%E7%BD%91%E7%BB%9C%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">0.2 IP-NETNS - 网络命名空间</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.3.1.2.1.</span> <span class="nav-text">命令介绍</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C%E8%AE%BE%E5%A4%87"><span class="nav-number">1.3.2.</span> <span class="nav-text">1. 虚拟网络设备</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-1-VETH-%E8%99%9A%E6%8B%9F%E4%BB%A5%E5%A4%AA%E7%BD%91%E8%AE%BE%E5%A4%87"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">1. 1 VETH -  虚拟以太网设备</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E4%BB%8B%E7%BB%8D-1"><span class="nav-number">1.3.2.1.1.</span> <span class="nav-text">命令介绍</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.3.2.1.2.</span> <span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-Bridge-%E8%99%9A%E6%8B%9F%E7%BD%91%E6%A1%A5"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">1.2 Bridge - 虚拟网桥</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E4%BB%8B%E7%BB%8D-2"><span class="nav-number">1.3.2.2.1.</span> <span class="nav-text">命令介绍</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-bonded%E5%92%8Cteam-%E6%8E%A5%E5%8F%A3%E6%8D%86%E7%BB%91-%E4%BA%86%E8%A7%A3"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">1.3 bonded和team - 接口捆绑(了解)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-4-VLAN-%E8%99%9A%E6%8B%9F-LAN"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">1.4 VLAN - 虚拟 LAN</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E4%BB%8B%E7%BB%8D-3"><span class="nav-number">1.3.2.4.1.</span> <span class="nav-text">命令介绍</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-5-VXLAN-%E8%99%9A%E6%8B%9F%E5%B1%80%E5%9F%9F%E7%BD%91-overlay"><span class="nav-number">1.3.2.5.</span> <span class="nav-text">1.5 VXLAN - 虚拟局域网(overlay)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E4%BB%8B%E7%BB%8D-4"><span class="nav-number">1.3.2.5.1.</span> <span class="nav-text">命令介绍</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-6-MACVLAN%E5%92%8CIPVLAN"><span class="nav-number">1.3.2.6.</span> <span class="nav-text">1.6 MACVLAN和IPVLAN</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#MACVLAN-%E7%BD%91%E5%8D%A1%E8%99%9A%E6%8B%9F%E5%8C%96%E6%8A%80%E6%9C%AF-%E6%80%A7%E8%83%BD%E6%9E%81%E5%A5%BD"><span class="nav-number">1.3.2.6.1.</span> <span class="nav-text">MACVLAN - 网卡虚拟化技术 - 性能极好</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E4%BB%8B%E7%BB%8D-5"><span class="nav-number">1.3.2.6.1.1.</span> <span class="nav-text">命令介绍</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IPVLAN"><span class="nav-number">1.3.2.6.2.</span> <span class="nav-text">IPVLAN</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E4%BB%8B%E7%BB%8D-6"><span class="nav-number">1.3.2.6.2.1.</span> <span class="nav-text">命令介绍</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#x-1-7-TUN-TAP"><span class="nav-number">1.3.2.7.</span> <span class="nav-text">x 1.7 TUN&#x2F;TAP</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#tap-tun%E5%9C%A8libvirt%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-number">1.3.2.7.0.1.</span> <span class="nav-text">tap&#x2F;tun在libvirt中的应用</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#vpn"><span class="nav-number">1.3.2.7.0.2.</span> <span class="nav-text">vpn</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E3%80%81%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C"><span class="nav-number">1.4.</span> <span class="nav-text">三 、容器网络</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%8D%95%E6%9C%BA%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C"><span class="nav-number">1.4.0.1.</span> <span class="nav-text">1. 单机容器网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8E%9F%E7%94%9F%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.4.0.1.1.</span> <span class="nav-text">原生实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#docker%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.4.0.1.2.</span> <span class="nav-text">docker实现</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E7%94%A8macvlan%E5%AE%9E%E7%8E%B0%E8%B7%A8%E4%B8%BB%E6%9C%BA-docker%E9%80%9A%E4%BF%A1"><span class="nav-number">1.4.0.2.</span> <span class="nav-text">2. 用macvlan实现跨主机 docker通信</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8E%9F%E7%94%9F%E5%AE%9E%E7%8E%B0-1"><span class="nav-number">1.4.0.2.1.</span> <span class="nav-text">原生实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#docker%E5%AE%9E%E7%8E%B0-1"><span class="nav-number">1.4.0.2.2.</span> <span class="nav-text">docker实现</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E7%94%A8IPvlan%E5%AE%9E%E7%8E%B0%E8%B7%A8%E4%B8%BB%E6%9C%BA-docker%E9%80%9A%E4%BF%A1"><span class="nav-number">1.4.0.3.</span> <span class="nav-text">3. 用IPvlan实现跨主机 docker通信</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8E%9F%E7%94%9F%E5%AE%9E%E7%8E%B0-docker%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.4.0.3.1.</span> <span class="nav-text">原生实现&#x2F;docker实现</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E7%94%A8vxlan%E5%AE%9E%E7%8E%B0%E8%B7%A8%E4%B8%BB%E6%9C%BAdocker%E9%80%9A%E4%BF%A1"><span class="nav-number">1.4.0.4.</span> <span class="nav-text">4. 用vxlan实现跨主机docker通信</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#4-1-%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88%E4%B8%80"><span class="nav-number">1.4.0.4.1.</span> <span class="nav-text">4.1 实现方案一</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-2-%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88%E4%BA%8C"><span class="nav-number">1.4.0.4.2.</span> <span class="nav-text">4.2 实现方案二</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-3-docker%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.4.0.4.3.</span> <span class="nav-text">4.3 docker实现</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81-Kubernetes%E7%9A%84%E5%B8%B8%E7%94%A8%E7%BD%91%E7%BB%9C%E7%BB%84%E4%BB%B6"><span class="nav-number">1.5.</span> <span class="nav-text">四、 Kubernetes的常用网络组件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1"><span class="nav-number">1.5.1.</span> <span class="nav-text">1.</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IP-HELP"><span class="nav-number">1.6.</span> <span class="nav-text">　IP HELP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#IP-LINK-HELP"><span class="nav-number">1.6.1.</span> <span class="nav-text">IP LINK HELP</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

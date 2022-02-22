@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="mutt邮件一键脚本，部署到Linux(centos)用以smtp服务器发送邮件，当然，你需要一个正式的邮件服务器账号.git地址：https:&#x2F;&#x2F;github.com&#x2F;l0veshe&#x2F;HankScript&#x2F;blob&#x2F;master&#x2F;mutt_onkey.sh">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mutt邮件客户端一键脚本">
+<meta property="og:url" content="http://yoursite.com/2014/09/14/mutt%E9%82%AE%E4%BB%B6%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%80%E9%94%AE%E8%84%9A%E6%9C%AC/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="mutt邮件一键脚本，部署到Linux(centos)用以smtp服务器发送邮件，当然，你需要一个正式的邮件服务器账号.git地址：https:&#x2F;&#x2F;github.com&#x2F;l0veshe&#x2F;HankScript&#x2F;blob&#x2F;master&#x2F;mutt_onkey.sh">
+<meta property="og:locale">
+<meta property="article:published_time" content="2014-09-14T11:27:44.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.953Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="centos">
+<meta property="article:tag" content="mutt">
+<meta property="article:tag" content="onekey">
+<meta property="article:tag" content="script">
+<meta property="article:tag" content="shell">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2014/09/14/mutt%E9%82%AE%E4%BB%B6%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%80%E9%94%AE%E8%84%9A%E6%9C%AC/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>mutt邮件客户端一键脚本 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2014/09/14/mutt%E9%82%AE%E4%BB%B6%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%80%E9%94%AE%E8%84%9A%E6%9C%AC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          mutt邮件客户端一键脚本
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2014-09-14 19:27:44" itemprop="dateCreated datePublished" datetime="2014-09-14T19:27:44+08:00">2014-09-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%84%9A%E6%9C%AC-Script/" itemprop="url" rel="index"><span itemprop="name">脚本-Script</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>mutt邮件一键脚本，部署到Linux(centos)用以smtp服务器发送邮件，当然，你需要一个正式的邮件服务器账号.<br>git地址：<a target="_blank" rel="noopener" href="https://github.com/l0veshe/HankScript/blob/master/mutt_onkey.sh">https://github.com/l0veshe/HankScript/blob/master/mutt_onkey.sh</a><br><span id="more"></span></p>
+<p>```bash</p>
+<h1 id="bin-bash"><a href="#bin-bash" class="headerlink" title="!/bin/bash"></a>!/bin/bash</h1><h1 id="author-Hank-chenhanhank-icloud-com"><a href="#author-Hank-chenhanhank-icloud-com" class="headerlink" title="author: Hank (chenhanhank@icloud.com)"></a>author: Hank (chenhanhank@icloud.com)</h1><h1 id="date-2014-09-14-13-57-41"><a href="#date-2014-09-14-13-57-41" class="headerlink" title="date: 2014-09-14 13:57:41"></a>date: 2014-09-14 13:57:41</h1><h1 id="Name-MUTT-OneKey"><a href="#Name-MUTT-OneKey" class="headerlink" title="Name: MUTT_OneKey"></a>Name: MUTT_OneKey</h1><h1 id="—————————————————————————————"><a href="#—————————————————————————————" class="headerlink" title="—————————————————————————————"></a>—————————————————————————————</h1><h1 id="常量设置"><a href="#常量设置" class="headerlink" title="常量设置"></a>常量设置</h1><p>MAIL_SERVICE=”” #smtp service<br>MAIL_USER=”” #xxx@xxx.com<br>MAIL_PASS=”” </p>
+<h1 id="muttmail-安装"><a href="#muttmail-安装" class="headerlink" title="muttmail 安装"></a>muttmail 安装</h1><p>MUTT(){<br>cd /usr/local/src<br>wget —no-check-certificate “<a target="_blank" rel="noopener" href="http://jaist.dl.sourceforge.net/project/msmtp/msmtp/1.4.32/msmtp-1.4.32.tar.bz2">http://jaist.dl.sourceforge.net/project/msmtp/msmtp/1.4.32/msmtp-1.4.32.tar.bz2</a>“<br>tar -jxf msmtp-1.4.32.tar.bz2<br>cd ./msmtp-1.4.32<br>./configure —prefix=/usr/local/msmtp<br>make<br>make install<br>mkdir /usr/local/msmtp/etc/<br>cat &lt;&lt; EOF &gt;&gt; /usr/local/msmtp/etc/msmtprc<br>account default<br>host $MAIL_SERVICE<br>from $MAIL_USER<br>auth login<br>user $MAIL_USER<br>password $MAIL_PASS<br>logfile /var/log/mmlog<br>EOF<br>touch /var/log/mmlog<br>chmod 662 /var/log/mmlog<br>yum install mutt -y<br>echo ‘set sendmail=”/usr/local/msmtp/bin/msmtp”‘ &gt;&gt; /etc/Muttrc<br>echo “set use_from=yes” &gt;&gt; /etc/Muttrc<br>echo “set realname=\”$HOSTNAME\”” &gt;&gt; /etc/Muttrc<br>echo “set from=”noreply@limei.com”” &gt;&gt; /etc/Muttrc<br>echo “set editor=\”vi\”” &gt;&gt; /etc/Muttrc<br>echo “mutt 邮件发件软件安装完毕:”<br>echo “发件服务器以及账户设置位置:/usr/local/msmtp/etc/msmtprc”<br>echo “邮件上发件人邮箱、名称修改位置:/etc/Muttrc”<br>echo “邮件发送语法:echo “testmail” | mutt -s “测试” -a /etc/hosts xxx@xxxx.com “<br>echo “echo 正文 -a 附件 -s 主题”<br>}</p>
+<h1 id="muttmail-安装完毕"><a href="#muttmail-安装完毕" class="headerlink" title="muttmail 安装完毕"></a>muttmail 安装完毕</h1><p>```bash</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/centos/" rel="tag"># centos</a>
+              <a href="/tags/mutt/" rel="tag"># mutt</a>
+              <a href="/tags/onekey/" rel="tag"># onekey</a>
+              <a href="/tags/script/" rel="tag"># script</a>
+              <a href="/tags/shell/" rel="tag"># shell</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2014/09/14/MySQL-MMM-%E9%83%A8%E7%BD%B2%E9%85%8D%E7%BD%AE/" rel="next" title="MySQL MMM 部署配置">
+      MySQL MMM 部署配置 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#bin-bash"><span class="nav-number">1.</span> <span class="nav-text">!&#x2F;bin&#x2F;bash</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#author-Hank-chenhanhank-icloud-com"><span class="nav-number">2.</span> <span class="nav-text">author: Hank (chenhanhank@icloud.com)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#date-2014-09-14-13-57-41"><span class="nav-number">3.</span> <span class="nav-text">date: 2014-09-14 13:57:41</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Name-MUTT-OneKey"><span class="nav-number">4.</span> <span class="nav-text">Name: MUTT_OneKey</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94"><span class="nav-number">5.</span> <span class="nav-text">—————————————————————————————</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E9%87%8F%E8%AE%BE%E7%BD%AE"><span class="nav-number">6.</span> <span class="nav-text">常量设置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#muttmail-%E5%AE%89%E8%A3%85"><span class="nav-number">7.</span> <span class="nav-text">muttmail 安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#muttmail-%E5%AE%89%E8%A3%85%E5%AE%8C%E6%AF%95"><span class="nav-number">8.</span> <span class="nav-text">muttmail 安装完毕</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

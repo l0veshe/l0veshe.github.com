@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta property="og:type" content="article">
+<meta property="og:title" content="亚马逊运维(一):IAM 身份与访问管理">
+<meta property="og:url" content="http://yoursite.com/2014/09/14/%E4%BA%9A%E9%A9%AC%E9%80%8A%E8%BF%90%E7%BB%B4-%E4%B8%80-IAM-%E8%BA%AB%E4%BB%BD%E4%B8%8E%E8%AE%BF%E9%97%AE%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:locale">
+<meta property="article:published_time" content="2014-09-14T11:34:27.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.960Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="AWS">
+<meta property="article:tag" content="aws">
+<meta property="article:tag" content="devops">
+<meta property="article:tag" content="云计算">
+<meta property="article:tag" content="亚马逊运维">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2014/09/14/%E4%BA%9A%E9%A9%AC%E9%80%8A%E8%BF%90%E7%BB%B4-%E4%B8%80-IAM-%E8%BA%AB%E4%BB%BD%E4%B8%8E%E8%AE%BF%E9%97%AE%E7%AE%A1%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>亚马逊运维(一):IAM 身份与访问管理 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2014/09/14/%E4%BA%9A%E9%A9%AC%E9%80%8A%E8%BF%90%E7%BB%B4-%E4%B8%80-IAM-%E8%BA%AB%E4%BB%BD%E4%B8%8E%E8%AE%BF%E9%97%AE%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          亚马逊运维(一):IAM 身份与访问管理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2014-09-14 19:34:27" itemprop="dateCreated datePublished" datetime="2014-09-14T19:34:27+08:00">2014-09-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%9A%E9%A9%AC%E9%80%8A-AWS/" itemprop="url" rel="index"><span itemprop="name">亚马逊-AWS</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id=""><a href="#" class="headerlink" title=""></a><span id="more"></span></h2><p>进入IAM后，可以看到分为三类：好吧，老版的界面可以清晰的看到是三类:</p>
+<ul>
+<li>访问凭证 Access Credentials</li>
+<li>登陆凭证 Sign-In Credentials</li>
+<li>账号识别码 Account Identifiers</li>
+</ul>
+<h4 id="访问凭证又分三类"><a href="#访问凭证又分三类" class="headerlink" title="访问凭证又分三类:"></a>访问凭证又分三类:</h4><ul>
+<li>访问密钥 Access Keys</li>
+<li>X.509凭证 Certificates</li>
+<li>密钥对 Key Pairs</li>
+</ul>
+<h4 id="登录凭证"><a href="#登录凭证" class="headerlink" title="登录凭证:"></a>登录凭证:</h4><ul>
+<li>AWS账号 Email &amp; 密码</li>
+<li>AWS MFA（硬件）</li>
+</ul>
+<h4 id="账号识别码："><a href="#账号识别码：" class="headerlink" title="账号识别码："></a>账号识别码：</h4><p>AWS账号识别码 AWS Account Number<br>标准化用户识别码 Canonical User ID<br>访问密钥 Access Keys</p>
+<h3 id="非严格权限管控："><a href="#非严格权限管控：" class="headerlink" title="非严格权限管控："></a>非严格权限管控：</h3><h4 id="root权限的Access-Key"><a href="#root权限的Access-Key" class="headerlink" title="root权限的Access Key"></a>root权限的Access Key</h4><p>Access Keys 分为两种，一种为root key，另外一种为IAM Key.<br>此key可以通过API工具在AWS上拥有所有权限，所以在实际生产环境中极不推荐，但是入门时可以拿此KEY做实验。一般使用boto或者是awscli的话，会首先配置配置项。里边要求填入AccessKeys.下面介绍方法:</p>
+<ol>
+<li>进入AWS控制台后点Services然后点IAM</li>
+<li>找到下边[Delete your access keys]-&gt;[Manage Security Credentials]</li>
+<li>当然你现在不用去出去[IAM USERS]，只管点[continue to security Credentials]</li>
+<li>在[Access keys]中找到[Create New Access key]创建一个key，并记录。</li>
+</ol>
+<h3 id="严格权限管控："><a href="#严格权限管控：" class="headerlink" title="严格权限管控："></a>严格权限管控：</h3><p>如果公司的AWS账户里有许多资源是很多人都需要的，那么你需要配置IAM USERS</p>
+<p>点击左边[Users]，[create New users],然后再[Groups]里创建组，根据目的，比如运维，开发，或者是监控 分配不同的权限，可以使用自带模板，或者是自己建立Roles，然后在配置里与之连接。</p>
+<p>这块基本没看AWS CLI或者是BOTO，感觉这里没有上百台服务器或者等等用不上自动化。</p>
+<p>其他日后再说。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/AWS/" rel="tag"># AWS</a>
+              <a href="/tags/aws/" rel="tag"># aws</a>
+              <a href="/tags/devops/" rel="tag"># devops</a>
+              <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag"># 云计算</a>
+              <a href="/tags/%E4%BA%9A%E9%A9%AC%E9%80%8A%E8%BF%90%E7%BB%B4/" rel="tag"># 亚马逊运维</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2014/09/14/MySQL-MMM-%E9%83%A8%E7%BD%B2%E9%85%8D%E7%BD%AE/" rel="prev" title="MySQL MMM 部署配置">
+      <i class="fa fa-chevron-left"></i> MySQL MMM 部署配置
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2014/09/14/RPM-YUM-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" rel="next" title="RPM&YUM 常用命令">
+      RPM&YUM 常用命令 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-number">1.</span> <span class="nav-text"></span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E5%87%AD%E8%AF%81%E5%8F%88%E5%88%86%E4%B8%89%E7%B1%BB"><span class="nav-number">1.0.1.</span> <span class="nav-text">访问凭证又分三类:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%99%BB%E5%BD%95%E5%87%AD%E8%AF%81"><span class="nav-number">1.0.2.</span> <span class="nav-text">登录凭证:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B4%A6%E5%8F%B7%E8%AF%86%E5%88%AB%E7%A0%81%EF%BC%9A"><span class="nav-number">1.0.3.</span> <span class="nav-text">账号识别码：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%9E%E4%B8%A5%E6%A0%BC%E6%9D%83%E9%99%90%E7%AE%A1%E6%8E%A7%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">非严格权限管控：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#root%E6%9D%83%E9%99%90%E7%9A%84Access-Key"><span class="nav-number">1.1.1.</span> <span class="nav-text">root权限的Access Key</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A5%E6%A0%BC%E6%9D%83%E9%99%90%E7%AE%A1%E6%8E%A7%EF%BC%9A"><span class="nav-number">1.2.</span> <span class="nav-text">严格权限管控：</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

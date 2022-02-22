@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="接前文单单测试成功，我们可能还不理解tcp流的具体工作方式，这里我们逐步拆解，把过程从tcp层面展开分析 实验的mac地址192.168.232.1 00:50:56:c0:00:08 client192.168.232.121 00:0c:29:c1:17:52 dir1192.168.232.120 00:0c:29:c1:17:52 dir1&#x2F;vip192.168.232.111 00:0c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lvs dr 模式搭建与分析 (2) 抓包分析">
+<meta property="og:url" content="http://yoursite.com/2021/09/07/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-2-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="接前文单单测试成功，我们可能还不理解tcp流的具体工作方式，这里我们逐步拆解，把过程从tcp层面展开分析 实验的mac地址192.168.232.1 00:50:56:c0:00:08 client192.168.232.121 00:0c:29:c1:17:52 dir1192.168.232.120 00:0c:29:c1:17:52 dir1&#x2F;vip192.168.232.111 00:0c">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/images/2021/09/07/99731554-7c60-48bb-af88-69019142ab58.jpg">
+<meta property="og:image" content="http://yoursite.com/images/2021/09/07/e01626eb-e3f0-4ebc-95b6-d1ac9750b505.jpg">
+<meta property="og:image" content="http://yoursite.com/images/2021/09/07/8f9ea882-3cd9-4361-a803-41c35783ffce.jpg">
+<meta property="og:image" content="http://yoursite.com/images/2021/09/07/878eeff4-97cb-47eb-95fe-c1879fd70d68.jpg">
+<meta property="og:image" content="http://yoursite.com/images/2021/09/07/3cbb60f6-3cfc-42c3-913b-2f81308eb1b3.jpg">
+<meta property="article:published_time" content="2021-09-07T14:52:48.000Z">
+<meta property="article:modified_time" content="2021-09-07T15:05:49.121Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="lvs">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/2021/09/07/99731554-7c60-48bb-af88-69019142ab58.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2021/09/07/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-2-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>lvs dr 模式搭建与分析 (2) 抓包分析 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-2-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          lvs dr 模式搭建与分析 (2) 抓包分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-09-07 22:52:48 / Modified: 23:05:49" itemprop="dateCreated datePublished" datetime="2021-09-07T22:52:48+08:00">2021-09-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">网络</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BD%91%E7%BB%9C/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" itemprop="url" rel="index"><span itemprop="name">负载均衡</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="接前文"><a href="#接前文" class="headerlink" title="接前文"></a>接前文</h2><p>单单测试成功，我们可能还不理解tcp流的具体工作方式，这里我们逐步拆解，把过程从tcp层面展开分析</p>
+<h3 id="实验的mac地址"><a href="#实验的mac地址" class="headerlink" title="实验的mac地址"></a>实验的mac地址</h3><p>192.168.232.1 00:50:56:c0:00:08 client<br>192.168.232.121 00:0c:29:c1:17:52 dir1<br>192.168.232.120 00:0c:29:c1:17:52 dir1/vip<br>192.168.232.111 00:0c:29:3a:d3:86 realip/nginx</p>
+<h2 id="从请求到vip"><a href="#从请求到vip" class="headerlink" title="从请求到vip"></a>从请求到vip</h2><h3 id="先确定一下vip的绑定与vrrp协议的广播内容"><a href="#先确定一下vip的绑定与vrrp协议的广播内容" class="headerlink" title="先确定一下vip的绑定与vrrp协议的广播内容"></a>先确定一下vip的绑定与vrrp协议的广播内容</h3><h4 id="on-192-168-232-121-lvs1-hank-im"><a href="#on-192-168-232-121-lvs1-hank-im" class="headerlink" title="on 192.168.232.121 lvs1.hank.im"></a>on 192.168.232.121 lvs1.hank.im</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root@lvs1 ~]# ip a</span><br><span class="line">...</span><br><span class="line">2: ens33: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000</span><br><span class="line">    link/ether 00:0c:29:c1:17:52 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 192.168.232.121/24 brd 192.168.232.255 scope global noprefixroute ens33</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet 192.168.232.120/24 scope global secondary ens33</span><br><span class="line">...</span><br><span class="line">[root@lvs1 ~]# tcpdump -i ens33 &#x27;((!port 22))&#x27; -w vip.vrrp.cap  # 排除你的ssh连接</span><br></pre></td></tr></table></figure>
+<p>倒出用wireshark查看包内容</p>
+<p><img src="/images/2021/09/07/99731554-7c60-48bb-af88-69019142ab58.jpg" alt="image.jpg"></p>
+<p>再去lvs2看一眼</p>
+<h4 id="on-192-168-232-122-lvs2-hank-im"><a href="#on-192-168-232-122-lvs2-hank-im" class="headerlink" title="on 192.168.232.122 lvs2.hank.im"></a>on 192.168.232.122 lvs2.hank.im</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@lvs2 ~]# ip a</span><br><span class="line">...</span><br><span class="line">2: ens33: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000</span><br><span class="line">    link/ether 00:0c:29:35:e2:9e brd ff:ff:里边有一个握手包ff:ff:ff:ff</span><br><span class="line">    inet 192.168.232.122/24 brd 192.168.232.255 scope global noprefixroute ens33</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>并没有vip,正常</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i ens33 &#x27;((!port 22))&#x27; -w vip2.vrrp.cap</span><br></pre></td></tr></table></figure>
+<p><img src="/images/2021/09/07/e01626eb-e3f0-4ebc-95b6-d1ac9750b505.jpg" alt="image.jpg"></p>
+<p>这时候可以确定vrrp协议正常，vip 192.168.232.120 在192.168.232.121上正常绑定。</p>
+<h4 id="on-192-168-232-112-nginx2-hank-im"><a href="#on-192-168-232-112-nginx2-hank-im" class="headerlink" title="on 192.168.232.112 nginx2.hank.im"></a>on 192.168.232.112 nginx2.hank.im</h4><p>关闭，把流量全部导入到nginx1.hank.im</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@nginx2 ~]# docker stop nginx</span><br></pre></td></tr></table></figure>
+<h4 id="on-192-168-232-111-nginx1-hank-im"><a href="#on-192-168-232-111-nginx1-hank-im" class="headerlink" title="on 192.168.232.111 nginx1.hank.im"></a>on 192.168.232.111 nginx1.hank.im</h4><p>关闭lvs_real.sh stop</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@nginx1 ~]# ./lvs_real.sh stop</span><br><span class="line">RealServer Stoped</span><br></pre></td></tr></table></figure>
+<h3 id="尝试请求"><a href="#尝试请求" class="headerlink" title="尝试请求"></a>尝试请求</h3><h4 id="on-192-168-232-121-lvs1-hank-im-1"><a href="#on-192-168-232-121-lvs1-hank-im-1" class="headerlink" title="on 192.168.232.121 lvs1.hank.im"></a>on 192.168.232.121 lvs1.hank.im</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@lvs1 ~]# tcpdump -i ens33 &#x27;((!port 22))&#x27; -w vip.httpreq.cap  # 排除你的ssh连接</span><br></pre></td></tr></table></figure>
+<h4 id="on-192-168-232-111-nginx1-hank-im-1"><a href="#on-192-168-232-111-nginx1-hank-im-1" class="headerlink" title="on 192.168.232.111 nginx1.hank.im"></a>on 192.168.232.111 nginx1.hank.im</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@nginx1 ~]# tcpdump -i ens33 &#x27;dst port 80&#x27; -w  nginx1.httpreq.cap</span><br></pre></td></tr></table></figure>
+<h4 id="on-192-168-1-233-client-ip"><a href="#on-192-168-1-233-client-ip" class="headerlink" title="on 192.168.1.233 client ip"></a>on 192.168.1.233 client ip</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜   curl 192.168.232.120</span><br><span class="line">(无返回卡死)</span><br></pre></td></tr></table></figure>
+<h4 id="on-192-168-232-121-lvs1-hank-im-192-168-232-111-nginx1-hank-im"><a href="#on-192-168-232-121-lvs1-hank-im-192-168-232-111-nginx1-hank-im" class="headerlink" title="on 192.168.232.121 lvs1.hank.im 192.168.232.111 nginx1.hank.im"></a>on 192.168.232.121 lvs1.hank.im 192.168.232.111 nginx1.hank.im</h4><p>停止抓包并拉回</p>
+<h4 id="on-192-168-232-121-lvs1-hank-im-2"><a href="#on-192-168-232-121-lvs1-hank-im-2" class="headerlink" title="on 192.168.232.121 lvs1.hank.im"></a>on 192.168.232.121 lvs1.hank.im</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@lvs1 ~]# ipvsadm -Lnc</span><br><span class="line">IPVS connection entries</span><br><span class="line">pro expire state       source             virtual            destination</span><br><span class="line">TCP 00:58  SYN_RECV    192.168.232.1:57317 192.168.232.120:80 192.168.232.111:80</span><br><span class="line">TCP 00:58  SYN_RECV    192.168.232.1:57315 192.168.232.120:80 192.168.232.111:80</span><br><span class="line">TCP 00:58  SYN_RECV    192.168.232.1:57316 192.168.232.120:80 192.168.232.111:80</span><br><span class="line">TCP 00:59  SYN_RECV    192.168.232.1:57323 192.168.232.120:80 192.168.232.111:80</span><br><span class="line">[root@lvs1 ~]# ipvsadm -Lnc</span><br><span class="line">IPVS connection entries</span><br><span class="line">pro expire state       source             virtual            destination</span><br><span class="line">TCP 00:54  SYN_RECV    192.168.232.1:57317 192.168.232.120:80 192.168.232.111:80</span><br><span class="line">TCP 00:54  SYN_RECV    192.168.232.1:57315 192.168.232.120:80 192.168.232.111:80</span><br><span class="line">TCP 00:54  SYN_RECV    192.168.232.1:57316 192.168.232.120:80 192.168.232.111:80</span><br><span class="line">TCP 00:56  SYN_RECV    192.168.232.1:57323 192.168.232.120:80 192.168.232.111:8</span><br></pre></td></tr></table></figure>
+<p>state 为SYN_RECV状态，打开wireshark看一下请求状态，为什么卡死</p>
+<h3 id="插入！复习一下tcp控制位"><a href="#插入！复习一下tcp控制位" class="headerlink" title="插入！复习一下tcp控制位"></a>插入！复习一下tcp控制位</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">控制位：字段长为 8 位，每一位从左到右分别为 CWR、ECE、URG、ACK、PSH、RST、SYN、FIN。这些控制标志也叫做控制位。当他们的对应位上值为 1 时，具体含义如下：</span><br><span class="line"></span><br><span class="line">CWR：CWR 标志与后面的 ECE 标志都用于 IP 首部的 ECN 字段，ECE 标志为 1 时，则通知对方已将拥塞窗口缩小；</span><br><span class="line"></span><br><span class="line">ECE：若其值为 1 则会通知对方，从对方到这边的网络有阻塞。在收到数据包的 IP 首部中 ECN 为 1 时将 TCP 首部中的 ECE 设为 1.；</span><br><span class="line"></span><br><span class="line">URG：该位设为 1，表示包中有需要紧急处理的数据，对于需要紧急处理的数据，与后面的紧急指针有关；</span><br><span class="line"></span><br><span class="line">ACK：该位设为 1，确认应答的字段有效，TCP规定除了最初建立连接时的 SYN 包之外该位必须设为 1；</span><br><span class="line"></span><br><span class="line">PSH：该位设为 1，表示需要将收到的数据立刻传给上层应用协议，若设为 0，则先将数据进行缓存；</span><br><span class="line"></span><br><span class="line">RST：该位设为 1，表示 TCP 连接出现异常必须强制断开连接；</span><br><span class="line"></span><br><span class="line">SYN：用于建立连接，该位设为 1，表示希望建立连接，并在其序列号的字段进行序列号初值设定；</span><br><span class="line"></span><br><span class="line">FIN：该位设为 1，表示今后不再有数据发送，希望断开连接。当通信结束希望断开连接时，通信双方的主机之间就可以相互交换 FIN 位置为 1 的 TCP 段。每个主机又对对方的 FIN 包进行确认应答之后可以断开连接。不过，主机收到 FIN 设置为 1 的 TCP 段之后不必马上回复一个 FIN 包，而是可以等到缓冲区中的所有数据都因为已成功发送而被自动删除之后再发 FIN 包；</span><br><span class="line"></span><br><span class="line">窗口大小：该字段长 16 位，用于通知从相同 TCP 首部的确认应答号所指位置开始能够接收的数据大小（8 位字节）。TCP 不允许发送超过该窗口大小的数据。若窗口为 0，则表示可以发送窗口探测，以了解最新的窗口大小，但这个数据必须是 1 个字节；</span><br><span class="line"></span><br><span class="line">检验和：TCP 的检验和与 UDP 检验和一样，也是采用伪首部，但是 TCP 的检验和无法关闭。TCP 伪首部的信息和 UDP 一样，包括：源 IP 地址、目的 IP 地址、填充、协议号以及 TCP 包长度；</span><br><span class="line"></span><br><span class="line">紧急指针：该字段为 16 位。只有在 URG 控制位为 1 时有效。该字段的数值表示本报文段中紧急数据的指针。从数据部分的首位到紧急指针所在的位置为止是紧急数据。因此，紧急指针是指出了紧急数据的末尾在报文段中的位置； </span><br><span class="line"></span><br><span class="line">常见错误</span><br><span class="line"></span><br><span class="line">TCP Out_of_Order的原因分析：</span><br><span class="line">一般来说是网络拥塞，导致顺序包抵达时间不同，延时太长，或者包丢失，需要重新组合数据单元，因为他们可能是由不同的路径到达你的电脑上面。</span><br><span class="line"></span><br><span class="line">TCP Retransmission原因分析：</span><br><span class="line">很明显是上面的超时引发的数据重传。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">TCP dup ack XXX#X原因分析：</span><br><span class="line">就是重复应答#前的表示报文到哪个序号丢失，#后面的是表示第几次丢失。</span><br><span class="line"></span><br><span class="line">tcp previous segment not captured原因分析</span><br><span class="line">意思就是报文没有捕捉到，出现报文的丢失。</span><br></pre></td></tr></table></figure>
+<p>好了，先看一下vip1的包</p>
+<p>里边有一个握手包</p>
+<p><img src="/images/2021/09/07/8f9ea882-3cd9-4361-a803-41c35783ffce.jpg" alt="image.jpg"></p>
+<p>这两个框是nginx1 nginx2与dip之间tcp握手包。有sync ack rst，ack，完成握手并reset。说明这个属于一个与122与111联系的心跳包。</p>
+<p>在查看一下来自192.168.232.1的包</p>
+<p><img src="/images/2021/09/07/878eeff4-97cb-47eb-95fe-c1879fd70d68.jpg" alt="image.jpg"></p>
+<p>那么为什么会发生超时，再看一下nginx1的包</p>
+<p>这个包source ip 为192.168.232.1, destip为192.168.232.120，vip接收到这个包，并且开始建立握手，seq=0，并通知缩小拥塞窗口。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>srcip</th>
+<th>srcmac</th>
+<th>srcport</th>
+<th>destip</th>
+<th>destmac</th>
+<th>destport</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>192.168.232.1</td>
+<td>00:50:56:c0:00:08</td>
+<td>57774</td>
+<td>192.168.232.120</td>
+<td>00:0c:29:c1:17:52</td>
+<td>80</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>然后120 vip 把这个包更改了mac地址，来源mac地址更改为dir1的mac（c1:17:52），dest mac更改为nginx1的mac地址，并发送给了nginx1</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>srcip</th>
+<th>srcmac</th>
+<th>srcport</th>
+<th>destip</th>
+<th>destmac</th>
+<th>destport</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>192.168.232.1</td>
+<td><strong>00:0c:29:c1:17:52</strong></td>
+<td>57774</td>
+<td><strong>00:0c:29:3a:d3:86</strong></td>
+<td>VMware_c0:00:08</td>
+<td>80</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>在透传过程中发生了什么，产生了out of order，然后每秒发生一次tcp retransmission - 超时引发的数据重传。那么去nginx1服务器的抓包看一下<br><img src="/images/2021/09/07/3cbb60f6-3cfc-42c3-913b-2f81308eb1b3.jpg" alt="image.jpg"></p>
+<p>原来，是nginx1发现这个包的ip与他自己的mac不符合，把这个包丢弃了。那么，就解释了，我们为什么要使用lvs_real.sh。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SNS_VIP=192.168.232.120  # 定义一下vip变量</span><br><span class="line">/sbin/ifconfig lo:0 $SNS_VIP netmask 255.255.255.255 broadcast $SNS_VIP # 把vip绑定在lo网卡上，然后设定掩码32，可能怕这个ip旅游广播。</span><br><span class="line">/sbin/route add -host $SNS_VIP dev lo:0 # 死死的把这个ip的路由绑定在lo:0, 没错，我就是vip！</span><br><span class="line">echo &quot;1&quot; &gt;/proc/sys/net/ipv4/conf/lo/arp_ignore </span><br><span class="line">echo &quot;2&quot; &gt;/proc/sys/net/ipv4/conf/lo/arp_announce </span><br><span class="line">echo &quot;1&quot; &gt;/proc/sys/net/ipv4/conf/all/arp_ignore </span><br><span class="line">echo &quot;2&quot; &gt;/proc/sys/net/ipv4/conf/all/arp_announce</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/lvs/" rel="tag"># lvs</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/06/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-1-%E6%90%AD%E5%BB%BA/" rel="prev" title="lvs dr 模式搭建与分析 (1) 搭建">
+      <i class="fa fa-chevron-left"></i> lvs dr 模式搭建与分析 (1) 搭建
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/09/07/%E6%8A%80%E6%9C%AF%E8%BF%90%E7%BB%B4%E5%9F%BA%E7%A1%80%E6%8A%80%E8%83%BD%E9%9D%A2%E8%AF%95%E9%A2%98/" rel="next" title="技术运维基础技能面试题">
+      技术运维基础技能面试题 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A5%E5%89%8D%E6%96%87"><span class="nav-number">1.</span> <span class="nav-text">接前文</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%9A%84mac%E5%9C%B0%E5%9D%80"><span class="nav-number">1.1.</span> <span class="nav-text">实验的mac地址</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E8%AF%B7%E6%B1%82%E5%88%B0vip"><span class="nav-number">2.</span> <span class="nav-text">从请求到vip</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%88%E7%A1%AE%E5%AE%9A%E4%B8%80%E4%B8%8Bvip%E7%9A%84%E7%BB%91%E5%AE%9A%E4%B8%8Evrrp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%B9%BF%E6%92%AD%E5%86%85%E5%AE%B9"><span class="nav-number">2.1.</span> <span class="nav-text">先确定一下vip的绑定与vrrp协议的广播内容</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#on-192-168-232-121-lvs1-hank-im"><span class="nav-number">2.1.1.</span> <span class="nav-text">on 192.168.232.121 lvs1.hank.im</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#on-192-168-232-122-lvs2-hank-im"><span class="nav-number">2.1.2.</span> <span class="nav-text">on 192.168.232.122 lvs2.hank.im</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#on-192-168-232-112-nginx2-hank-im"><span class="nav-number">2.1.3.</span> <span class="nav-text">on 192.168.232.112 nginx2.hank.im</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#on-192-168-232-111-nginx1-hank-im"><span class="nav-number">2.1.4.</span> <span class="nav-text">on 192.168.232.111 nginx1.hank.im</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%9D%E8%AF%95%E8%AF%B7%E6%B1%82"><span class="nav-number">2.2.</span> <span class="nav-text">尝试请求</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#on-192-168-232-121-lvs1-hank-im-1"><span class="nav-number">2.2.1.</span> <span class="nav-text">on 192.168.232.121 lvs1.hank.im</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#on-192-168-232-111-nginx1-hank-im-1"><span class="nav-number">2.2.2.</span> <span class="nav-text">on 192.168.232.111 nginx1.hank.im</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#on-192-168-1-233-client-ip"><span class="nav-number">2.2.3.</span> <span class="nav-text">on 192.168.1.233 client ip</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#on-192-168-232-121-lvs1-hank-im-192-168-232-111-nginx1-hank-im"><span class="nav-number">2.2.4.</span> <span class="nav-text">on 192.168.232.121 lvs1.hank.im 192.168.232.111 nginx1.hank.im</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#on-192-168-232-121-lvs1-hank-im-2"><span class="nav-number">2.2.5.</span> <span class="nav-text">on 192.168.232.121 lvs1.hank.im</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%EF%BC%81%E5%A4%8D%E4%B9%A0%E4%B8%80%E4%B8%8Btcp%E6%8E%A7%E5%88%B6%E4%BD%8D"><span class="nav-number">2.3.</span> <span class="nav-text">插入！复习一下tcp控制位</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

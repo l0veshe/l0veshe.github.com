@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="零 准备工作 安装vagrant 1 安装virtualbox，准备rpm源12345678910[root@localhost ~]# cat &#x2F;etc&#x2F;yum.repos.d&#x2F;virtual.repo[virtualbox]name&#x3D;Oracle Linux &#x2F; RHEL &#x2F; CentOS-$releasever &#x2F; $basearch - VirtualBoxbaseurl&#x3D;http:&#x2F;&#x2F;d">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vagrant 一般使用手册">
+<meta property="og:url" content="http://yoursite.com/2020/06/20/vagrant-%E4%B8%80%E8%88%AC%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="零 准备工作 安装vagrant 1 安装virtualbox，准备rpm源12345678910[root@localhost ~]# cat &#x2F;etc&#x2F;yum.repos.d&#x2F;virtual.repo[virtualbox]name&#x3D;Oracle Linux &#x2F; RHEL &#x2F; CentOS-$releasever &#x2F; $basearch - VirtualBoxbaseurl&#x3D;http:&#x2F;&#x2F;d">
+<meta property="og:locale">
+<meta property="article:published_time" content="2020-06-20T08:49:05.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.972Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="vagrant">
+<meta property="article:tag" content="virtualbox">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/20/vagrant-%E4%B8%80%E8%88%AC%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>vagrant 一般使用手册 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/20/vagrant-%E4%B8%80%E8%88%AC%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          vagrant 一般使用手册
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-06-20 16:49:05" itemprop="dateCreated datePublished" datetime="2020-06-20T16:49:05+08:00">2020-06-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DEVOPS/" itemprop="url" rel="index"><span itemprop="name">DEVOPS</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="零-准备工作-安装vagrant"><a href="#零-准备工作-安装vagrant" class="headerlink" title="零 准备工作 安装vagrant"></a>零 准备工作 安装vagrant</h2><hr>
+<h3 id="1-安装virtualbox，准备rpm源"><a href="#1-安装virtualbox，准备rpm源" class="headerlink" title="1 安装virtualbox，准备rpm源"></a>1 安装virtualbox，准备rpm源</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># cat /etc/yum.repos.d/virtual.repo</span></span><br><span class="line">[virtualbox]</span><br><span class="line">name=Oracle Linux / RHEL / CentOS-<span class="variable">$releasever</span> / <span class="variable">$basearch</span> - VirtualBox</span><br><span class="line">baseurl=http://download.virtualbox.org/virtualbox/rpm/el/<span class="variable">$releasever</span>/<span class="variable">$basearch</span></span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">repo_gpgcheck=1</span><br><span class="line">gpgkey=https://www.virtualbox.org/download/oracle_vbox.asc</span><br><span class="line"> </span><br><span class="line">[root@localhost ~]<span class="comment"># yum install VirtualBox-6.1</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-安装vagrant"><a href="#2-安装vagrant" class="headerlink" title="2 安装vagrant"></a>2 安装vagrant</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># wget https://releases.hashicorp.com/vagrant/2.2.7/vagrant_2.2.7_x86_64.rpm</span></span><br><span class="line">[root@localhost ~]<span class="comment"># rpm -ivh vagrant_2.2.7_x86_64.rpm</span></span><br><span class="line">[root@localhost ~]<span class="comment"># vagrant version</span></span><br><span class="line">Installed Version: 2.2.7</span><br><span class="line">Latest Version: 2.2.7</span><br><span class="line"> </span><br><span class="line">You<span class="string">&#x27;re running an up-to-date version of Vagrant!</span></span><br></pre></td></tr></table></figure>
+<h2 id="一-Vitrualbox"><a href="#一-Vitrualbox" class="headerlink" title="一 Vitrualbox"></a>一 Vitrualbox</h2><hr>
+<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">显示所有注册的虚拟机	 VBoxManage list vms</span><br><span class="line">删除虚拟机	VBoxManage unregistervm vm10-0-0-101 --delete </span><br><span class="line">显示虚拟机详情	VBoxManage showvminfo vm10-0-0-101</span><br><span class="line">关闭虚拟机	VBoxManage controlvm vm10-0-0-101 poweroff</span><br><span class="line">开启虚拟机	VBoxManage startvm  vm10-0-0-101 </span><br><span class="line">查看所有磁盘	vboxmanage list hdds</span><br><span class="line">删除vbox磁盘	vboxmanage closemedium disk &lt;uuid&gt; --delete   # uuid从查看所有磁盘中获得</span><br><span class="line">建立vmdk磁盘	VBoxManage createhd --filename /home/dev/disk/homer65_100g --size 100000 --format VMDK     # /home/dev/disk/homer65_100g  磁盘名 size 100000 100G</span><br></pre></td></tr></table></figure>
+<h2 id="二-Vagrant"><a href="#二-Vagrant" class="headerlink" title="二 Vagrant"></a>二 Vagrant</h2><hr>
+<h3 id="1-安装插件"><a href="#1-安装插件" class="headerlink" title="1 安装插件"></a>1 安装插件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vagrant plugin install vagrant-vbguest --plugin-clean-sources --plugin-source https://gems.ruby-china.com/ --verbose</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>必装插件<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/gdp12315_gu/article/details/79432302">https://blog.csdn.net/gdp12315_gu/article/details/79432302</a></p>
+</blockquote>
+<h3 id="2-vagrant-创建私有box"><a href="#2-vagrant-创建私有box" class="headerlink" title="2 vagrant 创建私有box"></a>2 vagrant 创建私有box</h3><h4 id="1-我们需要知道要制作box的虚拟机的真实名称-执行："><a href="#1-我们需要知道要制作box的虚拟机的真实名称-执行：" class="headerlink" title="1) 我们需要知道要制作box的虚拟机的真实名称, 执行："></a>1) 我们需要知道要制作box的虚拟机的真实名称, 执行：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># VBoxManage list vms</span></span><br><span class="line"><span class="string">&quot;vm10-0-7-66&quot;</span> &#123;1b85767d-78c9-4bbe-8090-d23c77ab94d0&#125;</span><br><span class="line">vm10-0-7-66 是我们要制作的box的虚拟机的名字</span><br><span class="line">````</span><br><span class="line"></span><br><span class="line"><span class="comment">#### 2）创建box</span></span><br><span class="line"></span><br><span class="line">```bash</span><br><span class="line"><span class="comment"># vagrant package --base vm10-0-7-66 --output centos_lb/7.7.box</span></span><br></pre></td></tr></table></figure>
+<p>如有box名称存在我们首先要删除box</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vagrant box remove centos_lb/7.7.box</span></span><br></pre></td></tr></table></figure>
+<h4 id="3-建立box-并添加到本地vagrant"><a href="#3-建立box-并添加到本地vagrant" class="headerlink" title="3) 建立box 并添加到本地vagrant"></a>3) 建立box 并添加到本地vagrant</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vagrant box add centos_lb/7.7.box centos_lb/7.7.box</span></span><br><span class="line">==&gt; box: Box file was not detected as metadata. Adding it directly...</span><br><span class="line">==&gt; box: Adding box <span class="string">&#x27;centos_lb/7.7.box&#x27;</span> (v0) <span class="keyword">for</span> provider:</span><br><span class="line">    box: Unpacking necessary files from: file:///home/dev/centos_lb/7.7.box</span><br><span class="line">==&gt; box: Successfully added box <span class="string">&#x27;centos_lb/7.7.box&#x27;</span> (v0) <span class="keyword">for</span> <span class="string">&#x27;virtualbox&#x27;</span>!</span><br><span class="line">[root@vm10-0-0-15 dev]<span class="comment"># vagrant box list</span></span><br><span class="line">centos/7            (virtualbox, 0)</span><br><span class="line">centos/7.7          (virtualbox, 0)</span><br><span class="line">centos7             (virtualbox, 0)</span><br><span class="line">centos_lb/7.7  (virtualbox, 0)</span><br><span class="line">geerlingguy/debian9 (virtualbox, 1.1.5)</span><br><span class="line">[root@vm10-0-0-15 dev]<span class="comment"># ls ~/.vagrant.d/boxes/</span></span><br><span class="line">centos7  centos_lb-VAGRANTSLASH-7.7.box  centos-VAGRANTSLASH-7</span><br></pre></td></tr></table></figure>
+<p>已经添加进vagrant中了<br>删除刚生成的已经使用过box的文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># rm -fr centos_lb</span></span><br></pre></td></tr></table></figure>
+<h4 id="4-可能重复安装需要删除的文件夹-vm766-重复安装的虚拟机名称"><a href="#4-可能重复安装需要删除的文件夹-vm766-重复安装的虚拟机名称" class="headerlink" title="4) 可能重复安装需要删除的文件夹 vm766 重复安装的虚拟机名称"></a>4) 可能重复安装需要删除的文件夹 vm766 重复安装的虚拟机名称</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># rm -fr  /home/dev/.vagrant/machines/vm766</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-新增挂载磁盘"><a href="#3-新增挂载磁盘" class="headerlink" title="3 新增挂载磁盘"></a>3 新增挂载磁盘</h3><h4 id="1）-初始化虚拟机"><a href="#1）-初始化虚拟机" class="headerlink" title="1） 初始化虚拟机"></a>1） 初始化虚拟机</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 停机并准备添加新硬盘</span></span><br><span class="line">vagrant halt vm765</span><br><span class="line"><span class="comment"># 新增一个100g的vmdk磁盘文件</span></span><br><span class="line">VBoxManage createhd --filename /home/dev/disk/homer66_100g --size 100000 --format VMDK</span><br></pre></td></tr></table></figure>
+<h3 id="2-创建虚拟磁盘"><a href="#2-创建虚拟磁盘" class="headerlink" title="2) 创建虚拟磁盘"></a>2) 创建虚拟磁盘</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看虚拟机info</span></span><br><span class="line">VBoxManage showvminfo vm10-0-7-65</span><br><span class="line"><span class="comment"># 根据输出信息，大概找到 Storage Controller,查看只有ide，没有sata</span></span><br><span class="line"><span class="comment"># 增加了个 sata 驱动器</span></span><br><span class="line">VBoxManage storagectl vm10-0-7-65 --name <span class="string">&quot;SATA Controller&quot;</span> --add sata --portcount 5 --controller IntelAhci --bootable on</span><br><span class="line"><span class="comment"># 继续把硬盘插上去</span></span><br><span class="line">VBoxManage storageattach vm10-0-7-65 --storagectl <span class="string">&quot;SATA Controller&quot;</span> --<span class="built_in">type</span> hdd --medium /home/dev/disk/homer65_100g.vmdk --port 1 --device 0</span><br><span class="line">vm1-master 就是你虚拟机的名字，上面有提到</span><br><span class="line">–storagectl 参数就是磁盘控制器的名字，参考上一条命令中的 –name</span><br><span class="line">–<span class="built_in">type</span> hdd 表示是硬盘，因为这个命令不仅仅可以插硬盘，还能插光驱等，所以要指定插的是什么</span><br><span class="line">–medium 这里指定的是虚拟磁盘的文件名，想想一下你手里拿着的硬盘</span><br><span class="line">–port 表示插在哪个端口，上面我们创建 sata 控制器的时候通过 –portcount 5 开放了5个端口，相当于主板上的5个sata- 接口，此时我们用第1个</span><br><span class="line">–device 0 设备id，设为0 就可以了，我也不知道什么意思</span><br><span class="line">如果没有错误的话，这里就成功添加了一块硬盘到虚拟机了，启动虚拟机，这里我用的是vagrant来管理虚拟机的。</span><br><span class="line">vagrant up vm765</span><br><span class="line">vagrant ssh vm765</span><br></pre></td></tr></table></figure>
+<p>剩下的就和正常服务器一样了，fdisk 格式化硬盘，然后mount到你想mout的位置</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/vagrant/" rel="tag"># vagrant</a>
+              <a href="/tags/virtualbox/" rel="tag"># virtualbox</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/20/mysql-%E6%95%B0%E6%8D%AE%E5%BA%93%E5%88%9D%E5%A7%8B%E5%AE%89%E8%A3%85/" rel="prev" title="mysql 数据库初始安装">
+      <i class="fa fa-chevron-left"></i> mysql 数据库初始安装
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/20/HOMER-SIP-%E6%8A%93%E5%8C%85%E7%9B%91%E6%8E%A7%E6%9C%8D%E5%8A%A1/" rel="next" title="HOMER - SIP 抓包监控服务">
+      HOMER - SIP 抓包监控服务 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9B%B6-%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C-%E5%AE%89%E8%A3%85vagrant"><span class="nav-number">1.</span> <span class="nav-text">零 准备工作 安装vagrant</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AE%89%E8%A3%85virtualbox%EF%BC%8C%E5%87%86%E5%A4%87rpm%E6%BA%90"><span class="nav-number">1.1.</span> <span class="nav-text">1 安装virtualbox，准备rpm源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AE%89%E8%A3%85vagrant"><span class="nav-number">1.2.</span> <span class="nav-text">2 安装vagrant</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-Vitrualbox"><span class="nav-number">2.</span> <span class="nav-text">一 Vitrualbox</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">2.1.</span> <span class="nav-text">常用命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-Vagrant"><span class="nav-number">3.</span> <span class="nav-text">二 Vagrant</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AE%89%E8%A3%85%E6%8F%92%E4%BB%B6"><span class="nav-number">3.1.</span> <span class="nav-text">1 安装插件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-vagrant-%E5%88%9B%E5%BB%BA%E7%A7%81%E6%9C%89box"><span class="nav-number">3.2.</span> <span class="nav-text">2 vagrant 创建私有box</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%88%91%E4%BB%AC%E9%9C%80%E8%A6%81%E7%9F%A5%E9%81%93%E8%A6%81%E5%88%B6%E4%BD%9Cbox%E7%9A%84%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E7%9C%9F%E5%AE%9E%E5%90%8D%E7%A7%B0-%E6%89%A7%E8%A1%8C%EF%BC%9A"><span class="nav-number">3.2.1.</span> <span class="nav-text">1) 我们需要知道要制作box的虚拟机的真实名称, 执行：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%BB%BA%E7%AB%8Bbox-%E5%B9%B6%E6%B7%BB%E5%8A%A0%E5%88%B0%E6%9C%AC%E5%9C%B0vagrant"><span class="nav-number">3.2.2.</span> <span class="nav-text">3) 建立box 并添加到本地vagrant</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%8F%AF%E8%83%BD%E9%87%8D%E5%A4%8D%E5%AE%89%E8%A3%85%E9%9C%80%E8%A6%81%E5%88%A0%E9%99%A4%E7%9A%84%E6%96%87%E4%BB%B6%E5%A4%B9-vm766-%E9%87%8D%E5%A4%8D%E5%AE%89%E8%A3%85%E7%9A%84%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%90%8D%E7%A7%B0"><span class="nav-number">3.2.3.</span> <span class="nav-text">4) 可能重复安装需要删除的文件夹 vm766 重复安装的虚拟机名称</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%96%B0%E5%A2%9E%E6%8C%82%E8%BD%BD%E7%A3%81%E7%9B%98"><span class="nav-number">3.3.</span> <span class="nav-text">3 新增挂载磁盘</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1%EF%BC%89-%E5%88%9D%E5%A7%8B%E5%8C%96%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="nav-number">3.3.1.</span> <span class="nav-text">1） 初始化虚拟机</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%88%9B%E5%BB%BA%E8%99%9A%E6%8B%9F%E7%A3%81%E7%9B%98"><span class="nav-number">3.4.</span> <span class="nav-text">2) 创建虚拟磁盘</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

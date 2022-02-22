@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="简单频数表  12345678910111213&gt; ex2&lt;-read.table(&quot;utf8_example2_1.txt&quot;)&gt; summary(ex2) # 频数分布表&gt; count1 &lt;- table(ex2$社区)&gt; prop.table(count1)*100A社区 B社区 C社区 D社区33.75 21.25 26.25 18.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="章二 数据的可视化">
+<meta property="og:url" content="http://yoursite.com/2018/10/06/%E7%AB%A0%E4%BA%8C-%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%AF%E8%A7%86%E5%8C%96/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="简单频数表  12345678910111213&gt; ex2&lt;-read.table(&quot;utf8_example2_1.txt&quot;)&gt; summary(ex2) # 频数分布表&gt; count1 &lt;- table(ex2$社区)&gt; prop.table(count1)*100A社区 B社区 C社区 D社区33.75 21.25 26.25 18.">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-10-06T02:55:40.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.954Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="Statistic">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2018/10/06/%E7%AB%A0%E4%BA%8C-%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%AF%E8%A7%86%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>章二 数据的可视化 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/06/%E7%AB%A0%E4%BA%8C-%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%AF%E8%A7%86%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          章二 数据的可视化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-10-06 10:55:40" itemprop="dateCreated datePublished" datetime="2018-10-06T10:55:40+08:00">2018-10-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%9F%BA%E4%BA%8ER/" itemprop="url" rel="index"><span itemprop="name">统计学基于R</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ul>
+<li>简单频数表</li>
+</ul>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&gt; ex2&lt;-read.table(<span class="string">&quot;utf8_example2_1.txt&quot;</span>)</span><br><span class="line">&gt; summary(ex2) <span class="comment"># 频数分布表</span></span><br><span class="line">&gt; count1 &lt;- table(ex2$社区)</span><br><span class="line">&gt; prop.table(count1)*<span class="number">100</span></span><br><span class="line"></span><br><span class="line">A社区 B社区 C社区 D社区</span><br><span class="line"><span class="number">33.75</span> <span class="number">21.25</span> <span class="number">26.25</span> <span class="number">18.75</span></span><br><span class="line"></span><br><span class="line">&gt; count2&lt;-table(ex2$性别)</span><br><span class="line">&gt; prop.table(count2)*<span class="number">100</span></span><br><span class="line"></span><br><span class="line">男 女</span><br><span class="line"><span class="number">45</span> <span class="number">55</span></span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+<ul>
+<li>二维列联表</li>
+</ul>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt; table(ex2$社区,ex2$性别)</span><br><span class="line">&gt; ex2v&lt;-table(ex2$社区,ex2$性别)</span><br><span class="line">&gt; ex2v</span><br><span class="line">&gt; addmargins(ex2v)</span><br><span class="line">&gt; addmargins(prop.table(ex2v))*<span class="number">100</span></span><br><span class="line">&gt; addmargins(prop.table(table(ex2$社区,ex2$态度)))*<span class="number">100</span></span><br><span class="line">&gt; addmargins(prop.table(table(ex2$性别,ex2$态度)))*<span class="number">100</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>多维列联表</li>
+</ul>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; fex2&lt;- ftable(ex2, row.vars=<span class="built_in">c</span>(<span class="string">&quot;性别&quot;</span>, <span class="string">&quot;态度&quot;</span>), col.var=<span class="string">&quot;社区&quot;</span>) <span class="comment"># 三位列联表</span></span><br><span class="line">&gt; fex2</span><br><span class="line">&gt; ftable(addmargins( table(ex2$性别,ex2$态度,ex2$社区)))</span><br><span class="line">&gt; ftable(addmargins( prop.table( table(ex2$性别,ex2$态度,ex2$社区))*<span class="number">100</span>))</span><br></pre></td></tr></table></figure>
+<h4 id="数值数据的类别话"><a href="#数值数据的类别话" class="headerlink" title="数值数据的类别话"></a>数值数据的类别话</h4><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&gt; ex22 &lt;- read.table(<span class="string">&quot;utf8_example2_2.txt&quot;</span>)</span><br><span class="line">&gt; ve22&lt;-as.vector(ex22$销售额)</span><br><span class="line">&gt; cnt&lt;-table(round_any(ve22, <span class="number">10</span>, <span class="built_in">floor</span>))</span><br><span class="line">&gt; cnt &lt;- <span class="built_in">as.numeric</span>(cnt)</span><br><span class="line">&gt; pcnt &lt;- prop.table(cnt)*<span class="number">100</span></span><br><span class="line">&gt; cspcnt &lt;- <span class="built_in">cumsum</span>(pcnt) <span class="comment"># 累计百分比</span></span><br><span class="line">&gt; name &lt;- paste(seq(<span class="number">160</span>,<span class="number">270</span>,by=<span class="number">10</span>), <span class="string">&quot;-&quot;</span>,seq(<span class="number">170</span>,<span class="number">280</span>,by=<span class="number">10</span>),sep=<span class="string">&quot;&quot;</span>)</span><br><span class="line">&gt; gt &lt;- data.frame(<span class="string">&quot;频数&quot;</span>=cnt, <span class="string">&quot;百分比&quot;</span>=pcnt, <span class="string">&quot;累计百分比&quot;</span>=cspcnt, row.names=name)</span><br><span class="line">&gt; gt </span><br><span class="line">        频数     百分比 累计百分比</span><br><span class="line"><span class="number">160</span>-<span class="number">170</span>    <span class="number">2</span>  <span class="number">1.6666667</span>   <span class="number">1.666667</span></span><br><span class="line"><span class="number">170</span>-<span class="number">180</span>    <span class="number">4</span>  <span class="number">3.3333333</span>   <span class="number">5.000000</span></span><br><span class="line"><span class="number">180</span>-<span class="number">190</span>    <span class="number">7</span>  <span class="number">5.8333333</span>  <span class="number">10.833333</span></span><br><span class="line"><span class="number">190</span>-<span class="number">200</span>   <span class="number">17</span> <span class="number">14.1666667</span>  <span class="number">25.000000</span></span><br><span class="line"><span class="number">200</span>-<span class="number">210</span>   <span class="number">27</span> <span class="number">22.5000000</span>  <span class="number">47.500000</span></span><br><span class="line"><span class="number">210</span>-<span class="number">220</span>   <span class="number">20</span> <span class="number">16.6666667</span>  <span class="number">64.166667</span></span><br><span class="line"><span class="number">220</span>-<span class="number">230</span>   <span class="number">16</span> <span class="number">13.3333333</span>  <span class="number">77.500000</span></span><br><span class="line"><span class="number">230</span>-<span class="number">240</span>   <span class="number">13</span> <span class="number">10.8333333</span>  <span class="number">88.333333</span></span><br><span class="line"><span class="number">240</span>-<span class="number">250</span>    <span class="number">7</span>  <span class="number">5.8333333</span>  <span class="number">94.166667</span></span><br><span class="line"><span class="number">250</span>-<span class="number">260</span>    <span class="number">4</span>  <span class="number">3.3333333</span>  <span class="number">97.500000</span></span><br><span class="line"><span class="number">260</span>-<span class="number">270</span>    <span class="number">2</span>  <span class="number">1.6666667</span>  <span class="number">99.166667</span></span><br><span class="line"><span class="number">270</span>-<span class="number">280</span>    <span class="number">1</span>  <span class="number">0.8333333</span> <span class="number">100.000000</span></span><br><span class="line">&gt; <span class="built_in">round</span>(gt, <span class="number">4</span>) <span class="comment"># 小数点</span></span><br><span class="line">&gt; </span><br></pre></td></tr></table></figure>
+<h3 id="2-2-类别数据可视化"><a href="#2-2-类别数据可视化" class="headerlink" title="2.2 类别数据可视化"></a>2.2 类别数据可视化</h3><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; ?barplot <span class="comment"># 简单条形图</span></span><br><span class="line">&gt;  				<span class="comment"># 帕累托图</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>复式条形图 </li>
+<li>脊形图</li>
+<li>绘制马赛克图</li>
+<li>饼图</li>
+<li>扇形图</li>
+</ul>
+<h3 id="2-3数值数据的可视化"><a href="#2-3数值数据的可视化" class="headerlink" title="2.3数值数据的可视化"></a>2.3数值数据的可视化</h3><h4 id="2-3-1-展示数据分布的图形"><a href="#2-3-1-展示数据分布的图形" class="headerlink" title="2.3.1 展示数据分布的图形"></a>2.3.1 展示数据分布的图形</h4><ul>
+<li>直方图 * </li>
+<li>茎叶图 *</li>
+<li>箱线图 * <figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; ex22&lt;-read.table(<span class="string">&quot;~/Downloads/statistics_r_ruc_jjp_utf8/example/ch2/utf8_example2_2.txt&quot;</span>)</span><br><span class="line">&gt; x&lt;-ex22$销售额</span><br><span class="line">&gt; layout(matrix(<span class="built_in">c</span>(<span class="number">1</span>,<span class="number">2</span>), nc=<span class="number">1</span>), height=<span class="built_in">c</span>(<span class="number">2</span>,<span class="number">1</span>))</span><br><span class="line">&gt; <span class="number">54</span>page</span><br></pre></td></tr></table></figure></li>
+<li>点图</li>
+<li>核密度图</li>
+</ul>
+<h4 id="2-3-2-展示变量间关系的图形"><a href="#2-3-2-展示变量间关系的图形" class="headerlink" title="2.3.2 展示变量间关系的图形"></a>2.3.2 展示变量间关系的图形</h4><ul>
+<li>散点图</li>
+<li>气泡图</li>
+</ul>
+<h4 id="2-3-3-比较多样本相似性的图形"><a href="#2-3-3-比较多样本相似性的图形" class="headerlink" title="2.3.3 比较多样本相似性的图形"></a>2.3.3 比较多样本相似性的图形</h4><ul>
+<li>轮廓图</li>
+<li>雷达图</li>
+<li>星图</li>
+<li>脸谱图。。。</li>
+</ul>
+<h4 id="2-3-4-时间序列图"><a href="#2-3-4-时间序列图" class="headerlink" title="2.3.4 时间序列图"></a>2.3.4 时间序列图</h4><h4 id="附-常用画图"><a href="#附-常用画图" class="headerlink" title="附 常用画图"></a>附 常用画图</h4><ul>
+<li>基础命令</li>
+</ul>
+<p>使用 <code>dev.new()</code> 命令新建一个图片视图，这样你可以输出多个图片到屏幕，而不是让之后输出的覆盖之前的图形。关于 dev.next(), dev.prev(), dev.set() 及 dev.off() 等内容，参考 help(dev.cur).</p>
+<h5 id="1-plot-绘图类型"><a href="#1-plot-绘图类型" class="headerlink" title="1. plot() 绘图类型"></a>1. plot() 绘图类型</h5><pre><code>基本的绘图类型有以下几种，使用 type= 参数指定：
+
+p：仅数据点，默认值。
+l：仅线段
+b：线段与点
+c：仅线段，但点的位置留出空白
+o：线段与点，但线段会延伸到点内部
+h：直方图风格，即带竖直密度线
+s：阶梯图
+S：其他特殊情况
+n；不绘制图形。用于指定标题、坐标轴名称的情况
+</code></pre><h5 id="输出到文件"><a href="#输出到文件" class="headerlink" title="输出到文件"></a>输出到文件</h5><p>将画图的内容输出到文件，可以指定路径，不指定就输出到当前工作目录。例如输出 pdf：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pdf(<span class="string">&quot;plot.pdf&quot;</span>)</span><br><span class="line">  plot(<span class="built_in">c</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>), <span class="built_in">c</span>(<span class="number">3</span>, <span class="number">4</span>, <span class="number">2</span>))</span><br><span class="line">dev.off()</span><br></pre></td></tr></table></figure>
+<p>除了 pdf() 外，其他可用的输出格式对应函数：</p>
+<pre><code>wmf：win.metafile()，仅在 Windows 系统下使用
+png: png()
+jpeg: jpeg()
+bmp: bmp()
+tiff: tiff()
+ps: postscript()
+例子。详细的参数在下文讨论。
+</code></pre><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">x &lt;- 1:<span class="number">4</span></span><br><span class="line">y &lt;- <span class="built_in">c</span>(<span class="number">2</span>, <span class="number">4</span>, <span class="number">3</span>, <span class="number">1</span>)</span><br><span class="line">plot(x, y, type=<span class="string">&quot;b&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h5 id="2-par-绘图参数"><a href="#2-par-绘图参数" class="headerlink" title="2. par() 绘图参数"></a>2. par() 绘图参数</h5><p>函数 par() 用来获取当前图形的参数。如果加入 no.readonly=TRUE, 表示该参数列表是非只读的，即用户可以进行修改。例如对于上图，我们获取其参数，进行更改后再传到新的图中（pch 参数可能有些费解，我们在下文讨论）：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 方法一：类交互式的更改方法</span></span><br><span class="line">opar &lt;- par(no.readonly=<span class="built_in">T</span>)</span><br><span class="line">par(pch=<span class="number">17</span>)  <span class="comment"># 更改点样式</span></span><br><span class="line">plot(x, y, type=<span class="string">&quot;b&quot;</span>)</span><br><span class="line">par(opar)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方法二：部分绘图参数支持直接传入参数</span></span><br><span class="line"><span class="comment"># plot(x, y, type=&quot;b&quot;, pch=17)</span></span><br></pre></td></tr></table></figure>
+<p>点样式、线宽与线型</p>
+<table>
+    <th>
+        <td>参数 </td>
+        <td>可选值</td>
+    </th>
+    <tr>
+        <td>pch 点样式</td>
+        <td>0空方块，1空圆，2空三角，3加号，4乘号，5斜空方块，6空倒三角，7叉方块，8星号，9斜叉方块，10圈加号，11六芒星，12田，13圈乘号，14加框尖角，15方块，16圆点，17三角，18斜方块，19带边线圆点，20带边线2/3圆点，21填充圆，22填充方块，23填充斜方块，24填充三角，25填充倒三角。</td>
+    </tr>
+    <tr>
+        <td>cex 点大小</td>
+        <td>数字，例如 0.5。</td>
+    </tr>
+    <tr>
+        <td>lty 线型</td>
+        <td>1实线，2短虚线，3点线，4点划线，5长虚线，6长短划线。</td>
+    </tr>
+    <tr>
+        <td>lwd 线宽</td>
+        <td>数字。</td>
+    </tr>
+</table>
+
+<p>注: pch = 19 相比 pch = 16，主要体现在 lwd 与 cex 不同时，带边线圆点的尺寸较大。</p>
+<h5 id="3-颜色"><a href="#3-颜色" class="headerlink" title="3. 颜色"></a>3. 颜色</h5><p>调整颜色的参数有：</p>
+<pre><code>col: 绘图颜色。
+col.axis：坐标轴刻度颜色。
+col.lab：坐标轴名称颜色。
+col.main：图形标题颜色。
+col.sub：副标题颜色。
+fg：图形前景色。
+bf：图形背景色。
+</code></pre><p>指定颜色的方式有如下几种：</p>
+<pre><code>数字下标：col=1
+名称：col=&quot;white&quot;
+十六进制值：col=”#FFFFFF”
+标准化RGB/HSV值：col=rgb(0,1,1)/hsv(0,0,1)
+</code></pre><p>至于 R 支持的颜色名称，多达 600 余种，这里给出一些我认为常见的：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">OutputColors &lt;- <span class="keyword">function</span>(color.names, titleStr=<span class="string">&quot;&quot;</span>, showText=<span class="built_in">F</span>) &#123;</span><br><span class="line">    plot(<span class="number">1</span>,<span class="number">1</span>, axes=<span class="built_in">F</span>, xlim=<span class="built_in">c</span>(<span class="number">0</span>, <span class="number">6</span>), ylim=<span class="built_in">c</span>(<span class="number">0</span>, <span class="number">6</span>), main=titleStr, xlab=<span class="string">&quot;&quot;</span>, ylab=<span class="string">&quot;&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> (i <span class="keyword">in</span> <span class="built_in">c</span>(<span class="number">1</span>:<span class="number">5</span>)) &#123;</span><br><span class="line">        <span class="keyword">for</span> (j <span class="keyword">in</span> <span class="built_in">c</span>(<span class="number">1</span>:<span class="number">5</span>)) &#123;</span><br><span class="line">            par(new=<span class="built_in">T</span>) <span class="comment"># 如果没有则会覆盖上个图, par 接续画图</span></span><br><span class="line">            plot(i, <span class="number">6</span>-j, cex=<span class="number">3</span>, xlim=<span class="built_in">c</span>(<span class="number">0</span>, <span class="number">6</span>), ylim=<span class="built_in">c</span>(<span class="number">0</span>, <span class="number">6</span>), axes=<span class="built_in">F</span>,</span><br><span class="line">                 main=<span class="string">&quot;&quot;</span>, xlab=<span class="string">&quot;&quot;</span>, ylab=<span class="string">&quot;&quot;</span>, pch=<span class="number">19</span>, </span><br><span class="line">                 col=color.names[(i-<span class="number">1</span>)*<span class="number">5</span>+j])</span><br><span class="line">            <span class="keyword">if</span> (showText) &#123;</span><br><span class="line">                text(i, <span class="number">6</span>-j-<span class="number">0.1</span>, pos=<span class="number">1</span>, color.names[(i-<span class="number">1</span>)*<span class="number">5</span>+j])</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">colorLst &lt;- <span class="built_in">c</span>(<span class="string">&quot;white&quot;</span>, <span class="string">&quot;red&quot;</span>, <span class="string">&quot;green&quot;</span>, <span class="string">&quot;blue&quot;</span>, <span class="string">&quot;brown&quot;</span>,</span><br><span class="line">              <span class="string">&quot;cyan&quot;</span>, <span class="string">&quot;gold&quot;</span>, <span class="string">&quot;gray&quot;</span>, <span class="string">&quot;plum&quot;</span>, <span class="string">&quot;magenta&quot;</span>,</span><br><span class="line">              <span class="string">&quot;orange&quot;</span>, <span class="string">&quot;purple&quot;</span>, <span class="string">&quot;yellow&quot;</span>, <span class="string">&quot;black&quot;</span>, <span class="string">&quot;violet&quot;</span>,</span><br><span class="line">              <span class="string">&quot;darkblue&quot;</span>, <span class="string">&quot;darkgreen&quot;</span>, <span class="string">&quot;darkred&quot;</span>, <span class="string">&quot;darkgray&quot;</span>, <span class="string">&quot;dimgray&quot;</span>,</span><br><span class="line">              <span class="string">&quot;lightblue&quot;</span>, <span class="string">&quot;lightgreen&quot;</span>, <span class="string">&quot;lightgray&quot;</span>, <span class="string">&quot;orchid&quot;</span>, <span class="string">&quot;pink&quot;</span>)</span><br><span class="line">OutputColors(colorLst, <span class="string">&quot;25 Useful Colors&quot;</span>, <span class="built_in">T</span>)</span><br></pre></td></tr></table></figure>
+<p>R 中还有其他方式可以生成一系列的颜色，比如：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">par(mfrow=<span class="built_in">c</span>(<span class="number">2</span> ,<span class="number">3</span>))</span><br><span class="line">OutputColors(rainbow(<span class="number">25</span>), <span class="string">&quot;Rainbow&quot;</span>)</span><br><span class="line">OutputColors(heat.colors(<span class="number">25</span>), <span class="string">&quot;HeatMap&quot;</span>)</span><br><span class="line">OutputColors(terrain.colors(<span class="number">25</span>), <span class="string">&quot;TerrainMap&quot;</span>)</span><br><span class="line">OutputColors(topo.colors(<span class="number">25</span>), <span class="string">&quot;Topo&quot;</span>)</span><br><span class="line">OutputColors(cm.colors(<span class="number">25</span>), <span class="string">&quot;CM&quot;</span>)</span><br><span class="line"><span class="comment"># 灰度：需要标准化</span></span><br><span class="line">OutputColors(gray(<span class="number">1</span>/<span class="number">25</span>*<span class="built_in">c</span>(<span class="number">0</span>:<span class="number">25</span>)), <span class="string">&quot;Gray&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h5 id="4-标签和标题文本"><a href="#4-标签和标题文本" class="headerlink" title="4. 标签和标题文本"></a>4. 标签和标题文本</h5><p>从上文可以看出端倪，标签与标题参数有：</p>
+<ul>
+<li>标题/副标题：title/sub</li>
+<li>坐标轴标题：xlab/ylab</li>
+</ul>
+<p>在标题中使用上文介绍的参数：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">title(main=<span class="string">&quot;My Title&quot;</span>, col.main=<span class="string">&quot;red&quot;</span>,</span><br><span class="line">    sub=<span class="string">&quot;My Subtitle&quot;</span>, col.sub=<span class="string">&quot;blue&quot;</span>,</span><br><span class="line">    xlab=<span class="string">&quot;My X label&quot;</span>, ylab=<span class="string">&quot;My Y label&quot;</span>,</span><br><span class="line">    col.lab=<span class="string">&quot;green&quot;</span>, cex.lab=<span class="number">0.75</span>)</span><br></pre></td></tr></table></figure>
+<p>要定义它们的字体，可添加的参数有：</p>
+<pre><code>参数    含义
+cex    基础缩放倍数
+cex.axis    坐标轴刻度的缩放倍数
+cex.lab    坐标轴标题的缩放倍数
+cex.main    图形标题的缩放倍数
+cex.sub    图形副标题的缩放倍数
+font    字体样式。1常规，2加粗，3加斜，4加粗加斜，5符号字体
+font.axis    坐标轴刻度的字体样式
+font.lab/ main/ sub    类推
+ps    字体磅值。文字的最终大小为 cex * ps
+family    字族。例如 serif衬线, sans无衬线, mono等宽
+</code></pre><p>字族的使用需要注意：Windows 中，等宽映射为 Courier New，衬线 Times New Roman，无衬线 Arial。你可以使用 windowsFonts() 函数来更改或者创建映射，例如我个人常用的 DejaVu 等宽字体：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">indowsFonts(</span><br><span class="line">    M=windowsFont(<span class="string">&quot;DejaVu Sans Mono&quot;</span>)</span><br><span class="line">)</span><br><span class="line">plot(<span class="number">1</span>, <span class="number">1</span>, type=<span class="string">&quot;n&quot;</span>)</span><br><span class="line"><span class="comment"># 字体示例</span></span><br><span class="line">text(<span class="number">1</span>, <span class="number">1.05</span>, paste(<span class="string">&quot;DejaVu Sans Mono\n&quot;</span>, </span><br><span class="line">                    <span class="string">&quot;0123456789!@#$%^&amp;*()[]&#123;&#125;:;,.&lt;&gt;&#x27;/?`~&quot;</span>,</span><br><span class="line">                    <span class="string">&quot;abcdefghijklmnopqrstuvwxyz&quot;</span>,</span><br><span class="line">                    <span class="string">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;</span>, </span><br><span class="line">                    sep=<span class="string">&quot;\n&quot;</span>), pos=<span class="number">1</span>, family=<span class="string">&quot;M&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>如果你需要将图片输出到 pdf，这个参数也是可以使用的：<br><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pdf(file=<span class="string">&quot;filename.pdf&quot;</span>, family=<span class="string">&quot;M&quot;</span>)</span><br></pre></td></tr></table></figure></p>
+<h5 id="5-图形尺寸与边距"><a href="#5-图形尺寸与边距" class="headerlink" title="5. 图形尺寸与边距"></a>5. 图形尺寸与边距</h5><p>参数 pin 用于指定图形尺寸（英寸），例如 <code>pin=c(4, 3)</code> 表示 4 英寸宽 3 英寸高。</p>
+<p>用 <code>mai()/mar()</code> 依次指定下左上右四个方向的边距，单位分别是英寸与英分。默认是 mar(c(5, 4, 4, 2)) + 0.1</p>
+<h5 id="6-自定义其他元素"><a href="#6-自定义其他元素" class="headerlink" title="6. 自定义其他元素"></a>6. 自定义其他元素</h5><p><strong>坐标轴</strong></p>
+<p>函数 side() 用于自定义坐标轴：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">axis(side, at=, labels=, pos=, lty=, col=, las=, tck=, ...)</span><br></pre></td></tr></table></figure>
+<pre><code>side: 指定在哪绘制坐标轴：1下2左3上4右
+at：刻度线位置
+labels：刻度线旁的标签，缺省时使用 at 中的值
+pos：坐标轴与另一坐标轴相交位置的值
+lty/col：线型/线与刻度的颜色
+las：标签平行于（=0）或垂直于（=2）坐标轴
+tck：刻度线。负值表示在图形外侧，0表示禁用刻度，1表示全长（即网格线）；默认 -0.01
+</code></pre><p>网格线：<code>abline()</code> 与次要刻度<br>如果想使用次要刻度，请安装 Hmisc 包。次要刻度的长度将会是主刻度的 tick.ratio 倍。</p>
+<p>网格线使用 abline() 命令，并分别用 h/v 指定网格线是竖直还是水平。</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 需要加载：library(Hmisc)</span></span><br><span class="line">plot(<span class="number">1</span>:<span class="number">3</span>, <span class="number">1</span>:<span class="number">3</span>, type=<span class="string">&quot;b&quot;</span>, xlim=<span class="built_in">c</span>(<span class="number">0</span>, <span class="number">4</span>), ylim=<span class="built_in">c</span>(<span class="number">0</span>, <span class="number">4</span>))</span><br><span class="line">minor.tick(nx=<span class="number">2</span>, ny=<span class="number">4</span>, tick.ratio=<span class="number">0.5</span>)</span><br><span class="line">abline(v=seq(<span class="number">0</span>, <span class="number">4</span>, <span class="number">0.5</span>), h=seq(<span class="number">0</span>, <span class="number">4</span>, <span class="number">0.25</span>), lty=<span class="number">2</span>, col=<span class="string">&quot;darkred&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h5 id="8-叠加绘图"><a href="#8-叠加绘图" class="headerlink" title="8. 叠加绘图"></a>8. 叠加绘图</h5><p>叠加绘图最简单的方法，就是使用绘图的 new=TRUE：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">plot( ... )</span><br><span class="line">plot( ... , new=<span class="literal">TRUE</span>)  <span class="comment"># 记得用 axes=FALSE 将坐标轴、标签、标题隐藏掉</span></span><br><span class="line"><span class="comment">#如果想要添加额外的点、线，使用 points() 命令与 lines() 命令。以及上面提到的参考线 abline() 命令：</span></span><br><span class="line"></span><br><span class="line">plot(<span class="number">1</span>:<span class="number">3</span>, <span class="built_in">c</span>(<span class="number">1</span>,<span class="number">3</span>,<span class="number">2</span>), type=<span class="string">&quot;b&quot;</span>, pch=<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">points(<span class="number">1</span>:<span class="number">3</span>, seq(<span class="number">1.5</span>, <span class="number">2.5</span>, <span class="number">0.5</span>), col=<span class="string">&quot;blue&quot;</span>, pch=<span class="number">16</span>)</span><br><span class="line">lines(<span class="number">1</span>:<span class="number">3</span>, seq(<span class="number">1.5</span>, <span class="number">2.5</span>, <span class="number">0.5</span>), col=<span class="string">&quot;red&quot;</span>)</span><br><span class="line">abline(v=<span class="number">1.5</span>, h=<span class="number">2.25</span>, lty=<span class="number">2</span>,col=<span class="string">&quot;purple&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h5 id="9-子图"><a href="#9-子图" class="headerlink" title="9. 子图"></a>9. 子图</h5><p><strong>函数 layout()</strong></p>
+<p>函数 layout() 是一个强大的命令。例如：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">layout(matrix(<span class="built_in">c</span>(<span class="number">1</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>), <span class="number">2</span>, <span class="number">2</span>, byrow = <span class="literal">TRUE</span>))</span><br></pre></td></tr></table></figure>
+<p>就指定了图 1 占用第一行，图 2 和 3 共用第二行。也可以用 widths=/heights= 参数指定各列宽/各行高之间的比例：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">tmp &lt;- <span class="built_in">c</span>(<span class="built_in">rep</span>(<span class="string">&quot;Cat&quot;</span>, <span class="number">3</span>), <span class="built_in">rep</span>(<span class="string">&quot;Dog&quot;</span>, <span class="number">4</span>), <span class="built_in">rep</span>(<span class="string">&quot;Rabbit&quot;</span>, <span class="number">2</span>))</span><br><span class="line">dt &lt;- table(tmp)</span><br><span class="line"></span><br><span class="line">layout(matrix(<span class="built_in">c</span>(<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>), <span class="number">2</span>, <span class="number">2</span>, byrow = <span class="literal">TRUE</span>),</span><br><span class="line">       widths=<span class="built_in">c</span>(<span class="number">3</span>, <span class="number">1</span>), heights=<span class="built_in">c</span>(<span class="number">1</span>, <span class="number">2</span>))</span><br><span class="line">barplot(dt)</span><br><span class="line">barplot(dt)</span><br><span class="line">barplot(dt)</span><br></pre></td></tr></table></figure>
+<p><strong>函数 par() 的 mfrow 参数</strong></p>
+<p>前文介绍过的 par() 中的 mfrow= 参数也是一个控制子图的方式。下例是两行两列的子图：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">opar &lt;- par(no.readonly=<span class="literal">TRUE</span>)</span><br><span class="line">par(mfrow=<span class="built_in">c</span>(<span class="number">2</span>,<span class="number">2</span>))</span><br><span class="line">plot(...)  <span class="comment"># 图 1，左上</span></span><br><span class="line">plot(...)  <span class="comment"># 图 2，右上</span></span><br><span class="line">plot(...)  <span class="comment"># 图 3，左下</span></span><br><span class="line">plot(...)  <span class="comment"># 图 4，右下</span></span><br><span class="line">par(opar)</span><br><span class="line">函数 par() 的 fig 参数</span><br><span class="line">这种方式支持你以任何的位置、组合任意的图形。它比规整的 layout() 更加灵活。以下不使用 <span class="number">0.8</span> 而使用 <span class="number">0.65</span> 是为了看上去更紧凑。</span><br><span class="line"></span><br><span class="line">opar &lt;- par(no.readonly=<span class="literal">TRUE</span>)</span><br><span class="line"></span><br><span class="line">par(fig=<span class="built_in">c</span>(<span class="number">0</span>, <span class="number">0.8</span>, <span class="number">0</span>, <span class="number">0.8</span>))  <span class="comment"># 主图：横向范围与纵向范围（左下为原点）</span></span><br><span class="line">barplot(dt)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">par(fig=<span class="built_in">c</span>(<span class="number">0</span>, <span class="number">0.8</span>, <span class="number">0.65</span>, <span class="number">1</span>), new=<span class="literal">TRUE</span>)  <span class="comment"># 上方的图。注意 new 参数</span></span><br><span class="line">barplot(dt, axes=<span class="built_in">F</span>)</span><br><span class="line"></span><br><span class="line">par(fig=<span class="built_in">c</span>(<span class="number">0.65</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0.8</span>), new=<span class="literal">TRUE</span>)  <span class="comment"># 右侧的图</span></span><br><span class="line">barplot(dt, axes=<span class="built_in">F</span>, names.arg=<span class="string">&quot;&quot;</span>)</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="统计图"><a href="#统计图" class="headerlink" title="统计图"></a>统计图</h4><h5 id="1-条形图：barplot"><a href="#1-条形图：barplot" class="headerlink" title="1. 条形图：barplot()"></a>1. 条形图：barplot()</h5><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">tmp &lt;- <span class="built_in">c</span>(<span class="built_in">rep</span>(<span class="string">&quot;Cat&quot;</span>, <span class="number">3</span>), <span class="built_in">rep</span>(<span class="string">&quot;Dog&quot;</span>, <span class="number">4</span>), <span class="built_in">rep</span>(<span class="string">&quot;Rabbit&quot;</span>, <span class="number">2</span>))</span><br><span class="line">dt &lt;- table(tmp)</span><br><span class="line"></span><br><span class="line">barplot(dt, main=<span class="string">&quot;Title of Barplot&quot;</span>, xlab=<span class="string">&quot;Pets&quot;</span>, ylab=<span class="string">&quot;Number&quot;</span>,</span><br><span class="line">        col=<span class="string">&quot;green&quot;</span>, border=<span class="string">&quot;blue&quot;</span>, density=<span class="built_in">c</span>(<span class="number">5</span>, <span class="number">15</span>, <span class="number">25</span>),</span><br><span class="line">        names.arg=paste(<span class="string">&quot;Pet&quot;</span>, <span class="number">1</span>:<span class="number">3</span>, sep=<span class="string">&quot; &quot;</span>))</span><br><span class="line"></span><br><span class="line">barplot(dt, main=<span class="string">&quot;Title of Barplot&quot;</span>, xlab=<span class="string">&quot;Pets&quot;</span>, ylab=<span class="string">&quot;Number&quot;</span>,</span><br><span class="line">        col=<span class="string">&quot;green&quot;</span>, border=<span class="string">&quot;blue&quot;</span>, </span><br><span class="line">        names.arg=paste(<span class="string">&quot;Pet&quot;</span>, <span class="number">1</span>:<span class="number">3</span>, sep=<span class="string">&quot; &quot;</span>))</span><br></pre></td></tr></table></figure>
+<h6 id="2-饼图：pie"><a href="#2-饼图：pie" class="headerlink" title="2. 饼图：pie()"></a>2. 饼图：pie()</h6><p>并不推荐的统计图类型，因此 R 中的功能也很有限。</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">pie(x, labels=, ...)</span><br><span class="line">dt &lt;- 1:<span class="number">4</span></span><br><span class="line">lbl &lt;- <span class="built_in">c</span>(<span class="string">&quot;A&quot;</span>, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;C&quot;</span>, <span class="string">&quot;D&quot;</span>)</span><br><span class="line">pie(dt, labels=paste(lbl, <span class="string">&quot; &quot;</span>, <span class="built_in">round</span>(dt/<span class="built_in">sum</span>(dt)*<span class="number">100</span>), <span class="string">&quot;%&quot;</span>, sep=<span class="string">&quot;&quot;</span>),</span><br><span class="line">    col=topo.colors(<span class="built_in">length</span>(lbl)), main=<span class="string">&quot;Pie Chart with Percentage&quot;</span>)</span><br><span class="line">````</span><br><span class="line"></span><br><span class="line"><span class="comment">##### 3. 直方图：hist() 及核密度曲线</span></span><br><span class="line"></span><br><span class="line">直方图表示的是一维的数据（连续型）特征，纵轴是其在对应横轴区间内的频数或者频率。</span><br><span class="line"></span><br><span class="line">```R</span><br><span class="line">hist(x, freq=TRUE, breaks=, ...)</span><br></pre></td></tr></table></figure>
+<p>其中 freq 参数默认指定纵轴为频数而不是频率，break 用于指定横轴上分组的个数。</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">set.seed(<span class="number">123</span>)</span><br><span class="line">dt &lt;- rnorm(<span class="number">100</span>, mean=<span class="number">0</span>, sd=<span class="number">1</span>)</span><br><span class="line">par(mfrow=<span class="built_in">c</span>(<span class="number">1</span>,<span class="number">2</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 左图：频率直方图，以及轴须图</span></span><br><span class="line">hist(dt, freq=<span class="built_in">F</span>, breaks=<span class="number">10</span>, col=<span class="string">&quot;cyan&quot;</span>, main=<span class="string">&quot;Hist fig 1&quot;</span>)</span><br><span class="line">rug(jitter(dt))  <span class="comment"># 如果有许多相同值，参数 amount=0.01 可将其随机化</span></span><br><span class="line">lines(density(dt), col=<span class="string">&quot;purple&quot;</span>, lwd=<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 右图：频数直方图，以及正态密度曲线</span></span><br><span class="line">h.plot &lt;- hist(dt, breaks=<span class="number">10</span>, col=<span class="string">&quot;lightgreen&quot;</span>, main=<span class="string">&quot;Hist fig 2&quot;</span>)</span><br><span class="line">xfit &lt;- seq(<span class="built_in">min</span>(dt), <span class="built_in">max</span>(dt), length.out=<span class="number">40</span>)</span><br><span class="line">yfit &lt;- dnorm(xfit, mean=mean(dt), sd=sd(dt))</span><br><span class="line">yfit &lt;- yfit*diff(h.plot$mids[<span class="number">1</span>:<span class="number">2</span>])*<span class="built_in">length</span>(dt)</span><br><span class="line">lines(xfit, yfit, col=<span class="string">&quot;blue&quot;</span>, lwd=<span class="number">2</span>)</span><br><span class="line">box()</span><br></pre></td></tr></table></figure>
+<p>轴须图是一种一维的数据呈现，而上面的左图中的密度曲线是一种核密度估计。要比较核密度图，参考 sm 包的 sm.density.compare() 函数。如果只是要绘制，使用 density() 函数辅助即可：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">plot(density(dt), main=<span class="string">&quot;Kernel Denisty&quot;</span>)</span><br><span class="line">polygon(density(dt), col=<span class="string">&quot;lightgreen&quot;</span>, border=<span class="string">&quot;blue&quot;</span>, lwd=<span class="number">2</span>)  <span class="comment"># 绘制多边形的函数</span></span><br><span class="line"><span class="comment"># 叠加正态曲线</span></span><br><span class="line">xfit &lt;- seq(<span class="built_in">min</span>(dt), <span class="built_in">max</span>(dt), length.out=<span class="number">40</span>)</span><br><span class="line">yfit &lt;- dnorm(xfit, mean=mean(dt), sd=sd(dt))</span><br><span class="line">lines(xfit, yfit, col=<span class="string">&quot;red&quot;</span>, lwd=<span class="number">2</span>)</span><br><span class="line">legend(<span class="string">&quot;topright&quot;</span>, lty=<span class="built_in">c</span>(<span class="number">1</span>,<span class="number">1</span>), col=<span class="built_in">c</span>(<span class="string">&quot;blue&quot;</span>, <span class="string">&quot;red&quot;</span>),</span><br><span class="line">       legend=<span class="built_in">c</span>(<span class="string">&quot;Kernel Density&quot;</span>, <span class="string">&quot;Normality Curve&quot;</span>)) </span><br></pre></td></tr></table></figure>
+<h5 id="4-箱形图：boxplot-及小提琴图"><a href="#4-箱形图：boxplot-及小提琴图" class="headerlink" title="4. 箱形图：boxplot() 及小提琴图"></a>4. 箱形图：boxplot() 及小提琴图</h5><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">或者叫箱线图、盒须图。它描述了连续变量的五个特征参数：</span><br><span class="line"></span><br><span class="line">fig &lt;- boxplot(dt, main=<span class="string">&quot;Box Plot&quot;</span>)</span><br><span class="line">paras &lt;- <span class="built_in">c</span>(<span class="string">&quot;Min&quot;</span>, <span class="string">&quot;25 percentile&quot;</span>, <span class="string">&quot;Mean&quot;</span>, <span class="string">&quot;75 percentile&quot;</span>, <span class="string">&quot;Max&quot;</span>)</span><br><span class="line">text(<span class="number">1.25</span>, fig$stats, paras, pos=<span class="number">4</span>)</span><br><span class="line">text(<span class="number">0.9</span>, fig$out, <span class="string">&quot;Abnormal Points&quot;</span>, pos=<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+<p>如果是 dataframe 数据集中的类别型变量 A ，使用如下语句生成并列箱形图：</p>
+<p><code>boxplot(y~A, data=dataframe)</code></p>
+<p>如果将公式改写成 y~A*B，那么会将类别型变量 A 和 B 的各水平两两组合，再生成箱形图。</p>
+<p>其他参数：</p>
+<ul>
+<li>varwidth=F/T：为 TRUE 时，箱形图的宽度与样本数的算术平方根成正比。</li>
+<li>horizontal=F/T：为 TRUE 时，箱形图被横置。</li>
+<li>notch=F/T：为 TRUE 时，箱形图在绘制时会显示“凹槽”。</li>
+</ul>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">df &lt;- data.frame(x=dt, type=<span class="literal">NA</span>)</span><br><span class="line">df &lt;- df[order(df$x),]</span><br><span class="line">df$type &lt;- <span class="built_in">c</span>(<span class="built_in">rep</span>(<span class="string">&quot;Smaller&quot;</span>, <span class="number">50</span>), <span class="built_in">rep</span>(<span class="string">&quot;Larger&quot;</span>,<span class="number">50</span>))</span><br><span class="line">boxplot(x ~ type, data=df, col=<span class="string">&quot;darkgray&quot;</span>, main=<span class="string">&quot;Boxplot&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>最后再提一下箱形图与核密度图的一个结合体：小提琴图（violin plot）。这种图的绘制需要 vioplot 包。<br>在小提琴图中，核密度曲线被竖直放置，并对称地显示于数据轴的两侧：</p>
+<h1 id="需要加载：library-vioplot"><a href="#需要加载：library-vioplot" class="headerlink" title="需要加载：library(vioplot)"></a>需要加载：library(vioplot)</h1><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vioplot(df$x[df$type == <span class="string">&quot;Larger&quot;</span>], df$x[df$type == <span class="string">&quot;Smaller&quot;</span>],</span><br><span class="line">        <span class="built_in">names</span>=<span class="built_in">c</span>(<span class="string">&quot;L&quot;</span>, <span class="string">&quot;S&quot;</span>), col=<span class="string">&quot;gold&quot;</span>)</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Statistic/" rel="tag"># Statistic</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/10/06/%E7%AB%A0%E4%B8%80-%E6%95%B0%E6%8D%AE%E4%B8%8ER/" rel="prev" title="章一 数据与R">
+      <i class="fa fa-chevron-left"></i> 章一 数据与R
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/10/06/%E7%AB%A0%E4%B8%89-%E6%95%B0%E6%8D%AE%E7%9A%84%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E9%87%8F/" rel="next" title="章三 数据的描述统计量">
+      章三 数据的描述统计量 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E5%80%BC%E6%95%B0%E6%8D%AE%E7%9A%84%E7%B1%BB%E5%88%AB%E8%AF%9D"><span class="nav-number">1.</span> <span class="nav-text">数值数据的类别话</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E7%B1%BB%E5%88%AB%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-number"></span> <span class="nav-text">2.2 类别数据可视化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3%E6%95%B0%E5%80%BC%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-number"></span> <span class="nav-text">2.3数值数据的可视化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-1-%E5%B1%95%E7%A4%BA%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E7%9A%84%E5%9B%BE%E5%BD%A2"><span class="nav-number">1.</span> <span class="nav-text">2.3.1 展示数据分布的图形</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-2-%E5%B1%95%E7%A4%BA%E5%8F%98%E9%87%8F%E9%97%B4%E5%85%B3%E7%B3%BB%E7%9A%84%E5%9B%BE%E5%BD%A2"><span class="nav-number">2.</span> <span class="nav-text">2.3.2 展示变量间关系的图形</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-3-%E6%AF%94%E8%BE%83%E5%A4%9A%E6%A0%B7%E6%9C%AC%E7%9B%B8%E4%BC%BC%E6%80%A7%E7%9A%84%E5%9B%BE%E5%BD%A2"><span class="nav-number">3.</span> <span class="nav-text">2.3.3 比较多样本相似性的图形</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-4-%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97%E5%9B%BE"><span class="nav-number">4.</span> <span class="nav-text">2.3.4 时间序列图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%99%84-%E5%B8%B8%E7%94%A8%E7%94%BB%E5%9B%BE"><span class="nav-number">5.</span> <span class="nav-text">附 常用画图</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-plot-%E7%BB%98%E5%9B%BE%E7%B1%BB%E5%9E%8B"><span class="nav-number">5.1.</span> <span class="nav-text">1. plot() 绘图类型</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E5%88%B0%E6%96%87%E4%BB%B6"><span class="nav-number">5.2.</span> <span class="nav-text">输出到文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-par-%E7%BB%98%E5%9B%BE%E5%8F%82%E6%95%B0"><span class="nav-number">5.3.</span> <span class="nav-text">2. par() 绘图参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-%E9%A2%9C%E8%89%B2"><span class="nav-number">5.4.</span> <span class="nav-text">3. 颜色</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-%E6%A0%87%E7%AD%BE%E5%92%8C%E6%A0%87%E9%A2%98%E6%96%87%E6%9C%AC"><span class="nav-number">5.5.</span> <span class="nav-text">4. 标签和标题文本</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-%E5%9B%BE%E5%BD%A2%E5%B0%BA%E5%AF%B8%E4%B8%8E%E8%BE%B9%E8%B7%9D"><span class="nav-number">5.6.</span> <span class="nav-text">5. 图形尺寸与边距</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#6-%E8%87%AA%E5%AE%9A%E4%B9%89%E5%85%B6%E4%BB%96%E5%85%83%E7%B4%A0"><span class="nav-number">5.7.</span> <span class="nav-text">6. 自定义其他元素</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#8-%E5%8F%A0%E5%8A%A0%E7%BB%98%E5%9B%BE"><span class="nav-number">5.8.</span> <span class="nav-text">8. 叠加绘图</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#9-%E5%AD%90%E5%9B%BE"><span class="nav-number">5.9.</span> <span class="nav-text">9. 子图</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%9F%E8%AE%A1%E5%9B%BE"><span class="nav-number">6.</span> <span class="nav-text">统计图</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E6%9D%A1%E5%BD%A2%E5%9B%BE%EF%BC%9Abarplot"><span class="nav-number">6.1.</span> <span class="nav-text">1. 条形图：barplot()</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#2-%E9%A5%BC%E5%9B%BE%EF%BC%9Apie"><span class="nav-number">6.1.1.</span> <span class="nav-text">2. 饼图：pie()</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-%E7%AE%B1%E5%BD%A2%E5%9B%BE%EF%BC%9Aboxplot-%E5%8F%8A%E5%B0%8F%E6%8F%90%E7%90%B4%E5%9B%BE"><span class="nav-number">6.2.</span> <span class="nav-text">4. 箱形图：boxplot() 及小提琴图</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9C%80%E8%A6%81%E5%8A%A0%E8%BD%BD%EF%BC%9Alibrary-vioplot"><span class="nav-number"></span> <span class="nav-text">需要加载：library(vioplot)</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

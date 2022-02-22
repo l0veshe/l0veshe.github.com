@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1.shell1.1 脚本编程1. 常用的shell解释器 中sh 在linux下是低版本的bash做的连接bash 较于sh版本会高一些。 centos sh bash3.+ bash5.+zshksh work on AIX 2. 如何检查之前的命令是否运行成功? 低$? 3. 字符串的截取？ 高${string: start :length} 字符串截取 ${string: 0-start">
+<meta property="og:type" content="article">
+<meta property="og:title" content="技术运维基础技能面试题">
+<meta property="og:url" content="http://yoursite.com/2021/09/07/%E6%8A%80%E6%9C%AF%E8%BF%90%E7%BB%B4%E5%9F%BA%E7%A1%80%E6%8A%80%E8%83%BD%E9%9D%A2%E8%AF%95%E9%A2%98/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="1.shell1.1 脚本编程1. 常用的shell解释器 中sh 在linux下是低版本的bash做的连接bash 较于sh版本会高一些。 centos sh bash3.+ bash5.+zshksh work on AIX 2. 如何检查之前的命令是否运行成功? 低$? 3. 字符串的截取？ 高${string: start :length} 字符串截取 ${string: 0-start">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-09-07T15:12:59.000Z">
+<meta property="article:modified_time" content="2021-09-07T15:12:59.916Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/09/07/%E6%8A%80%E6%9C%AF%E8%BF%90%E7%BB%B4%E5%9F%BA%E7%A1%80%E6%8A%80%E8%83%BD%E9%9D%A2%E8%AF%95%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>技术运维基础技能面试题 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/%E6%8A%80%E6%9C%AF%E8%BF%90%E7%BB%B4%E5%9F%BA%E7%A1%80%E6%8A%80%E8%83%BD%E9%9D%A2%E8%AF%95%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          技术运维基础技能面试题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-09-07 23:12:59" itemprop="dateCreated datePublished" datetime="2021-09-07T23:12:59+08:00">2021-09-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%9D%A2%E8%AF%95/" itemprop="url" rel="index"><span itemprop="name">面试</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="1-shell"><a href="#1-shell" class="headerlink" title="1.shell"></a>1.shell</h2><h3 id="1-1-脚本编程"><a href="#1-1-脚本编程" class="headerlink" title="1.1 脚本编程"></a>1.1 脚本编程</h3><h4 id="1-常用的shell解释器-中"><a href="#1-常用的shell解释器-中" class="headerlink" title="1. 常用的shell解释器 中"></a>1. 常用的shell解释器 中</h4><p>sh 在linux下是低版本的bash做的连接<br>bash 较于sh版本会高一些。 centos sh bash3.+ bash5.+<br>zsh<br>ksh work on AIX</p>
+<h4 id="2-如何检查之前的命令是否运行成功-低"><a href="#2-如何检查之前的命令是否运行成功-低" class="headerlink" title="2. 如何检查之前的命令是否运行成功? 低"></a>2. 如何检查之前的命令是否运行成功? 低</h4><p>$?</p>
+<h4 id="3-字符串的截取？-高"><a href="#3-字符串的截取？-高" class="headerlink" title="3. 字符串的截取？ 高"></a>3. 字符串的截取？ 高</h4><p>${string: start :length} 字符串截取</p>
+<p>${string: 0-start :length} 从右边截取.</p>
+<p>${url#*:} 截取冒号右边的字符串</p>
+<p>${url#*/} 截取/右边的字符串，遇到/就结束</p>
+<p>${str##<em>aa} 截取最后</em>aa的字符串，直到最后<br><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">url=&quot;http://c.biancheng.net/index.html&quot;</span><br><span class="line">echo $&#123;url#*/&#125;    #结果为 /c.biancheng.net/index.html</span><br><span class="line">echo $&#123;url##*/&#125;   #结果为 index.html</span><br><span class="line">str=&quot;---aa+++aa@@@&quot;</span><br><span class="line">echo $&#123;str#*aa&#125;   #结果为 +++aa@@@</span><br><span class="line">echo $&#123;str##*aa&#125;  #结果为 @@@</span><br></pre></td></tr></table></figure></p>
+<h4 id="4-与-区别-中"><a href="#4-与-区别-中" class="headerlink" title="4. $* 与 $@区别 中"></a>4. $* 与 $@区别 中</h4><p>未加引号,二者相同<br>$* 一个字符串整体<br>$@ 是一个字符串列表</p>
+<h4 id="5-如何移除第一个变量？"><a href="#5-如何移除第一个变量？" class="headerlink" title="5. 如何移除第一个变量？"></a>5. 如何移除第一个变量？</h4><p>shift</p>
+<h4 id="6-如何在-bash-shell-中更改标准的域分隔符为-“-”-中"><a href="#6-如何在-bash-shell-中更改标准的域分隔符为-“-”-中" class="headerlink" title="6. 如何在 bash shell 中更改标准的域分隔符为 “:” ? 中"></a>6. 如何在 bash shell 中更改标准的域分隔符为 “:” ? 中</h4><p>IFS=”:”</p>
+<h4 id="7-列表操作-中-高"><a href="#7-列表操作-中-高" class="headerlink" title="7. 列表操作 中-高"></a>7. 列表操作 中-高</h4><p>如何打印数组的第一个元素<br>echo ${array[0]}</p>
+<p>如何打印数组的所有元素 ?<br>echo ${array[@]}</p>
+<p>如何输出所有数组索引 ?<br>echo ${!array[@]}</p>
+<p>如何移除数组中索引为 2 的元素 ?<br>unset array[2]</p>
+<h4 id="8-与-的区别-中"><a href="#8-与-的区别-中" class="headerlink" title="8. [ 与 [[ 的区别 中"></a>8. [ 与 [[ 的区别 中</h4><p>[ ] 是test命令，他可以工作在posix shell下。<br>[[ ]] 是范匹配test命令的泛匹配模式。不能在posix shells下工作</p>
+<h4 id="9-如何调试-bash-脚本-高"><a href="#9-如何调试-bash-脚本-高" class="headerlink" title="9. 如何调试 bash 脚本 高"></a>9. 如何调试 bash 脚本 高</h4><h1 id="bin-bash-–xv"><a href="#bin-bash-–xv" class="headerlink" title="!/bin/bash –xv"></a>!/bin/bash –xv</h1><h3 id="1-2-命令掌握"><a href="#1-2-命令掌握" class="headerlink" title="1.2 命令掌握"></a>1.2 命令掌握</h3><h4 id="1-读取键盘输入-中"><a href="#1-读取键盘输入-中" class="headerlink" title="1. 读取键盘输入 中"></a>1. 读取键盘输入 中</h4><p>read -p “Destination backup Server : “ desthost</p>
+<h4 id="2-什么是-expect-高"><a href="#2-什么是-expect-高" class="headerlink" title="2. 什么是 expect 高"></a>2. 什么是 expect 高</h4><p>send 用于向进程发送字符串</p>
+<p>expect 从进程接收字符串</p>
+<p>spawn 启动新的进程</p>
+<p>interact 允许用户交互</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">expect &#123;</span><br><span class="line">    &quot;password&quot; &#123;</span><br><span class="line">        send &quot;$password\r&quot;</span><br><span class="line">        exp_continue</span><br><span class="line">    &#125;</span><br><span class="line">    eof</span><br><span class="line">    &#123;</span><br><span class="line">        send &quot;eof&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="3-如何去除字符串中的所有空格-中"><a href="#3-如何去除字符串中的所有空格-中" class="headerlink" title="3. 如何去除字符串中的所有空格 ? 中"></a>3. 如何去除字符串中的所有空格 ? 中</h4><p>echo $string|tr -d “ “</p>
+<p>echo $string|sed “s/ //g”.</p>
+<p>echo $string|awk ‘{gsub(/ /,””,$0);print $0}’</p>
+<h4 id="4-vim如何上下翻页，到最后一行，跳到上、下一个单词，删除两行-如何插入-中-高"><a href="#4-vim如何上下翻页，到最后一行，跳到上、下一个单词，删除两行-如何插入-中-高" class="headerlink" title="4. vim如何上下翻页，到最后一行，跳到上、下一个单词，删除两行, 如何插入 中-高"></a>4. vim如何上下翻页，到最后一行，跳到上、下一个单词，删除两行, 如何插入 中-高</h4><p>ctrl f b 上下半页<br>ctrl u d 上下整页<br>b w 上下个单词<br>2dd 删除两行</p>
+<p>a 在光标后插入文本<br>A 在当前行末插入文本<br>i 在光标前插入文本<br>I 在当前行前插入文本<br>o 在当前行的下边插入新行<br>O 在当前行的上边插入新行</p>
+<h4 id="5-查询进程-中"><a href="#5-查询进程-中" class="headerlink" title="5. 查询进程 中"></a>5. 查询进程 中</h4><p>ps -A | grep java<br>USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND</p>
+<p>root 12368 5.1 1.6 3065312 815148 ? Sl Jun30 745:28 /usr/lib/virtualbox</p>
+<p>USER 进程的用户</p>
+<p>pid 进程的ID</p>
+<p>%CPU 进程占用的CPU百分比；</p>
+<p>%MEM 占用内存的百分比；</p>
+<p>VSZ 该进程使用的虚拟内存量（KB）；</p>
+<p>RSS 该进程占用的固定内存量（KB）；</p>
+<p><strong>STAT</strong>状态位常见的状态字符</p>
+<p>D 无法中断的休眠状态（通常 IO 的进程）；</p>
+<p>R 正在运行可中在队列中可过行的；</p>
+<p>S 处于休眠状态；</p>
+<p>T 停止或被追踪；</p>
+<p>W 进入内存交换 （从内核2.6开始无效）；</p>
+<p>X 死掉的进程 （基本很少见）；</p>
+<p>Z 僵尸进程；</p>
+<h4 id="6-获取CPU内存等硬件信息-高"><a href="#6-获取CPU内存等硬件信息-高" class="headerlink" title="6. 获取CPU内存等硬件信息 高"></a>6. 获取CPU内存等硬件信息 高</h4><p>cat /proc/cpuinfo | grep name | cut -f2 -d: |uniq -c cpu型号</p>
+<p>grep ‘physical id’ /proc/cpuinfo | sort | uniq | wc -l cpu逻辑核个数</p>
+<p>工具dmidecode</p>
+<p>sudo dmidecode -t memory</p>
+<p>看内存的插槽数,已经使用多少插槽.每条内存多大</p>
+<p>sudo dmidecode -t memory | grep Size</p>
+<p>查看服务器型号、序列号</p>
+<p>sudo dmidecode | grep “System Information” -A9 | egrep “Manufacturer|Product|Serial”</p>
+<p>cat /proc/meminfo | grep MemTotal 内存</p>
+<p>lspci</p>
+<h4 id="7-查看内存资源-中"><a href="#7-查看内存资源-中" class="headerlink" title="7. 查看内存资源 中"></a>7. 查看内存资源 中</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#内存</span><br><span class="line">free -m </span><br><span class="line">              total        used        free      shared     buffers       cache   available&lt;br&gt; </span><br><span class="line">Mem:       49256832    37623856     2793324      512860           0     8839652    10623008&lt;br&gt; </span><br><span class="line">Swap:      12504060     1671468    10832592&lt;br&gt;</span><br></pre></td></tr></table></figure>
+<p>used：已使用的内存大小，这个值包括了 cached 和 应用程序实际使用的内存</p>
+<p>free：未被使用的内存大小</p>
+<p>shared：共享内存大小，是进程间通信的一种方式</p>
+<p>buffers：被<strong>缓冲区</strong>占用的内存大小（硬盘）</p>
+<p>cached：被<strong>缓存占</strong>用的内存大小 （程序）</p>
+<h4 id="8-什么是cpu负载和使用率，怎么查看？高"><a href="#8-什么是cpu负载和使用率，怎么查看？高" class="headerlink" title="8. 什么是cpu负载和使用率，怎么查看？高"></a>8. 什么是cpu负载和使用率，怎么查看？高</h4><p>load average/使用率 一定时间内系统的平均负荷 单核0-100%</p>
+<p>负载 显示的是一段时间内正在使用和等待使用CPU的平均任务数，使用率100%，同时处理两个程序，那么负载为2</p>
+<p>uptime</p>
+<p>top</p>
+<h4 id="9-查看硬盘读写状态-中-高"><a href="#9-查看硬盘读写状态-中-高" class="headerlink" title="9. 查看硬盘读写状态 中-高"></a>9. 查看硬盘读写状态 中-高</h4><p>iostat -x<br>rrqm/s: 每秒进行 merge 的读操作数目。即 delta(rmerge)/s</p>
+<p>wrqm/s: 每秒进行 merge 的写操作数目。即 delta(wmerge)/s</p>
+<p>r/s: 每秒完成的读 I/O 设备次数。即 delta(rio)/s</p>
+<p>w/s: 每秒完成的写 I/O 设备次数。即 delta(wio)/s</p>
+<p>rsec/s: 每秒读扇区数。即 delta(rsect)/s</p>
+<p>wsec/s: 每秒写扇区数。即 delta(wsect)/s</p>
+<p>rkB/s: 每秒读K字节数。是 rsect/s 的一半，因为每扇区大小为512字节。(需要计算)</p>
+<p>wkB/s: 每秒写K字节数。是 wsect/s 的一半。(需要计算)</p>
+<p>%util: 一秒中有百分之多少的时间用于 I/O 操作</p>
+<h4 id="10-其他命令-低-中"><a href="#10-其他命令-低-中" class="headerlink" title="10. 其他命令 低-中"></a>10. 其他命令 低-中</h4><p>检查网络</p>
+<p>nc</p>
+<p>telnet</p>
+<p>查看网卡</p>
+<p>ifconfig</p>
+<p>ip a</p>
+<h4 id="11-添加eth1-网卡-10-0-0-0-16-到10-0-0-1-的路由"><a href="#11-添加eth1-网卡-10-0-0-0-16-到10-0-0-1-的路由" class="headerlink" title="11. 添加eth1 网卡 10.0.0.0/16 到10.0.0.1 的路由"></a>11. 添加eth1 网卡 10.0.0.0/16 到10.0.0.1 的路由</h4><p>route add -net 203.208.39.104 netmask 255.255.255.255 gw 192.168.1.1 dev eth1</p>
+<p>total：物理内存大小，就是机器实际的内存</p>
+<h3 id="2-Python"><a href="#2-Python" class="headerlink" title="2. Python"></a>2. Python</h3><h4 id="1-python如何获取执行shell命令"><a href="#1-python如何获取执行shell命令" class="headerlink" title="1. python如何获取执行shell命令"></a>1. python如何获取执行shell命令</h4><p><code>os.system()</code></p>
+<p>原理</p>
+<p>1 fork一个子进程；</p>
+<p>2 在子进程中调用exec函数去执行命令；</p>
+<p>3 在父进程中调用wait（阻塞）去等待子进程结束</p>
+<p><code>os.popen()</code><br>这种调用方式是通过管道的方式来实现，函数返回是 file read 的对象，对其进行读取read、readlines等操作可以看到执行的输出。</p>
+<p>推荐使用</p>
+<p><code>subprocess.Popen()</code></p>
+<h4 id="2-python如何优雅的退出"><a href="#2-python如何优雅的退出" class="headerlink" title="2. python如何优雅的退出"></a>2. python如何优雅的退出</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 子进程退出后向父进程发送的信号</span><br><span class="line"> signal.signal(signal.SIGCHLD, onSigChld)</span><br><span class="line"># 主进程退出信号</span><br><span class="line"> signal.signal(signal.SIGINT, onSigInt)</span><br></pre></td></tr></table></figure>
+<h4 id="3-如何拼接字符串"><a href="#3-如何拼接字符串" class="headerlink" title="3. 如何拼接字符串"></a>3. 如何拼接字符串</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">str_list=[&#x27;a&#x27;, &#x27;b&#x27;, &#x27;c&#x27;]</span><br><span class="line">&#x27;&#x27;.join(str_list)</span><br></pre></td></tr></table></figure>
+<h4 id="4-python的构造函数"><a href="#4-python的构造函数" class="headerlink" title="4. python的构造函数"></a>4. python的构造函数</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">per = Person（）</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def  __ init__(self,arg1,arg2,...):</span><br><span class="line">函数体</span><br></pre></td></tr></table></figure>
+<h4 id="5-json和字典的区别"><a href="#5-json和字典的区别" class="headerlink" title="5. json和字典的区别"></a>5. json和字典的区别</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">d = &#123;&#x27;s&#x27;:&#x27;you&#x27;,&#x27;d&#x27;:&#x27;are&#x27;&#125;   #给一个字典</span><br><span class="line">j = json.dumps(d)</span><br><span class="line">type(j)</span><br><span class="line">str   #已经转化为json字符串</span><br><span class="line">d1 = json.loads(j)</span><br><span class="line">type(d1)</span><br><span class="line">dic  #已经将json字符串转化为字典了</span><br></pre></td></tr></table></figure>
+<p>字典是一个数据的结构，而json只是一个具有一定规则的字符串，方便在不同平台上处理其中包含的数据。</p>
+<h2 id="3-Docker面试题"><a href="#3-Docker面试题" class="headerlink" title="3. Docker面试题"></a>3. Docker面试题</h2><h4 id="1-如何理解docker-中"><a href="#1-如何理解docker-中" class="headerlink" title="1. 如何理解docker 中"></a>1. 如何理解docker 中</h4><p>docker的本质是进程</p>
+<p>PID Namespace</p>
+<p>Mount Namespace</p>
+<p>Network Namespace</p>
+<p>cgroup, namespace和unionFS<br>组成的类似于虚拟机的容器</p>
+<h4 id="2-DevOps有哪些优势？-高"><a href="#2-DevOps有哪些优势？-高" class="headerlink" title="2. DevOps有哪些优势？ 高"></a>2. DevOps有哪些优势？ 高</h4><p>技术优势：</p>
+<p>持续的软件交付<br>修复不太复杂的问题<br>更快地解决问题<br>商业利益：</p>
+<p>更快速地传递功能<br>更稳定的操作环境<br>有更多时间可以增加价值（而不是修复/维护）</p>
+<p>CI（持续集成）服务器的功能是什么？</p>
+<p>CI服务器功能是不断地集成所有正在进行的更改并由不同的开发人员提交到存储库，并检查编译错误。它需要每天多次构建代码，最好是在每次提交之后，以便它可以检测在问题发生时是哪个提交Bug了。</p>
+<h4 id="3-Docker内的服务使用的内核在哪"><a href="#3-Docker内的服务使用的内核在哪" class="headerlink" title="3. Docker内的服务使用的内核在哪"></a>3. Docker内的服务使用的内核在哪</h4><p>内核直接使用宿主机的docker，开发和生产之间要保持内核的一致性<br>windows服务器上的内核，必须支持虚拟化。否则需要使用vitrualbox的linux虚拟机</p>
+<h4 id="4-如何停止并删除一个docker"><a href="#4-如何停止并删除一个docker" class="headerlink" title="4. 如何停止并删除一个docker"></a>4. 如何停止并删除一个docker</h4><p>|</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker ps |grep docker-server-name</span><br><span class="line">docker stop docker-server-name</span><br><span class="line">docker rm docker-server-name</span><br></pre></td></tr></table></figure>
+<h4 id="5-如何清理docker数据目录"><a href="#5-如何清理docker数据目录" class="headerlink" title="5. 如何清理docker数据目录"></a>5. 如何清理docker数据目录</h4><p>sudo docker system prune -af</p>
+<p>会清理不用的镜像、容器</p>
+<h3 id="kubernets"><a href="#kubernets" class="headerlink" title="kubernets"></a>kubernets</h3><h4 id="1-什么是-Kubernetes？"><a href="#1-什么是-Kubernetes？" class="headerlink" title="1. 什么是 Kubernetes？"></a>1. 什么是 Kubernetes？</h4><p>Kubernetes 是一个开源容器管理工具，负责容器部署，容器扩缩容以及负载平衡。</p>
+<h4 id="2-什么是-Kubelet？"><a href="#2-什么是-Kubelet？" class="headerlink" title="2. 什么是 Kubelet？"></a>2. 什么是 Kubelet？</h4><p>这是一个代理服务，它在每个节点上运行，并使从服务器与主服务器通信。因此，Kubelet 处理 PodSpec 中提供给它的容器的描述，并确保 PodSpec 中描述的容器运行正常</p>
+<h4 id="3-什么是pod"><a href="#3-什么是pod" class="headerlink" title="3. 什么是pod"></a>3. 什么是pod</h4><p>一个Pod（就像一群鲸鱼，或者一个豌豆夹）相当于一个共享context的配置组，在同一个context下，应用可能还会有独立的cgroup隔离机制，一个Pod是一个容器环境下的“逻辑主机”，它可能包含一个或者多个紧密相连的应用，这些应用可能是在同一个物理主机或虚拟机上。</p>
+<p>Pod 的context可以理解成多个linux命名空间的联合</p>
+<p>PID 命名空间（同一个Pod中应用可以看到其它进程）<br>网络 命名空间（同一个Pod的中的应用对相同的IP地址和端口有权限）<br>IPC 命名空间（同一个Pod中的应用可以通过VPC或者POSIX进行通信）<br>UTS 命名空间（同一个Pod中的应用共享一个主机名称）</p>
+<h4 id="4-pod的生命周期"><a href="#4-pod的生命周期" class="headerlink" title="4. pod的生命周期"></a>4. pod的生命周期</h4><p>od被安排到结点上，并且保持在这个节点上直到被终止（根据重启的设定）或者被删除，当一个节点死掉之后，上面的所有Pod均会被删除。特殊的Pod永远不会被转移到的其他的节点，作为替代，他们必须被replace.</p>
+<h4 id="5-k8s的跨主机通信原理是什么"><a href="#5-k8s的跨主机通信原理是什么" class="headerlink" title="5. k8s的跨主机通信原理是什么"></a>5. k8s的跨主机通信原理是什么</h4><p>node network：承载kubernetes集群中各个“物理”Node(master和minion)通信的网络；<br>service network：由kubernetes集群中的Services所组成的“网络”；<br>flannel network： 即Pod网络，集群中承载各个Pod相互通信的网络。</p>
+<p>flannel 是二层的，那么三层网络使用什么<br>Calico 是一个三层的数据中心网络方案，而且方便集成 OpenStack 这种 IaaS 云架构，能够提供高效可控的 VM、容器、裸机之间的通信。<br>缺点是什么？<br>每台机器都配所有服务器路由，当大于（规定）100台，网络负载会非常高<br>那么使用 BGP Client(BIRD)<br>大规模部署时使用，摒弃所有节点互联的 mesh 模式，通过一个或者多个BGP Route Reflector来完成集中式的路由分发</p>
+<h4 id="6-Replica-Set-和-Replication-Controller之间有什么区别？"><a href="#6-Replica-Set-和-Replication-Controller之间有什么区别？" class="headerlink" title="6. Replica Set 和 Replication Controller之间有什么区别？"></a>6. Replica Set 和 Replication Controller之间有什么区别？</h4><p>Replica Set 和 Replication Controller几乎完全相同。它们都确保在任何给定时间运行指定数量的pod副本。不同之处在于复制pod使用的选择器。Replica Set使用基于集合的选择器，而Replication Controller使用基于权限的选择器。</p>
+<h2 id="4-中间件集群"><a href="#4-中间件集群" class="headerlink" title="4. 中间件集群"></a>4. 中间件集群</h2><p>哨兵至少需要 3 个实例，来保证自己的健壮性。<br>哨兵 + redis 主从的部署架构，是不保证数据零丢失的，只能保证 redis 集群的高可用性。<br>对于哨兵 + redis 主从这种复杂的部署架构，尽量在测试环境和生产环境，都进行充足的测试和演</p>
+<h4 id="6-官方Redis-Cluster-方案-服务端路由查询"><a href="#6-官方Redis-Cluster-方案-服务端路由查询" class="headerlink" title="6 官方Redis Cluster 方案(服务端路由查询)"></a>6 官方Redis Cluster 方案(服务端路由查询)</h4><p>方案说明</p>
+<ul>
+<li>通过哈希的方式，将数据分片，每个节点均分存储一定哈希槽(哈希值)区间的数据，默认分配了16384 个槽位</li>
+<li>每份数据分片会存储在多个互为主从的多节点上</li>
+<li>数据写入先写主节点，再同步到从节点(支持配置为阻塞同步)</li>
+<li>同一分片多个节点间的数据不保持一致性</li>
+<li>读取数据时，当客户端操作的key没有分配在该节点上时，redis会返回转向指令，指向正确的节点</li>
+<li>扩容时时需要需要把旧节点的数据迁移一部分到新节点</li>
+</ul>
+<h4 id="7-Redis-主从架构"><a href="#7-Redis-主从架构" class="headerlink" title="7 Redis 主从架构"></a>7 Redis 主从架构</h4><h4 id="8-Redis是单线程的，如何提高多核CPU的利用率？"><a href="#8-Redis是单线程的，如何提高多核CPU的利用率？" class="headerlink" title="8. Redis是单线程的，如何提高多核CPU的利用率？"></a>8. Redis是单线程的，如何提高多核CPU的利用率？</h4><h4 id="1-什么是Redis"><a href="#1-什么是Redis" class="headerlink" title="1 什么是Redis"></a>1 什么是Redis</h4><p>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
+<h4 id="2-Redis有哪些优缺点"><a href="#2-Redis有哪些优缺点" class="headerlink" title="2 Redis有哪些优缺点"></a>2 Redis有哪些优缺点</h4><p>优点</p>
+<p>读写性能优异， Redis能读的速度是110000次/s，写的速度是81000次/s。<br>支持数据持久化，支持AOF和RDB两种持久化方式。<br>支持事务，Redis的所有操作都是原子性的，同时Redis还支持对几个操作合并后的原子性执行。<br>数据结构丰富，除了支持string类型的value外还支持hash、set、zset、list等数据结构。<br>支持主从复制，主机会自动将数据同步到从机，可以进行读写分离。<br>缺点</p>
+<p>数据库容量受到物理内存的限制，不能用作海量数据的高性能读写，因此Redis适合的场景主要局限在较小数据量的高性能操作和运算上。<br>Redis 不具备自动容错和恢复功能，主机从机的宕机都会导致前端部分读写请求失败，需要等待机器重启或者手动切换前端的IP才能恢复。<br>主机宕机，宕机前有部分数据未能及时同步到从机，切换IP后还会引入数据不一致的问题，降低了系统的可用性。<br>Redis 较难支持在线扩容，在集群容量达到上限时在线扩容会变得很复杂。为避免这一问题，运维人员在系统上线时必须确保有足够的空间，这对资源造成了很大的浪费。</p>
+<h4 id="3-为什么要用-Redis-为什么要用缓存"><a href="#3-为什么要用-Redis-为什么要用缓存" class="headerlink" title="3 为什么要用 Redis /为什么要用缓存"></a>3 为什么要用 Redis /为什么要用缓存</h4><p>主要从“高性能”和“高并发”这两点来看待这个问题。<br>高性能：<br>假如用户第一次访问数据库中的某些数据。这个过程会比较慢，因为是从硬盘上读取的。将该用户访问的数据存在数缓存中，这样下一次再访问这些数据的时候就可以直接从缓存中获取了。操作缓存就是直接操作内存，所以速度相当快。<br>高并发：<br>直接操作缓存能够承受的请求是远远大于直接访问数据库的，所以我们可以考虑把数据库中的部分数据转移到缓存中去，这样用户的一部分请求会直接到缓存这里而不用经过数据库。</p>
+<h4 id="4-MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据"><a href="#4-MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据" class="headerlink" title="4 MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据"></a>4 MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据</h4><p>Redis的内存淘汰策略有哪些<br>Redis的内存淘汰策略是指在Redis的用于缓存的内存不足时，怎么处理需要新写入且需要申请额外空间的数据。</p>
+<p>全局的键空间选择性移除<br>noeviction：当内存不足以容纳新写入数据时，新写入操作会报错。<br>allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key。（这个是最常用的）<br>allkeys-random：当内存不足以容纳新写入数据时，在键空间中，随机移除某个key。<br>设置过期时间的键空间选择性移除<br>volatile-lru：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，移除最近最少使用的key。<br>volatile-random：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，随机移除某个key。<br>volatile-ttl：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，有更早过期时间的key优先移除。</p>
+<h4 id="5-哨兵模式"><a href="#5-哨兵模式" class="headerlink" title="5 哨兵模式"></a>5 哨兵模式</h4><p>哨兵的介绍<br>sentinel，中文名是哨兵。哨兵是 redis 集群机构中非常重要的一个组件，主要有以下功能：</p>
+<ul>
+<li>集群监控：负责监控 redis master 和 slave 进程是否正常工作。</li>
+<li>消息通知：如果某个 redis 实例有故障，那么哨兵负责发送消息作为报警通知给管理员。</li>
+<li>故障转移：如果 master node 挂掉了，会自动转移到 slave node 上。</li>
+<li>配置中心：如果故障转移发生了，通知 client 客户端新的 master 地址。<br>哨兵用于实现 redis 集群的高可用，本身也是分布式的，作为一个哨兵集群去运行，互相协同工作。</li>
+</ul>
+<p>故障转移时，判断一个 master node 是否宕机了，需要大部分的哨兵都同意才行，涉及到了分布式选举的问题。<br>即使部分哨兵节点挂掉了，哨兵集群还是能正常工作的，因为如果一个作为高可用机制重要组成部分的故障转移系统本身是单点的，那就很坑爹了。<br>哨兵的核心知识</p>
+<p>哨兵至少需要 3 个实例，来保证自己的健壮性。<br>哨兵 + redis 主从的部署架构，是不保证数据零丢失的，只能保证 redis 集群的高可用性。<br>对于哨兵 + redis 主从这种复杂的部署架构，尽量在测试环境和生产环境，都进行充足的测试和演</p>
+<h4 id="6-官方Redis-Cluster-方案-服务端路由查询-1"><a href="#6-官方Redis-Cluster-方案-服务端路由查询-1" class="headerlink" title="6 官方Redis Cluster 方案(服务端路由查询)"></a>6 官方Redis Cluster 方案(服务端路由查询)</h4><p>方案说明</p>
+<ul>
+<li>通过哈希的方式，将数据分片，每个节点均分存储一定哈希槽(哈希值)区间的数据，默认分配了16384 个槽位</li>
+<li>每份数据分片会存储在多个互为主从的多节点上</li>
+<li>数据写入先写主节点，再同步到从节点(支持配置为阻塞同步)</li>
+<li>同一分片多个节点间的数据不保持一致性</li>
+<li>读取数据时，当客户端操作的key没有分配在该节点上时，redis会返回转向指令，指向正确的节点</li>
+<li>扩容时时需要需要把旧节点的数据迁移一部分到新节点</li>
+</ul>
+<h4 id="7-Redis-主从架构-1"><a href="#7-Redis-主从架构-1" class="headerlink" title="7 Redis 主从架构"></a>7 Redis 主从架构</h4><h4 id="8-Redis是单线程的，如何提高多核CPU的利用率？-1"><a href="#8-Redis是单线程的，如何提高多核CPU的利用率？-1" class="headerlink" title="8. Redis是单线程的，如何提高多核CPU的利用率？"></a>8. Redis是单线程的，如何提高多核CPU的利用率？</h4><p>可以在同一个服务器部署多个Redis的实例，并把他们当作不同的服务器来使用，在某些时候，无论如何一个服务器是不够的， 所以，如果你想使用多个CPU，你可以考虑一下分片（shard）</p>
+<h1 id="sl版-融合中"><a href="#sl版-融合中" class="headerlink" title="sl版 融合中"></a>sl版 融合中</h1><p>环境部分</p>
+<ol>
+<li>当前公司主要业务是什么？</li>
+<li>上家公司负责那部分？团队人数多少？</li>
+</ol>
+<p>基础部分</p>
+<ol>
+<li>sh与bash区别；</li>
+<li>如果只有root用户权限，但无root密码，如何做到服务器之间的文件拷贝？</li>
+<li>top中的各项是意思？</li>
+<li>如何做到机器重启自动挂载磁盘？</li>
+<li>TCP的交互过程，UDP与TCP的区别是什么？</li>
+<li>如何测试TCP端口是否正常？如何测试UDP端口是否正常？</li>
+<li>nfs的工作原理是什么？</li>
+</ol>
+<p>应用部分</p>
+<ol>
+<li>keepalived的工作原理，如何做健康检查？</li>
+<li>HAProxy的工作原理是什么？与nginx的区别是什么？</li>
+<li>nginx的功能是什么？描述下反向代理的过程；</li>
+<li>MySQL的主从同步过程是什么样的，常见的MySQL的高可用有几种方案，描述原理；</li>
+<li>redis高可用方案是什么？如何做到redis重启数据不丢失；</li>
+</ol>
+<p>docker部分</p>
+<ol>
+<li>Docker与虚拟机有何不同？</li>
+<li>docker镜像是什么？描述下拉取镜像的过程；</li>
+<li>容器是什么？容器状态有几种？查看容器状态的命令是什么？如何进入容器内部？</li>
+<li>docker-compose是什么？</li>
+<li>容器内时间与外部时间不一致怎么办？</li>
+<li>docker内部用户与外部用户的关系是什么？</li>
+</ol>
+<p>SIP部分</p>
+<ol>
+<li>SIP信令常见的响应消息有几种？一个完整的通话过程中，信令交互的过程是什么样的？</li>
+<li>SDP是什么？</li>
+<li>RTP是如何工作的？RTCP是什么？通话中的单通现象是怎么产生的？通话断续什么什么原因？</li>
+<li>如何利用wireshark分析呼叫是否正常？</li>
+</ol>
+<p>职业部分</p>
+<ol>
+<li>离职原因？</li>
+<li>你认为运维工程师的职责是什么？</li>
+<li>升级某个服务时，是保障升级过程可回滚的？</li>
+</ol>
+<p>运维的挑战</p>
+<p>我们聊下运维岗位面临的一些挑战。</p>
+<p>一是基础资源从集中式向云化转变。</p>
+<p>传统的集中式基础资源，讲求的是单体的性能和稳定性，思考问题的方式是纵向的。但是在基于分布式的云化基础设施下，运维人员需要考虑的是云资源池的故障域要如何划分、云资源池的规模要如何设计、不同环境的资源池要如何隔离、资源的超售比设置为多少、资源的标准化要如何设计、云化资源池中不同范围的故障发生后，如何保证继续提供可靠的服务，这些都是云化以后运维人员需要考虑的。</p>
+<p>二是运维前置。</p>
+<p>笔者发现，有些公司运维人员做的事情太过于底层，只负责OS层及以下的部分，对应用层的运维完全不懂，以致于在应用出现问题的时候，看起来都是开发在排查问题，给领导的感觉会比较差。同时，随着云计算的普及，OS层以下的内容，后续很可能直接被云服务商托管掉，就类似现在很多公司使用的托管机房，以及很多创业公司直接使用公有云，极端情况下，就可能导致运维人员下岗。</p>
+<p>因此，运维人员应该让自己的技能前置，例如，对于java技术栈为主的公司，对于运维人员而言最好是要学习java虚拟机的相关知识和技能，这样在java程序出现问题的时候能够快速定位问题，而不是强依赖开发人员。</p>
+<p>三是容器运维。</p>
+<p>容器平台在被大量使用以后，一定会带来运维问题，但是容器平台的运维模式和基于虚拟机的运维模式是完全不同的，这就需要运维人员能够熟悉容器平台的运行机制，对容器有理论上的知识储备以及实际的运维能力，而这项技能对传统运维人员而言基本就是全新的领域。</p>
+<p>四是开源软件的运维。</p>
+<p>前文提到了架构师需要对开源软件的引入进行专业的评估和把控，那么对于引入进来的开源软件的运维工作就落到了运维人员头上。传统的公司的运维，一般都会买一些外部的运维服务，而这些运维服务大多数也都是针对传统的商用软件而不是开源软件。因此在引入开源软件以后，对于运维人员而言，原来可以依靠的外部服务没有了，自己就需要去能够具备运维开源软件的能力，这里要投入的学习成本是相当高的，并且没有一个所谓的“掌握”标准。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/07/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-2-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90/" rel="prev" title="lvs dr 模式搭建与分析 (2) 抓包分析">
+      <i class="fa fa-chevron-left"></i> lvs dr 模式搭建与分析 (2) 抓包分析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/09/07/k8s-1-18-%E5%9B%BD%E6%9C%8D%E5%AE%89%E8%A3%85%E7%AC%94%E8%AE%B0/" rel="next" title="k8s 1.18 国服安装笔记">
+      k8s 1.18 国服安装笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-shell"><span class="nav-number">1.</span> <span class="nav-text">1.shell</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E8%84%9A%E6%9C%AC%E7%BC%96%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 脚本编程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%B8%B8%E7%94%A8%E7%9A%84shell%E8%A7%A3%E9%87%8A%E5%99%A8-%E4%B8%AD"><span class="nav-number">1.1.1.</span> <span class="nav-text">1. 常用的shell解释器 中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%A6%82%E4%BD%95%E6%A3%80%E6%9F%A5%E4%B9%8B%E5%89%8D%E7%9A%84%E5%91%BD%E4%BB%A4%E6%98%AF%E5%90%A6%E8%BF%90%E8%A1%8C%E6%88%90%E5%8A%9F-%E4%BD%8E"><span class="nav-number">1.1.2.</span> <span class="nav-text">2. 如何检查之前的命令是否运行成功? 低</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84%E6%88%AA%E5%8F%96%EF%BC%9F-%E9%AB%98"><span class="nav-number">1.1.3.</span> <span class="nav-text">3. 字符串的截取？ 高</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E4%B8%8E-%E5%8C%BA%E5%88%AB-%E4%B8%AD"><span class="nav-number">1.1.4.</span> <span class="nav-text">4. $* 与 $@区别 中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%A6%82%E4%BD%95%E7%A7%BB%E9%99%A4%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%8F%98%E9%87%8F%EF%BC%9F"><span class="nav-number">1.1.5.</span> <span class="nav-text">5. 如何移除第一个变量？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E5%A6%82%E4%BD%95%E5%9C%A8-bash-shell-%E4%B8%AD%E6%9B%B4%E6%94%B9%E6%A0%87%E5%87%86%E7%9A%84%E5%9F%9F%E5%88%86%E9%9A%94%E7%AC%A6%E4%B8%BA-%E2%80%9C-%E2%80%9D-%E4%B8%AD"><span class="nav-number">1.1.6.</span> <span class="nav-text">6. 如何在 bash shell 中更改标准的域分隔符为 “:” ? 中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-%E5%88%97%E8%A1%A8%E6%93%8D%E4%BD%9C-%E4%B8%AD-%E9%AB%98"><span class="nav-number">1.1.7.</span> <span class="nav-text">7. 列表操作 中-高</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-%E4%B8%8E-%E7%9A%84%E5%8C%BA%E5%88%AB-%E4%B8%AD"><span class="nav-number">1.1.8.</span> <span class="nav-text">8. [ 与 [[ 的区别 中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-%E5%A6%82%E4%BD%95%E8%B0%83%E8%AF%95-bash-%E8%84%9A%E6%9C%AC-%E9%AB%98"><span class="nav-number">1.1.9.</span> <span class="nav-text">9. 如何调试 bash 脚本 高</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bin-bash-%E2%80%93xv"><span class="nav-number"></span> <span class="nav-text">!&#x2F;bin&#x2F;bash –xv</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E5%91%BD%E4%BB%A4%E6%8E%8C%E6%8F%A1"><span class="nav-number">0.1.</span> <span class="nav-text">1.2 命令掌握</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%AF%BB%E5%8F%96%E9%94%AE%E7%9B%98%E8%BE%93%E5%85%A5-%E4%B8%AD"><span class="nav-number">0.1.1.</span> <span class="nav-text">1. 读取键盘输入 中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%BB%80%E4%B9%88%E6%98%AF-expect-%E9%AB%98"><span class="nav-number">0.1.2.</span> <span class="nav-text">2. 什么是 expect 高</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%A6%82%E4%BD%95%E5%8E%BB%E9%99%A4%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%AD%E7%9A%84%E6%89%80%E6%9C%89%E7%A9%BA%E6%A0%BC-%E4%B8%AD"><span class="nav-number">0.1.3.</span> <span class="nav-text">3. 如何去除字符串中的所有空格 ? 中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-vim%E5%A6%82%E4%BD%95%E4%B8%8A%E4%B8%8B%E7%BF%BB%E9%A1%B5%EF%BC%8C%E5%88%B0%E6%9C%80%E5%90%8E%E4%B8%80%E8%A1%8C%EF%BC%8C%E8%B7%B3%E5%88%B0%E4%B8%8A%E3%80%81%E4%B8%8B%E4%B8%80%E4%B8%AA%E5%8D%95%E8%AF%8D%EF%BC%8C%E5%88%A0%E9%99%A4%E4%B8%A4%E8%A1%8C-%E5%A6%82%E4%BD%95%E6%8F%92%E5%85%A5-%E4%B8%AD-%E9%AB%98"><span class="nav-number">0.1.4.</span> <span class="nav-text">4. vim如何上下翻页，到最后一行，跳到上、下一个单词，删除两行, 如何插入 中-高</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E6%9F%A5%E8%AF%A2%E8%BF%9B%E7%A8%8B-%E4%B8%AD"><span class="nav-number">0.1.5.</span> <span class="nav-text">5. 查询进程 中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E8%8E%B7%E5%8F%96CPU%E5%86%85%E5%AD%98%E7%AD%89%E7%A1%AC%E4%BB%B6%E4%BF%A1%E6%81%AF-%E9%AB%98"><span class="nav-number">0.1.6.</span> <span class="nav-text">6. 获取CPU内存等硬件信息 高</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-%E6%9F%A5%E7%9C%8B%E5%86%85%E5%AD%98%E8%B5%84%E6%BA%90-%E4%B8%AD"><span class="nav-number">0.1.7.</span> <span class="nav-text">7. 查看内存资源 中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-%E4%BB%80%E4%B9%88%E6%98%AFcpu%E8%B4%9F%E8%BD%BD%E5%92%8C%E4%BD%BF%E7%94%A8%E7%8E%87%EF%BC%8C%E6%80%8E%E4%B9%88%E6%9F%A5%E7%9C%8B%EF%BC%9F%E9%AB%98"><span class="nav-number">0.1.8.</span> <span class="nav-text">8. 什么是cpu负载和使用率，怎么查看？高</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-%E6%9F%A5%E7%9C%8B%E7%A1%AC%E7%9B%98%E8%AF%BB%E5%86%99%E7%8A%B6%E6%80%81-%E4%B8%AD-%E9%AB%98"><span class="nav-number">0.1.9.</span> <span class="nav-text">9. 查看硬盘读写状态 中-高</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10-%E5%85%B6%E4%BB%96%E5%91%BD%E4%BB%A4-%E4%BD%8E-%E4%B8%AD"><span class="nav-number">0.1.10.</span> <span class="nav-text">10. 其他命令 低-中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#11-%E6%B7%BB%E5%8A%A0eth1-%E7%BD%91%E5%8D%A1-10-0-0-0-16-%E5%88%B010-0-0-1-%E7%9A%84%E8%B7%AF%E7%94%B1"><span class="nav-number">0.1.11.</span> <span class="nav-text">11. 添加eth1 网卡 10.0.0.0&#x2F;16 到10.0.0.1 的路由</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Python"><span class="nav-number">0.2.</span> <span class="nav-text">2. Python</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-python%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E6%89%A7%E8%A1%8Cshell%E5%91%BD%E4%BB%A4"><span class="nav-number">0.2.1.</span> <span class="nav-text">1. python如何获取执行shell命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-python%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E7%9A%84%E9%80%80%E5%87%BA"><span class="nav-number">0.2.2.</span> <span class="nav-text">2. python如何优雅的退出</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%A6%82%E4%BD%95%E6%8B%BC%E6%8E%A5%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-number">0.2.3.</span> <span class="nav-text">3. 如何拼接字符串</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-python%E7%9A%84%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0"><span class="nav-number">0.2.4.</span> <span class="nav-text">4. python的构造函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-json%E5%92%8C%E5%AD%97%E5%85%B8%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">0.2.5.</span> <span class="nav-text">5. json和字典的区别</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Docker%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">3. Docker面试题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3docker-%E4%B8%AD"><span class="nav-number">1.0.1.</span> <span class="nav-text">1. 如何理解docker 中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-DevOps%E6%9C%89%E5%93%AA%E4%BA%9B%E4%BC%98%E5%8A%BF%EF%BC%9F-%E9%AB%98"><span class="nav-number">1.0.2.</span> <span class="nav-text">2. DevOps有哪些优势？ 高</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-Docker%E5%86%85%E7%9A%84%E6%9C%8D%E5%8A%A1%E4%BD%BF%E7%94%A8%E7%9A%84%E5%86%85%E6%A0%B8%E5%9C%A8%E5%93%AA"><span class="nav-number">1.0.3.</span> <span class="nav-text">3. Docker内的服务使用的内核在哪</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%A6%82%E4%BD%95%E5%81%9C%E6%AD%A2%E5%B9%B6%E5%88%A0%E9%99%A4%E4%B8%80%E4%B8%AAdocker"><span class="nav-number">1.0.4.</span> <span class="nav-text">4. 如何停止并删除一个docker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%A6%82%E4%BD%95%E6%B8%85%E7%90%86docker%E6%95%B0%E6%8D%AE%E7%9B%AE%E5%BD%95"><span class="nav-number">1.0.5.</span> <span class="nav-text">5. 如何清理docker数据目录</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kubernets"><span class="nav-number">1.1.</span> <span class="nav-text">kubernets</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-Kubernetes%EF%BC%9F"><span class="nav-number">1.1.1.</span> <span class="nav-text">1. 什么是 Kubernetes？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%BB%80%E4%B9%88%E6%98%AF-Kubelet%EF%BC%9F"><span class="nav-number">1.1.2.</span> <span class="nav-text">2. 什么是 Kubelet？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E4%BB%80%E4%B9%88%E6%98%AFpod"><span class="nav-number">1.1.3.</span> <span class="nav-text">3. 什么是pod</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-pod%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">1.1.4.</span> <span class="nav-text">4. pod的生命周期</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-k8s%E7%9A%84%E8%B7%A8%E4%B8%BB%E6%9C%BA%E9%80%9A%E4%BF%A1%E5%8E%9F%E7%90%86%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.1.5.</span> <span class="nav-text">5. k8s的跨主机通信原理是什么</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-Replica-Set-%E5%92%8C-Replication-Controller%E4%B9%8B%E9%97%B4%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">1.1.6.</span> <span class="nav-text">6. Replica Set 和 Replication Controller之间有什么区别？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E4%B8%AD%E9%97%B4%E4%BB%B6%E9%9B%86%E7%BE%A4"><span class="nav-number">2.</span> <span class="nav-text">4. 中间件集群</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E5%AE%98%E6%96%B9Redis-Cluster-%E6%96%B9%E6%A1%88-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E8%B7%AF%E7%94%B1%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.0.1.</span> <span class="nav-text">6 官方Redis Cluster 方案(服务端路由查询)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-Redis-%E4%B8%BB%E4%BB%8E%E6%9E%B6%E6%9E%84"><span class="nav-number">2.0.2.</span> <span class="nav-text">7 Redis 主从架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-Redis%E6%98%AF%E5%8D%95%E7%BA%BF%E7%A8%8B%E7%9A%84%EF%BC%8C%E5%A6%82%E4%BD%95%E6%8F%90%E9%AB%98%E5%A4%9A%E6%A0%B8CPU%E7%9A%84%E5%88%A9%E7%94%A8%E7%8E%87%EF%BC%9F"><span class="nav-number">2.0.3.</span> <span class="nav-text">8. Redis是单线程的，如何提高多核CPU的利用率？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AFRedis"><span class="nav-number">2.0.4.</span> <span class="nav-text">1 什么是Redis</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Redis%E6%9C%89%E5%93%AA%E4%BA%9B%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">2.0.5.</span> <span class="nav-text">2 Redis有哪些优缺点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8-Redis-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8%E7%BC%93%E5%AD%98"><span class="nav-number">2.0.6.</span> <span class="nav-text">3 为什么要用 Redis &#x2F;为什么要用缓存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-MySQL%E9%87%8C%E6%9C%892000w%E6%95%B0%E6%8D%AE%EF%BC%8Credis%E4%B8%AD%E5%8F%AA%E5%AD%9820w%E7%9A%84%E6%95%B0%E6%8D%AE%EF%BC%8C%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81redis%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E9%83%BD%E6%98%AF%E7%83%AD%E7%82%B9%E6%95%B0%E6%8D%AE"><span class="nav-number">2.0.7.</span> <span class="nav-text">4 MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F"><span class="nav-number">2.0.8.</span> <span class="nav-text">5 哨兵模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E5%AE%98%E6%96%B9Redis-Cluster-%E6%96%B9%E6%A1%88-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E8%B7%AF%E7%94%B1%E6%9F%A5%E8%AF%A2-1"><span class="nav-number">2.0.9.</span> <span class="nav-text">6 官方Redis Cluster 方案(服务端路由查询)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-Redis-%E4%B8%BB%E4%BB%8E%E6%9E%B6%E6%9E%84-1"><span class="nav-number">2.0.10.</span> <span class="nav-text">7 Redis 主从架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-Redis%E6%98%AF%E5%8D%95%E7%BA%BF%E7%A8%8B%E7%9A%84%EF%BC%8C%E5%A6%82%E4%BD%95%E6%8F%90%E9%AB%98%E5%A4%9A%E6%A0%B8CPU%E7%9A%84%E5%88%A9%E7%94%A8%E7%8E%87%EF%BC%9F-1"><span class="nav-number">2.0.11.</span> <span class="nav-text">8. Redis是单线程的，如何提高多核CPU的利用率？</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sl%E7%89%88-%E8%9E%8D%E5%90%88%E4%B8%AD"><span class="nav-number"></span> <span class="nav-text">sl版 融合中</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

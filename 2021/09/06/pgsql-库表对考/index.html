@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="适合大量数据拷贝 sudo docker exec -i -e PGPASSWORD&#x3D; pgsql pg_dump -t -d -U -h | sudo docker exec -i -e PGPASSWORD&#x3D; pgsql psql -U -h &gt;&gt; &#x2F;dev&#x2F;null 2&gt;&amp;1pg_dump 选项下列命令选项控制输出的内容和格式。 dbname指定要被转储的数据库名。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pgsql 库表对考">
+<meta property="og:url" content="http://yoursite.com/2021/09/06/pgsql-%E5%BA%93%E8%A1%A8%E5%AF%B9%E8%80%83/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="适合大量数据拷贝 sudo docker exec -i -e PGPASSWORD&#x3D; pgsql pg_dump -t -d -U -h | sudo docker exec -i -e PGPASSWORD&#x3D; pgsql psql -U -h &gt;&gt; &#x2F;dev&#x2F;null 2&gt;&amp;1pg_dump 选项下列命令选项控制输出的内容和格式。 dbname指定要被转储的数据库名。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-09-06T13:57:06.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.952Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="pgsql">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/09/06/pgsql-%E5%BA%93%E8%A1%A8%E5%AF%B9%E8%80%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>pgsql 库表对考 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/06/pgsql-%E5%BA%93%E8%A1%A8%E5%AF%B9%E8%80%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pgsql 库表对考
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-09-06 21:57:06 / Modified: 22:22:24" itemprop="dateCreated datePublished" datetime="2021-09-06T21:57:06+08:00">2021-09-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>适合大量数据拷贝</p>
+<p>sudo docker exec -i -e PGPASSWORD= pgsql pg_dump -t</p>
+<p>-d -U -h | sudo docker exec -i -e PGPASSWORD= pgsql psql -U -h &gt;&gt; /dev/null 2&gt;&amp;1<br>pg_dump 选项<br>下列命令选项控制输出的内容和格式。</p>
+<p>dbname<br>指定要被转储的数据库名。如果没有指定，将使用环境变量PGDATABASE。如果环境变量也没有设置，则使用指定给该连接的用户名。</p>
+<p>-a<br>—data-only<br>只转储数据，而不转储模式（数据定义）。表数据、大对象和序列值都会被转储。</p>
+<p>这个选项类似于指定—section=data，但是由于历史原因又不完全相同。</p>
+<p>-b<br>—blobs<br>在转储中包括大对象。这是当—schema、—table或 —schema-only被指定时的默认行为，因此-b 开关仅对于将大对象添加到已请求特定模式或表的转储中时有用。 请注意，blob被视为数据，因此仅在使用—data-only时才会包含， 但在—schema-only时不会包含。</p>
+<p>-B<br>—no-blobs<br>排除转储中的大对象。</p>
+<p>当给定-b和-B时，行为是当数据被转储时输出大对象， 请参阅-b文档。</p>
+<p>-c<br>—clean<br>在输出创建数据库对象的命令之前输出清除（删除）它们的命令 （除非也指定了—if-exists，如果任何对象不存在于 目的数据库中，恢复可能会产生一些伤害性的错误消息）。</p>
+<p>这个选项只对纯文本格式有意义。对于归档格式，你可以在调用pg_restore时指定该选项。</p>
+<p>-C<br>—create<br>使得在输出的开始是一个创建数据库本身并且重新连接到被创建的数据库的命令（通过这种形式的一个脚本，在运行脚本之前你连接的是目标安装中的哪个数据库都没有关系）。如果也指定了—clean，脚本会在重新连接到目标数据库之前先删除它然后再重建。</p>
+<p>这个选项只对纯文本格式有意义。对于归档格式，你可以在你调用pg_restore时指定这个选项。</p>
+<p>-E encoding<br>—encoding=encoding<br>以指定的字符集编码创建转储。在默认情况下，该转储会以该数据库的编码创建（另一种得到相同结果的方式是将PGCLIENTENCODING环境变量设置成想要的转储编码）。</p>
+<p>-f file<br>—file=file<br>将输出发送到指定文件。对于基于输出格式的文件这个参数可以被忽略，在那种情况下将使用标准输出。不过对于目录输出格式必须给定这个参数，在目录输出格式中指定的是一个目录而不是一个文件。在这种情况中，该目录会由pg_dump创建并且不需要以前就存在。</p>
+<p>-F format<br>—format=format<br>选择输出的格式。format可以是下列之一：</p>
+<p>p<br>plain<br>输出一个纯文本形式的SQL脚本文件（默认值）。</p>
+<p>c<br>custom<br>输出一个适合于作为pg_restore输入的自定义格式归档。和目录输出格式一起，这是最灵活的输出格式，它允许在恢复时手动选择和排序已归档的项。这种格式在默认情况还会被压缩。</p>
+<p>d<br>directory<br>输出一个适合作为pg_restore输入的目录格式归档。这将创建一个目录，其中每个被转储的表和大对象都有一个文件，外加一个所谓的目录文件，该文件以一种pg_restore能读取的机器可读格式描述被转储的对象。一个目录格式归档能用标准 Unix 工具操纵，例如一个未压缩归档中的文件可以使用gzip工具压缩。这种格式默认情况下是被压缩的并且也支持并行转储。</p>
+<p>t<br>tar<br>输出一个适合于输入到pg_restore中的tar-格式归档。tar 格式可以兼容目录格式，抽取一个 tar 格式的归档会产生一个合法的目录格式归档。不过，tar 格式不支持压缩。还有，在使用 tar 格式时，表数据项的相对顺序不能在恢复过程中被更改。</p>
+<p>-j njobs<br>—jobs=njobs<br>通过同时归档njobs个表来运行并行转储。这个选项缩减了转储的时间，但是它也增加了数据库服务器上的负载。你只能和目录输出格式一起使用这个选项，因为这是唯一一种让多个进程能在同一时间写其数据的输出格式。</p>
+<p>pg_dump将打开njobs + 1 个到该数据库的连接，因此确保你的max_connections设置足够高以容纳所有的连接。</p>
+<p>在运行一次并行转储时请求数据库对象上的排他锁可能导致转储失败。其原因是，pg_dump主控进程会在工作者进程将要稍后转储的对象上请求共享锁，以便确保在转储运行时不会有人删除它们并让它们出错。如果另一个客户端接着请求一个表上的排他锁，那个锁将不会被授予但是会被排入队列等待主控进程的共享锁被释放。因此，任何其他对该表的访问将不会被授予或者将排在排他锁请求之后。这包括尝试转储该表的工作者进程。如果没有任何防范措施，这可能会是一种经典的死锁情况。要检测这种冲突，pg_dump工作者进程使用NOWAIT选项请求另一个共享锁。 如果该工作者进程没有被授予这个共享锁，其他某人必定已经在同时请求了一个排他锁并且没有办法继续转储，因此pg_dump除了中止转储之外别无选择。</p>
+<p>对于一个一致的备份，数据库服务器需要支持同步的快照，在PostgreSQL 9.2中引入了一种针对主服务器特性和10个针对备用服务器的特性。有了这种特性，即便数据库客户端使用不同的连接，也可以保证他们看到相同的数据集。pg_dump -j使用多个数据库连接，它用主控进程连接到数据一次，并且为每一个工作者任务再一次连接数据库。如果没有同步快照特征，在每一个连接中不同的工作者任务将不能被保证看到相同的数据，这可能导致一个不一致的备份。</p>
+<p>如果你希望运行一个 9.2 之前服务器的并行转储，你需要确保数据库内容从主控进程连接到数据库一直到最后一个工作者任务连接到数据库之间不会改变。做这些最简单的方法是在开始备份之前停止任何访问数据库的数据修改进程（DDL 以及 DML）。当对一个 9.2 之前的PostgreSQL服务器运行pg_dump -j时，你还需要指定—no-synchronized-snapshots参数。</p>
+<p>-n schema<br>—schema=schema<br>只转储匹配schema的模式，这会选择模式本身以及它所包含的所有对象。当没有指定这个选项时，目标数据库中所有非系统模式都将被转储。多个模式可以通过书写多个-n开关来选择。另外，schema参数可以被解释为一种根据psql’s \d命令所用的相同规则（见模式（Pattern））编写的模式，这样多个模式也可以通过在该模式中书写通配字符来选择。在使用通配符时，如果需要阻止 shell 展开通配符需要小心引用该模式，见实例。</p>
+<p>注意<br>当-n被指定时，pg_dump不会尝试转储所选模式可能依赖的任何其他数据库对象。因此，无法保证一次指定模式转储的结果能够仅凭其本身被成功地恢复到一个干净的数据库中。</p>
+<p>注意<br>当-n被指定时，非模式对象（如二进制大对象）不会被转储。你可以使用—blobs开关将二进制大对象加回到该转储中。</p>
+<p>-N schema<br>—exclude-schema=schema<br>不转储匹配schema模式的任何模式。该模式被根据-n所用的相同规则被解释。-N可以被给定多次来排除匹配几个模式中任意一个的模式。</p>
+<p>当-n和-N都被给定时，该行为是只转储匹配至少一个-n开关但是不匹配-N开关的模式。如果只有-N而没有-n，那么匹配-N的模式会被从一个正常转储中排除。</p>
+<p>-o<br>—oids<br>转储对象标识符（OID）作为每个表数据的一部分。如果你的应用以某种方式引用OID列（例如在一个外键约束中），应使用这个选项。否则，这个选项不应该被使用。</p>
+<p>-O<br>—no-owner<br>不输出设置对象拥有关系来匹配原始数据库的命令。默认情况下，pg_dump会发出ALTER OWNER或SET SESSION AUTHORIZATION语句来设置被创建的数据库对象的拥有关系。除非该脚本被一个超级用户（或是拥有脚本中所有对象的同一个用户）启动，这些语句都将会失败。要使一个脚本能够被任意用户恢复，但把所有对象的拥有关系都给这个用户，可指定-O。</p>
+<p>这个选项只对纯文本格式有意义。对于归档格式，你可以在调用pg_restore时指定该选项。</p>
+<p>-R<br>—no-reconnect<br>这个选项已经废弃，但是为了向后兼容仍然能被接受。</p>
+<p>-s<br>—schema-only<br>只转储对象定义（模式），而非数据。</p>
+<p>这个选项是—data-only的逆选项。它和指定—section=pre-data —section=post-data相似，但是由于历史原因又不完全相同。</p>
+<p>（不要把这个选项和—schema选项混淆，后者在“schema”的使用上有不同的含义）。</p>
+<p>要为数据库中表的一个子集排除表数据，见—exclude-table-data。</p>
+<p>-S username<br>—superuser=username<br>指定要在禁用触发器时使用的超级用户的用户名。只有使用—disable-triggers时，这个选项才相关（通常，最好省去这个选项，而作为超级用户来启动结果脚本来取而代之）。</p>
+<p>-t table<br>—table=table<br>只转储名字匹配table的表，“table”还可以包括视图、物化视图、序列和外部表。通过写多个-t开关可以选择多个表。另外，table参数可以被解释为一种根据psql’s \d命令所用的相同规则（见模式（Pattern））编写的模式，这样多个表也可以通过在该模式中书写通配字符来选择。在使用通配符时，如果需要阻止 shell 展开通配符需要小心引用该模式，见实例。</p>
+<p>当-t被使用时，-n和-N开关不会有效果，因为被-t选择的表将被转储而无视那些开关，并且非表对象将不会被转储。</p>
+<p>注意<br>当-t被指定时，pg_dump不会尝试转储所选表可能依赖的任何其他数据库对象。因此，无法保证一次指定表转储的结果能够仅凭其本身被成功地恢复到一个干净的数据库中。</p>
+<p>注意<br>-t开关的行为不完全向前兼容 8.2 之前的PostgreSQL版本。以前，写-t tab将转储所有命名为tab的表，但现在它仅仅转储在你默认搜索路径中可见的那一个。要得到旧的行为，你可以写成-t ‘*.tab’。还有，你必须写类似-t sch.tab的东西来选择一个特定模式中的一个表，而不是用老的惯用语-n sch -t tab。</p>
+<p>-T table<br>—exclude-table=table<br>不转储匹配table模式的任何表。该模式被根据-t所用的相同规则被解释。-T可以被给定多次来排除匹配几个模式中任意一个的模式。</p>
+<p>当-t和-T都被给定时，该行为是只转储匹配至少一个-t开关但是不匹配-T开关的表。如果只有-T而没有-t，那么匹配-T的表会被从一个正常转储中排除。</p>
+<p>-v<br>—verbose<br>指定冗长模式。这将导致pg_dump向标准错误输出详细的对象注释以及转储文件的开始/停止时间，还有进度消息。</p>
+<p>-V<br>—version<br>pg_dump版本并退出。</p>
+<p>-x<br>—no-privileges<br>—no-acl<br>防止转储访问特权（授予/收回命令）。</p>
+<p>-Z 0..9<br>—compress=0..9<br>指定要使用的压缩级别。零意味着不压缩。对于自定义归档格式，这会指定个体表数据段的压缩，并且默认是进行中等级别的压缩。对于纯文本输出，设置一个非零压缩级别会导致整个输出文件被压缩，就好像它被gzip处理过一样，但是默认是不压缩。tar 归档格式当前完全不支持压缩。</p>
+<p>—binary-upgrade<br>这个选项用于就地升级功能。我们不推荐也不支持把它用于其他目的。这个选项在未来的发行中可能被改变而不做通知。</p>
+<p>—column-inserts<br>—attribute-inserts<br>将数据转储为带有显式列名的INSERT命令（INSERT INTO table (column, …) VALUES …）。这将使得恢复过程非常慢，这主要用于使转储能够被载入到非PostgreSQL数据库中。不过，由于这个选项为每一行都产生一个单独的命令，重载一行时的一个错误只会导致那一行被丢失而不是整个表内容丢失。</p>
+<p>—disable-dollar-quoting<br>这个选项禁止在函数体中使用美元符号引用，并且强制它们使用 SQL 标准字符串语法被引用。</p>
+<p>—disable-triggers<br>只有在创建一个只转储数据的转储时，这个选项才相关。它指示pg_dump包括在数据被重新载入时能够临时禁用目标表上的触发器的命令。如果你在表上有引用完整性检查或其他触发器，并且你在数据重新载入期间不想调用它们，请使用这个选项。</p>
+<p>当前，为—disable-triggers发出的命令必须作为超级用户来执行。因此，你还应当使用-S指定一个超级用户名，或者宁可作为一个超级用户启动结果脚本。</p>
+<p>这个选项只对纯文本格式有意义。对于归档格式，你可以在调用pg_restore时指定这个选项。</p>
+<p>—enable-row-security<br>只有在转储具有行安全性的表的内容时，这个选项才相关。默认情况下， pg_dump将把 row_security设置为 off 来确保从该表中转储 出所有的数据。如果用户不具有足够能绕过行安全性的特权，那么会抛出 一个错误这个参数指示pg_dump将 row_security设置为 on，允许用户只转储该表中 它们能够访问到的部分内容。</p>
+<p>请注意，如果您当前使用此选项，则可能还需要以INSERT格式转储， 因为还原期间的COPY FROM不支持行安全性。</p>
+<p>—exclude-table-data=table<br>不转储匹配table模式的任何表中的数据。该模式根据-t的相同规则被解释。—exclude-table-data可以被给定多次来排除匹配多个模式的表。当你需要一个特定表的定义但不想要其中的数据时，这个选项就有用了。</p>
+<p>要排除数据库中所有表的数据，见—schema-only。</p>
+<p>—if-exists<br>时间条件性命令（即增加一个IF EXISTS子句）来清除数据库和其他对象。 只有同时指定了—clean时，这个选项才可用。</p>
+<p>—inserts<br>将数据转储为INSERT命令（而不是COPY）。这将使得恢复非常慢，这主要用于使转储能够被载入到非PostgreSQL数据库中。不过，由于这个选项为每一行都产生一个单独的命令，重载一行时的一个错误只会导致那一行被丢失而不是整个表内容丢失。注意如果你已经重新安排了列序，该恢复可能会一起失败。—column-inserts选项对于列序改变是安全的，但是会更慢。</p>
+<p>—lock-wait-timeout=timeout<br>在转储的开始从不等待共享表锁的获得。而是在指定的timeout内不能锁定一个表时失败。超时时长可以用SET statement_timeout接受的任何格式指定（允许的格式根据你从其转出的服务器版本变化，但是所有版本都接受一个整数表示的毫秒数。）。</p>
+<p>—no-publications<br>不转储发布。</p>
+<p>—no-security-labels<br>不转储安全标签。</p>
+<p>—no-subscriptions<br>不转储订阅。</p>
+<p>—no-sync<br>默认情况下，pg_dump将等待所有文件安全写入磁盘。 这个选项会导致pg_dump无需等待而返回，这更快， 但意味着后续的操作系统崩溃可能会导致转储损坏。通常， 此选项对于测试非常有用，但在从生产安装中转储数据时不应使用此选项。</p>
+<p>—no-synchronized-snapshots<br>这个选项允许对 9.2 以前的服务器运行pg_dump -j，详见-j参数的文档。</p>
+<p>—no-tablespaces<br>不要输出选择表空间的命令。通过这个选项，在恢复期间所有的对象都会被创建在任何作为默认的表空间中。</p>
+<p>这个选项只对纯文本格式有意义。对于归档格式，你可以在调用pg_restore时指定该选项。</p>
+<p>—no-unlogged-table-data<br>不转储非日志记录表的内容。这个选项对于表定义（模式）是否被转储没有影响，它只会限制转储表数据。当从一个后备服务器转储时，在非日志记录表中的数据总是会被排除。</p>
+<p>—quote-all-identifiers<br>强制引用所有标识符。当从PostgreSQL主版本与pg_dump不同的服务器上转储一个数据库时或者当输出准备载入到一个具有不同主版本的服务器时，推荐使用这个选项。默认情况下，pg_dump只对在其主版本中是被保留词的标识符加上引号。在转储其他版本服务器时，这种默认行为有时会导致兼容性问题，因为那些版本可能具有些许不同的被保留词集合。使用—quote-all-identifiers能阻止这种问题，但代价是转储脚本更难阅读。</p>
+<p>—section=sectionname<br>只转储命名节。节的名称可以是pre-data、data或post-data。这个选项可以被指定多次来选择多个节。默认是转储所有节。</p>
+<p>数据节包含真正的表数据、大对象内容和序列值。数据后项包括索引、触发器、规则和除了已验证检查约束之外的约束的定义。数据前项包括所有其他数据定义项。</p>
+<p>—serializable-deferrable<br>为转储使用一个可序列化事务，以保证所使用的快照与后来的数据库状态是一致的。但是这样做是在事务流中等待一个点，在该点上不能存在异常，这样就不会有转储失败或者导致其他事务带着serialization_failure回滚的风险。关于事务隔离和并发控制详见第 13 章。</p>
+<p>对于一个只为灾难恢复存在的转储，这个选项没什么益处。如果一个转储被用来在原始数据库持续被更新期间载入一份用于报表或其他只读负载的数据库拷贝时，这个选项就有所帮助。如果没有这个选项，转储可能会反映一个与最终提交事务的任何执行序列都不一致的状态。例如，如果使用了批处理技术，一个批处理在转储中可以显示为关闭，而其中的所有项都不出现。</p>
+<p>如果 pg_dump 被启动时没有读写事务在活动，则这个选项没有什么不同。如果有读写事务在活动，该转储的启动可能会被延迟一段不确定的时间。一旦开始运行，有没有这个开关的表现是相同的。</p>
+<p>—snapshot=snapshotname<br>在做一个数据库的转储时指定一个同步的快照（详见 表 9.82）。</p>
+<p>在需要把转储和一个逻辑复制槽（见第 48 章） 或者一个并发会话同步时可以用上这个选项。</p>
+<p>在并行转储的情况下，将使用这个选项指定的快照名而不是取一个新快照。</p>
+<p>—strict-names<br>要求每一个模式（-n/—schema）和表（-t/—table）限定符匹配要转储的数据库中至少一个模式/表。注意，如果没有找到有这样的模式/表限定符匹配，即便没有—strict-names，pg_dump也将生成一个错误。</p>
+<p>这个选项对-N/—exclude-schema、-T/—exclude-table或者—exclude-table-data没有效果。无法匹配任何对象的排除模式不会被当作错误。</p>
+<p>—use-set-session-authorization<br>输出 SQL-标准的SET SESSION AUTHORIZATION命令取代ALTER OWNER命令来确定对象的所有关系。这让该转储更加兼容标准，但是取决于该转储中对象的历史，该转储可能无法正常恢复。而且，一个使用SET SESSION AUTHORIZATION的转储将一定会要求超级用户特权来正确地恢复，而ALTER OWNER要求更少的特权。</p>
+<p>-?<br>—help<br>显示有关pg_dump命令行参数的帮助并退出。</p>
+<p>下列命令行选项控制数据库连接参数。</p>
+<p>-d dbname<br>—dbname=dbname<br>指定要连接到的数据库名。这等效于指定dbname为命令行上的第一个非选项参数。</p>
+<p>如果这个参数包含一个=符号或者以一个合法的URI前缀（postgresql://或postgres://）开始，它将被视作一个conninfo字符串。详见第 33.1 节。</p>
+<p>-h host<br>—host=host<br>指定服务器正在运行的机器的主机名。如果该值开始于一个斜线，它被用作一个 Unix 域套接字的目录。默认是从PGHOST环境变量中取得（如果被设置），否则将尝试一次 Unix 域套接字连接。</p>
+<p>-p port<br>—port=port<br>指定服务器正在监听连接的 TCP 端口或本地 Unix 域套接字文件扩展名。默认是放在PGPORT环境变量中（如果被设置），否则使用编译在程序中的默认值。</p>
+<p>-U username<br>—username=username<br>要作为哪个用户连接。</p>
+<p>-w<br>—no-password<br>从不发出一个口令提示。如果服务器要求口令认证并且没有其他方式提供口令（例如一个.pgpass文件），那么连接尝试将失败。这个选项对于批处理任务和脚本有用，因为在其中没有一个用户来输入口令。</p>
+<p>-W<br>—password<br>强制pg_dump在连接到一个数据库之前提示要求一个口令。</p>
+<p>这个选项从来不是必须的，因为如果服务器要求口令认证，pg_dump将自动提示要求一个口令。但是，pg_dump将浪费一次连接尝试来发现服务器想要一个口令。在某些情况下，值得键入-W来避免额外的连接尝试。</p>
+<p>—role=rolename<br>指定一个用来创建该转储的角色名。这个选项导致pg_dump在连接到数据库后发出一个SET ROLE rolename命令。当已认证用户（由-U指定）缺少pg_dump所需的特权但是能够切换到一个具有所需权利的角色时，这个选项很有用。一些安装有针对直接作为超级用户登录的策略，使用这个选项可以让转储在不违反该策略的前提下完成。</p>
+<p>环境<br>PGDATABASE<br>PGHOST<br>PGOPTIONS<br>PGPORT<br>PGUSER<br>默认连接参数</p>
+<p>和大部分其他PostgreSQL工具相似，这个工具也使用libpq（见第 33.14 节）支持的环境变量。</p>
+<p>诊断<br>pg_dump在内部执行SELECT语句。如果你运行pg_dump时出现问题，确定你能够从正在使用的数据库中选择信息，例如psql。此外，libpq前端-后端库所使用的任何默认连接设置和环境变量都将适用。</p>
+<p>pg_dump的数据库活动会被统计收集器正常地收集。如果不想这样，你可以通过PGOPTIONS或ALTER USER命令设置参数track_counts为假。</p>
+<p>注解<br>如果你的数据库集簇对于template1数据库有任何本地添加，要注意将pg_dump的输出恢复到一个真正的空数据库。否则你很可能由于以增加对象的重复定义而得到错误。要创建一个不带任何本地添加的空数据库，从template0而不是template1复制它，例如：</p>
+<p>CREATE DATABASE foo WITH TEMPLATE template0;<br>当一个只含数据的转储被选中并且使用了选项—disable-triggers时，pg_dump在开始插入数据之前会发出命令禁用用户表上的触发器，并且接着在数据被插入之后发出命令重新启用它们。如果恢复中途被停止，系统目录可能会停留在一种错误状态。</p>
+<p>pg_dump产生的转储文件不包含优化器用来做出查询计划决定的统计信息。因此，在从一个转储文件恢复后运行ANALYZE来确保最优性能是明智的，详见第 24.1.3 节和第 24.1.6 节。转储文件也不包含任何ALTER DATABASE … SET命令，这些设置会与数据库用户及其他安装设置一起被pg_dumpall转储。</p>
+<p>因为pg_dump被用来传输数据到更新版本的PostgreSQL，pg_dump的输出被认为可以载入到比pg_dump版本更新的PostgreSQL服务器中。pg_dump也能够从比其版本更旧的PostgreSQL服务器中转储（当前支持回退到版本 8.0）。不过，pg_dump无法从比起主版本号更新的PostgreSQL服务器中转储，它甚至将拒绝冒着创建一个非法转储的风险尝试。还有，不保证pg_dump的输出能被载入到一个更旧主版本的服务器 — 即使该转储是从该版本的服务器中被取得也不行。将一个转储文件载入到一个更旧的服务器可能需要手工编辑该转储文件来移除旧服务器无法理解的语法。在跨版本的情况下，推荐使用—quote-all-identifiers选项，因为它可以避免因为不同PostgreSQL版本间的保留词列表变化而发生问题。</p>
+<p>在转储逻辑复制订阅时，pg_dump将生成使用 NOCONNECT选项的CREATE SUBSCRIPTION命令， 以便恢复订阅不会创建远程连接复制插槽或初始表副本。这样，可以恢复转储， 而不需要网络访问远程服务器。然后由用户以合适的方式重新激活订阅。 如果涉及的主机已更改，则可能必须更改连接信息。 在启动新的全表副本之前截断目标表也许是适当的。</p>
+<p>实例<br>要把一个数据库mydb转储到一个 SQL 脚本文件：</p>
+<p>$ pg_dump mydb &gt; db.sql<br>要把这样一个脚本重新载入到一个（新创建的）名为newdb的数据库中：</p>
+<p>$ psql -d newdb -f db.sql<br>要转储一个数据库到一个自定义格式归档文件：</p>
+<p>$ pg_dump -Fc mydb &gt; db.dump<br>要转储一个数据库到一个目录格式的归档：</p>
+<p>$ pg_dump -Fd mydb -f dumpdir<br>要用 5 个并行的工作者任务转储一个数据库到一个目录格式的归档：</p>
+<p>$ pg_dump -Fd mydb -j 5 -f dumpdir<br>要把一个归档文件重新载入到一个（新创建的）名为newdb的数据库：</p>
+<p>$ pg_restore -d newdb db.dump<br>要转储一个名为mytab的表：</p>
+<p>$ pg_dump -t mytab mydb &gt; db.sql<br>要转储detroit模式中名称以emp开始的所有表，排除名为employee_log的表：</p>
+<p>$ pg_dump -t ‘detroit.emp*’ -T detroit.employee_log mydb &gt; db.sql<br>要转储名称以east或者west开始并且以gsm结束的所有模式，排除名称包含词test的任何模式：</p>
+<p>$ pg_dump -n ‘eastgsm’ -n ‘westgsm’ -N ‘test‘ mydb &gt; db.sql<br>同样，用正则表达式记号法来合并开关：</p>
+<p>$ pg<em>dump -n ‘(east|west)gsm’ -N ‘test*’ mydb &gt; db.sql<br>要转储除了名称以ts</em>开头的表之外的所有数据库对象：</p>
+<p>$ pg<em>dump -T ‘ts</em>*’ mydb &gt; db.sql<br>要在-t和相关开关中指定一个大写形式或混合大小写形式的名称，你需要双引用该名称，否则它会被折叠到小写形式（见模式（Pattern））。但是双引号对于 shell 是特殊的，所以反过来它们必须被引用。因此，要转储一个有混合大小写名称的表，你需要类似这样的东西：</p>
+<p>$ pg_dump -t “\”MixedCaseName\”” mydb &gt; mytab.sql</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/pgsql/" rel="tag"># pgsql</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/06/Docker-%E6%8E%92%E6%9F%A5%E6%80%9D%E8%B7%AF/" rel="prev" title="Docker 排查思路">
+      <i class="fa fa-chevron-left"></i> Docker 排查思路
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/09/06/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-1-%E6%90%AD%E5%BB%BA/" rel="next" title="lvs dr 模式搭建与分析 (1) 搭建">
+      lvs dr 模式搭建与分析 (1) 搭建 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

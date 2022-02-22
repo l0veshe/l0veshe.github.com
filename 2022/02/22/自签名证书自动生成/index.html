@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="自签名证书自动生成 1. 什么是证书 What证书，就是一个用来加密的东西。 数据整体加密，使内容难以被第三方窥探。关键部位提取出来加密，生成一个签名，附加在数据上，用于确保原数据未被篡改，发送方也无法抵赖。证书的作用如此之大，如果制作方不中立，很难令人信服。所以有一套完善的机制来保证证书的有效性，可靠性，这就是我们的公钥基础设施（Public Key Infrastructure, PKI）。其">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自签名证书自动生成">
+<meta property="og:url" content="http://yoursite.com/2022/02/22/%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="自签名证书自动生成 1. 什么是证书 What证书，就是一个用来加密的东西。 数据整体加密，使内容难以被第三方窥探。关键部位提取出来加密，生成一个签名，附加在数据上，用于确保原数据未被篡改，发送方也无法抵赖。证书的作用如此之大，如果制作方不中立，很难令人信服。所以有一套完善的机制来保证证书的有效性，可靠性，这就是我们的公钥基础设施（Public Key Infrastructure, PKI）。其">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-02-22T13:33:53.000Z">
+<meta property="article:modified_time" content="2022-02-22T13:33:53.177Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="证书">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2022/02/22/%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>自签名证书自动生成 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2022/02/22/%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          自签名证书自动生成
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-02-22 21:33:53" itemprop="dateCreated datePublished" datetime="2022-02-22T21:33:53+08:00">2022-02-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BD%91%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">网站</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="自签名证书自动生成"><a href="#自签名证书自动生成" class="headerlink" title="自签名证书自动生成"></a>自签名证书自动生成</h1><hr>
+<h2 id="1-什么是证书-What"><a href="#1-什么是证书-What" class="headerlink" title="1. 什么是证书 What"></a>1. 什么是证书 What</h2><p>证书，就是一个用来加密的东西。</p>
+<p>数据整体加密，使内容难以被第三方窥探。<br>关键部位提取出来加密，生成一个签名，附加在数据上，用于确保原数据未被篡改，<br>发送方也无法抵赖。<br>证书的作用如此之大，如果制作方不中立，很难令人信服。<br>所以有一套完善的机制来保证证书的有效性，可靠性，这就是我们的公钥基础设施（Public Key Infrastructure, PKI）。<br>其中最为关键的是证书颁发机构（Certification Authority, CA），负责颁发证书、认证证书、管理已颁发证书。</p>
+<p>CA 自己创建一个证书（公钥 + 私钥），信任这个 CA 的人使用它的证书来签名和验证自己的证书，一级一级的传递下来。<br>如果需要一个大家都信任的证书，就需要向一个大家都信任的 CA 申请，提交身份信息 + 密钥。<br>CA 确认之后，使用私钥为之签名，然后这个身份信息 + 颁发者信息(序列号) + 公钥 + 算法 + 签名 + 有效期等，合在一起就是一个证书了。<br>如果其他人需要确认这个证书的真假，就拿 CA 的公钥（公开的）来校验一下，通过之后就认为其有效。</p>
+<p>PKI 的这一整套机制，全部遵循国际电信联盟制定与颁发的 X.509 标准。<br>几乎 IT 届所有通讯技术中使用的加密都离不开这一套（还有一套机制，就是 PGP 体系的分布式信任模型 Web of Trust）。</p>
+<h2 id="2-一般openssl会产生什么类型"><a href="#2-一般openssl会产生什么类型" class="headerlink" title="2. 一般openssl会产生什么类型"></a>2. 一般openssl会产生什么类型</h2><ul>
+<li>PEM 编码格式，就是常见的 ——-BEGIN XXX——- + base64 + ——-END XXX——-</li>
+<li>DER 编码格式，二进制</li>
+<li>PFX 参考下面说的 PKCS#12, 公钥 / 私钥 / 证书，好像是用于安全转移</li>
+<li>通常用它来打包一个私钥及有关的 X.509 证书，或者打包信任链的全部项目。</li>
+<li>其文件常用 .p12 后缀或 .pfx 后缀</li>
+<li>JKS Java Key Store, 私钥 + 证书，常用 Java Keytool 做合成或提取</li>
+<li>CER / CRT 常见后缀，表示证书</li>
+<li>PKCS The Public-Key Cryptography Standards，RSA 公司设计的公钥加密标准，目前共有 15 部分，其中：<ul>
+<li>PKCS#1 RSA Cryptography Standard v2.2, RFC8017</li>
+<li>PKCS#3 Diffie–Hellman Key Agreement Standard v1.4</li>
+<li>PKCS#5 Password-based Encryption Standard v2.1, RFC8018, PBKDF2</li>
+<li>PKCS#8 Private-Key Information Syntax Standard v1.2, RFC5958</li>
+<li>PKCS#10 Certification Request Standard v1.7, RFC2986</li>
+<li>PKCS#12 Personal Information Exchange Syntax Standard v1.1 RFC7292 似乎是根据微软的 PFX 格式发展过来的，现在可以把 PFX 看做 PKCS#12 的同义词</li>
+</ul>
+</li>
+</ul>
+<p><em>一般的习惯：</em></p>
+<ul>
+<li>公钥和私钥，用 .key 后缀</li>
+<li>证书一般采用 .cer 或 .crt 做后缀</li>
+<li>不管是公钥、私钥，还是证书，都有按照保存格式，使用 .pem 或 .der 后缀的</li>
+<li>还有合并存储的可能，最简单的就是 cat ca.key ca.crt &gt; ca.pem 至少 Python 的 SSL 库加载证书时，支持私钥和证书合并存储在同一个文件</li>
+<li>OpenSSL工具生成Certificate Signing Request（CSR）证书签名请求文件。</li>
+</ul>
+<h2 id="3-制作证书"><a href="#3-制作证书" class="headerlink" title="3. 制作证书"></a>3. 制作证书</h2><h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3><ul>
+<li>生成机构颁发证书<br>生成<ul>
+<li>机构证书： hank.im.crt</li>
+<li>私钥：hank.im.key</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj &#x27;/O=hank Inc./CN=hank.im&#x27; -keyout hank.im.key -out hank.im.crt</span><br></pre></td></tr></table></figure>
+<ul>
+<li>生成你要签名的网站证书，比如你的网站为httpbin.example.com，公司在cn上海，共公司名称为httpbin，IT部门<br>生成<ul>
+<li>待签名证书：httpbin.example.com.csr</li>
+<li>私钥：httpbin.example.com.key</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -out httpbin.example.com.csr -newkey rsa:2048 -nodes -keyout httpbin.example.com.key -subj &quot;/C=CN/ST=sh/L=sh/O=httpbin/OU=IT/CN=httpbin.example.com organization&quot;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>此命令行表示：</p>
+<ul>
+<li>req参数：表示证书请求request，用于生成CSR文件。</li>
+<li>SHA256参数：表示CSR签名时用的摘要算法。</li>
+<li>表示指定证书的算法。</li>
+<li>2048参数：表示密钥对的长度。</li>
+<li>nodes参数：表示不对私钥加密。</li>
+<li>keyout参数：表示生成的私钥文件。</li>
+<li>名为demo.trustasia.com.key的私钥文件，需自行保管，用于获取证书后的部署过程。</li>
+<li>out参数：表示生成的CSR文件。</li>
+<li>名为demo.trustasia.com.csr的CSR文件，用于提交至CA机构验证信息，从而获取证书。</li>
+<li>subj参数：表示CSR信息，详细信息参阅CSR概览。</li>
+</ul>
+</blockquote>
+<ul>
+<li>给网站证书签名<ul>
+<li>需要<ul>
+<li>机构私钥：hank.im.key</li>
+<li>机构证书：hank.im.crt</li>
+<li>网站待签名证书：httpbin.example.com.csr</li>
+</ul>
+</li>
+<li>生成：<ul>
+<li>网站签名证书： httpbin.example.com.crt</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -req -days 365 -CA hank.im.crt -CAkey hank.im.key -set_serial 0 -in httpbin.example.com.csr -out httpbin.example.com.crt</span><br></pre></td></tr></table></figure>
+<h3 id="精简命令"><a href="#精简命令" class="headerlink" title="精简命令"></a>精简命令</h3><p>脚本</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim gencrt.sh</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># 机构证书域名</span><br><span class="line"># --变量区--</span><br><span class="line"># 证书名称</span><br><span class="line">CRT=hank.im</span><br><span class="line"># 网站名称</span><br><span class="line">YOUR_WEBSIT=httpbin.example.com</span><br><span class="line"># 国家</span><br><span class="line">COUNTRY=cn</span><br><span class="line"># 省份</span><br><span class="line">ST=bj</span><br><span class="line"># 城市</span><br><span class="line">L=bj</span><br><span class="line"># 机构名称</span><br><span class="line">O=&quot;&quot;</span><br><span class="line"># 机构部门</span><br><span class="line">OU=IT</span><br><span class="line"># -------</span><br><span class="line">openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj &quot;/O=$CRT Inc./CN=CRT&quot; -keyout $CRT.key -out $CRT.crt</span><br><span class="line">openssl req -out $YOUR_WEBSIT.csr -newkey rsa:2048 -nodes -keyout $YOUR_WEBSIT.key -subj &quot;/C=$COUNTRY/ST=$ST/L=$L/O=$O/OU=$OU/CN=$YOUR_WEBSIT organization&quot;</span><br><span class="line">openssl x509 -req -days 365 -CA $CRT.crt -CAkey $CRT.key -set_serial 0 -in $YOUR_WEBSIT.csr -out $YOUR_WEBSIT.crt</span><br><span class="line">echo -e &quot;\n\n\nWebsite cert: \n $YOUR_WEBSIT.crt \n $YOUR_WEBSIT.key \nCurl request: \n curl -v -HHost:$YOUR_WEBSIT --resolve $YOUR_WEBSIT:443:&lt;ip&gt; --cacert $CRT.crt https://$YOUR_WEBSIT/&quot;</span><br></pre></td></tr></table></figure>
+<p>执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"># bash gencrt.sh</span><br><span class="line">Generating a 2048 bit RSA private key</span><br><span class="line">....................+++</span><br><span class="line">.....+++</span><br><span class="line">writing new private key to &#x27;hank.im.key&#x27;</span><br><span class="line">-----</span><br><span class="line">Generating a 2048 bit RSA private key</span><br><span class="line">........................+++</span><br><span class="line">...................+++</span><br><span class="line">writing new private key to &#x27;httpbin.example.com.key&#x27;</span><br><span class="line">-----</span><br><span class="line">No value provided for Subject Attribute O, skipped</span><br><span class="line">Signature ok</span><br><span class="line">subject=/C=cn/ST=bj/L=bj/OU=IT/CN=httpbin.example.com organization</span><br><span class="line">Getting CA Private Key</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Website cert:</span><br><span class="line"> httpbin.example.com.crt</span><br><span class="line"> httpbin.example.com.key</span><br><span class="line">Curl request:</span><br><span class="line"> curl -v -HHost:httpbin.example.com --resolve httpbin.example.com:443:&lt;ip&gt; --cacert hank.im.crt https://httpbin.example.com/</span><br></pre></td></tr></table></figure>
+<p>生成</p>
+<ul>
+<li><p>机构端：</p>
+<ul>
+<li>机构私钥：hank.im.key</li>
+<li>机构证书：hank.im.crt (可以加入浏览器内）</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>web服务端<ul>
+<li>httpbin.example.com.crt</li>
+<li>httpbin.example.com.key</li>
+</ul>
+</li>
+</ul>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>服务端配置(nginx)：</p>
+<p>去掉注释后修改为以下配置或新增以下配置:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">server &#123; </span><br><span class="line"></span><br><span class="line"> listen 443 ssl; </span><br><span class="line"> server_name localhost; </span><br><span class="line"></span><br><span class="line"> ssl_certificate httpbin.example.com.crt; </span><br><span class="line"> ssl_certificate_key httpbin.example.com.key;  #注释:证书存放路径无要求，配置时正确指向即可，文档默认将证书放conf目录下。 </span><br><span class="line"> </span><br><span class="line"> ssl_session_timeout 5m; </span><br><span class="line"> ssl_protocols TLSv1 TLSv1.1 TLSv1.2;</span><br><span class="line"></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AF%81%E4%B9%A6/" rel="tag"># 证书</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/08/%E5%9B%A0%E4%B8%BA%E6%8D%A2%E7%94%B5%E8%84%91%E4%B8%A2%E5%A4%B1%E4%BA%86%E4%B8%80%E9%83%A8%E5%88%86blog%E7%AC%94%E8%AE%B0%E6%BA%90%E7%A0%81%EF%BC%8C%E7%BB%88%E4%BA%8E%E8%A1%A5%E5%AE%8C%E4%BB%A5%E4%B8%8B%E7%9A%84blog%E4%BA%86%EF%BC%8C%E6%AD%A4%E6%9D%A1%E4%BB%85%E6%A0%87%E9%A2%98/" rel="prev" title="因为换电脑丢失了一部分blog笔记源码，终于补完以下的blog了，此条仅标题">
+      <i class="fa fa-chevron-left"></i> 因为换电脑丢失了一部分blog笔记源码，终于补完以下的blog了，此条仅标题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/02/22/centos7-%E6%9B%B4%E6%96%B0%E5%86%85%E6%A0%B8/" rel="next" title="centos7 更新内核">
+      centos7 更新内核 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90"><span class="nav-number">1.</span> <span class="nav-text">自签名证书自动生成</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%AF%81%E4%B9%A6-What"><span class="nav-number">1.1.</span> <span class="nav-text">1. 什么是证书 What</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%B8%80%E8%88%ACopenssl%E4%BC%9A%E4%BA%A7%E7%94%9F%E4%BB%80%E4%B9%88%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.2.</span> <span class="nav-text">2. 一般openssl会产生什么类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%88%B6%E4%BD%9C%E8%AF%81%E4%B9%A6"><span class="nav-number">1.3.</span> <span class="nav-text">3. 制作证书</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.3.1.</span> <span class="nav-text">步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B2%BE%E7%AE%80%E5%91%BD%E4%BB%A4"><span class="nav-number">1.3.2.</span> <span class="nav-text">精简命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE"><span class="nav-number">1.3.3.</span> <span class="nav-text">配置</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

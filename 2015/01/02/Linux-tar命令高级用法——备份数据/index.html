@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Linux上有功能强大的tar命令，tar最初是为了制作磁带备份（tape archive）而设计的，它的作用是把文件和目录备份到磁带中，然后从磁带中提取或恢复文件。现在我们可以使用tar来备份数据到任何存储介质上。它是文件级备份，不必考虑底层文件系统类别，并且支持增量备份。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux tar命令高级用法——备份数据">
+<meta property="og:url" content="http://yoursite.com/2015/01/02/Linux-tar%E5%91%BD%E4%BB%A4%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95%E2%80%94%E2%80%94%E5%A4%87%E4%BB%BD%E6%95%B0%E6%8D%AE/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="Linux上有功能强大的tar命令，tar最初是为了制作磁带备份（tape archive）而设计的，它的作用是把文件和目录备份到磁带中，然后从磁带中提取或恢复文件。现在我们可以使用tar来备份数据到任何存储介质上。它是文件级备份，不必考虑底层文件系统类别，并且支持增量备份。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2015-01-02T02:19:18.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.949Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="tar">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2015/01/02/Linux-tar%E5%91%BD%E4%BB%A4%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95%E2%80%94%E2%80%94%E5%A4%87%E4%BB%BD%E6%95%B0%E6%8D%AE/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Linux tar命令高级用法——备份数据 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/01/02/Linux-tar%E5%91%BD%E4%BB%A4%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95%E2%80%94%E2%80%94%E5%A4%87%E4%BB%BD%E6%95%B0%E6%8D%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux tar命令高级用法——备份数据
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2015-01-02 10:19:18" itemprop="dateCreated datePublished" datetime="2015-01-02T10:19:18+08:00">2015-01-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4-OPS/" itemprop="url" rel="index"><span itemprop="name">系统运维-OPS</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Linux上有功能强大的tar命令，tar最初是为了制作磁带备份（tape archive）而设计的，它的作用是把文件和目录备份到磁带中，然后从磁带中提取或恢复文件。现在我们可以使用tar来备份数据到任何存储介质上。它是文件级备份，不必考虑底层文件系统类别，并且支持增量备份。<br><span id="more"></span></p>
+<h2 id="1-部分常用选项"><a href="#1-部分常用选项" class="headerlink" title="1.部分常用选项"></a>1.部分常用选项</h2><ul>
+<li>-z, —gzip：使用gzip工具（解）压缩，后缀一般为.gz</li>
+<li>-c, —create：tar打包，后缀一般为.tar</li>
+<li>-f, —file=：后面立刻接打包或压缩后得到的文件名</li>
+<li>-x, —extract：解包命令，与-c对应</li>
+<li><p>-p：保留备份数据的原本权限和属性</p>
+</li>
+<li><p>-g：后接增量备份的快照文件</p>
+</li>
+<li>-C：指定解压缩的目录</li>
+<li>—exclude：排除不打包的目录或文件，支持正则匹配</li>
+</ul>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><ul>
+<li>-X, —exclude-from：在一个文件中列出要排除的目录或文件（在—exclude=较多时使用）</li>
+<li>-t, —list：列出备份档案中的文件列表，不与-c、-x同时出现</li>
+<li>-j, —bzip2：使用bzip2工具（解）压缩，后缀一般为.bz2</li>
+<li>-P：保留绝对路径，解压时同样会自动解压到绝对路径下</li>
+<li>-v：（解）压缩过程显示文件处理过程，常用但不建议对大型文件使用</li>
+</ul>
+<h2 id="2-增量备份（网站）数据"><a href="#2-增量备份（网站）数据" class="headerlink" title="2.增量备份（网站）数据"></a>2.增量备份（网站）数据</h2><p>许多系统（应用或网站）每天都有静态文件产生，对于一些比较重要的静态文件如果有进行定期备份的需求，就可以通过tar打包压缩备份到指定的地方，特别是对一些总文件比较大比较多的情况，还可以利用-g选项来做增量备份。</p>
+<p>备份的目录最好使用相对路径，也就是进入到需要备份的根目录下</p>
+<p>具体示例方法如下。<br>备份当前目录下的所有文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -g /tmp/snapshot_data.snap -zcpf /tmp/data01.tar.gz .</span><br></pre></td></tr></table></figure><br>在需要恢复的目录下解压恢复<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -zxpf /tmp/data01.tar.gz -C .</span><br></pre></td></tr></table></figure><br>-g选项可以理解备份时给目录文件做一个快照，记录权限和属性等信息，第一次备份时/tmp/snapshot_data.snap不存在，会新建一个并做完全备份。当目录下的文件有修改后，再次执行第一条备份命令（记得修改后面的档案文件名），会自动根据-g指定的快照文件，增量备份修改过的文件，包括权限和属性，没有动过的文件不会重复备份。</p>
+<p>另外需要注意上面的恢复，是“保留恢复”，即存在相同文件名的文件会被覆盖，而原目录下已存在（但备份档案里没有）的，会依然保留。所以如果你想完全恢复到与备份文件一模一样，需要清空原目录。如果有增量备份档案，则还需要使用同样的方式分别解压这些档案，而且要注意顺序。</p>
+<p>下面演示一个比较综合的例子，要求：</p>
+<ul>
+<li>备份/tmp/data目录，但cache目录以及临时文件排除在外</li>
+<li>由于目录比较大（&gt;4G），所以全备时分割备份的档案（如每个备份档案文件最大1G）</li>
+<li>保留所有文件的权限和属性，如用户组和读写权限<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/data</span><br></pre></td></tr></table></figure>
+做一次完全备份<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rm -f /tmp/snapshot_data.snap</span><br><span class="line">tar -g /tmp/snapshot_data.snap -zcpf - --exclude=./cache ./ | split -b 1024M - /tmp/bak_data$(date -I).tar.gz_</span><br></pre></td></tr></table></figure>
+分割后文件名后会依次加上aa,ab,ac,…，上面最终的备份归档会保存成<br>bak<em>data2014-12-07.tar.gz_aa<br>bak_data2014-12-07.tar.gz_ab<br>bak_data2014-12-07.tar.gz_ac<br>…<br>增量备份<br>可以是与完全备份一模一样的命令，但需要注意的是假如你一天备份多次，可能导致档案文件名重复，那么就会导致<br>备份实现，因为split依然会从aa,ab开始命名，如果一天的文件产生（修改）量不是特别大，那么建议增量部分不<br>分割处理了：（ 一定要分割的话，文件名加入更细致的时间如$(date +%Y-%m-%d</em>%H) ）<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -g /tmp/snapshot_data.snap -zcpf /tmp/bak_data2014-12-07.tar.gz --exclude=./cache ./</span><br></pre></td></tr></table></figure>
+第二天增备<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -g /tmp/snapshot_data.snap -zcpf /tmp/bak_data2014-12-08.tar.gz --exclude=./cache ./</span><br></pre></td></tr></table></figure>
+恢复过程<br>恢复完全备份的档案文件<br>可以选择是否先清空/tmp/data/目录<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /tmp/bak_data2014-12-07.tar.gz_* | tar -zxpf - -C /tmp/data/</span><br></pre></td></tr></table></figure>
+恢复增量备份的档案文件<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ tar –zxpf /tmp/bak_data2014-12-07.tar.gz -C /tmp/data/</span><br><span class="line">$ tar –zxpf /tmp/bak_data2014-12-08.tar.gz -C /tmp/data/</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+一定要保证是按时间顺序恢复的，像下面文件名规则也可以使用上面通配符的形式<br>如果需要定期备份，如每周一次全备，每天一次增量备份，则可以结合crontab实现。</li>
+</ul>
+<h2 id="3-备份文件系统"><a href="#3-备份文件系统" class="headerlink" title="3.备份文件系统"></a>3.备份文件系统</h2><p>备份文件系统方法有很多，例如cpio, rsync, dump, tar，这里演示一个通过tar备份整个Linux系统的例子，整个备份与恢复过程与上面类似。</p>
+<p>首先Linux（这里是CentOS）有一部分目录是没必要备份的，如/proc、/lost+found、/sys、/mnt、/media、/dev、/proc、/tmp，如果是备份到磁带/dev/st0则不必关心那么多，因为我这里是备份到本地/backup目录，所以也需要排除，还有其它一些NFS或者网络存储挂载的目录。<br>创建排除列表文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">vi /backup/backup_tar_exclude.list</span><br><span class="line">/backup</span><br><span class="line">/proc</span><br><span class="line">/lost+found</span><br><span class="line">/sys</span><br><span class="line">/mnt</span><br><span class="line">/media</span><br><span class="line">/dev</span><br><span class="line">/tmp</span><br><span class="line">$ tar -zcpf /backup/backup_full.tar.gz -g /backup/tar_snapshot.snap --exclude-from=/backup/tar_exclude.list /</span><br></pre></td></tr></table></figure></p>
+<h2 id="4-注意"><a href="#4-注意" class="headerlink" title="4.注意"></a>4.注意</h2><p>使用tar无论是备份数据还是文件系统，需要考虑是在原系统上恢复还是另一个新的系统上恢复。</p>
+<ul>
+<li>tar备份极度依赖于文件的atime属性，</li>
+<li>文件所属用户是根据用户ID来确定的，异机恢复需要考虑相同用户拥有相同USERID</li>
+<li>备份和恢复的过程尽量不要运行其他进程，可能会导致数据不一致</li>
+<li>软硬连接文件可以正常恢复</li>
+</ul>
+<p>如果还不明白<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">tar 测试</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#初始化测试压缩用文件</span></span><br><span class="line"><span class="comment">#删除snap文件</span></span><br><span class="line">rm /tmp/test.snap</span><br><span class="line"><span class="comment">#删除测试文件夹</span></span><br><span class="line">rm ./<span class="built_in">test</span> -fr</span><br><span class="line"><span class="comment">#删除压缩文件</span></span><br><span class="line">rm test.tar.gz</span><br><span class="line"><span class="comment">#建立新的测试压缩文件夹</span></span><br><span class="line">mkdir ./<span class="built_in">test</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;test&quot;</span> |tee ./<span class="built_in">test</span>/a|tee ./<span class="built_in">test</span>/b|tee ./<span class="built_in">test</span>/c</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#普通测试压缩文件</span></span><br><span class="line">tar -zcvpf ./test.tar.gz ./<span class="built_in">test</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#解压普通测试压缩包</span></span><br><span class="line">mkdir test2</span><br><span class="line">tar -zxvpf ./test.tar.gz -C ./test2</span><br><span class="line">ll ./test2/</span><br><span class="line">ll ./test2/<span class="built_in">test</span></span><br><span class="line"><span class="comment">#不带C解压</span></span><br><span class="line"><span class="built_in">cd</span> ./test2</span><br><span class="line">tar -zxvpf ../test.tar.gz  <span class="comment">#直接覆盖原文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#增量备份</span></span><br><span class="line">rm test2 -fr</span><br><span class="line">tar -g /tmp/test.snap -zcvpf ./test.tar.gz ./<span class="built_in">test</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;test2&quot;</span> | tee ./<span class="built_in">test</span>/d</span><br><span class="line">tar -g /tmp/test.snap -zcvpf ./test.tar.gz ./<span class="built_in">test</span></span><br></pre></td></tr></table></figure></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/tar/" rel="tag"># tar</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2015/01/02/CDN-%E9%80%89%E5%9E%8B%E4%B8%8E%E8%AF%84%E4%BC%B0/" rel="prev" title="CDN 选型与评估">
+      <i class="fa fa-chevron-left"></i> CDN 选型与评估
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2015/01/03/Ansible-inventory%E5%86%85%E7%BD%AE%E7%B1%BB%E6%96%B9%E6%B3%95/" rel="next" title="Ansible inventory内置类方法">
+      Ansible inventory内置类方法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E9%83%A8%E5%88%86%E5%B8%B8%E7%94%A8%E9%80%89%E9%A1%B9"><span class="nav-number">1.</span> <span class="nav-text">1.部分常用选项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">1.1.</span> <span class="nav-text">其他</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%A2%9E%E9%87%8F%E5%A4%87%E4%BB%BD%EF%BC%88%E7%BD%91%E7%AB%99%EF%BC%89%E6%95%B0%E6%8D%AE"><span class="nav-number">2.</span> <span class="nav-text">2.增量备份（网站）数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%A4%87%E4%BB%BD%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-number">3.</span> <span class="nav-text">3.备份文件系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%B3%A8%E6%84%8F"><span class="nav-number">4.</span> <span class="nav-text">4.注意</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta property="og:type" content="article">
+<meta property="og:title" content="高性能Mysql-创建高性能的索引">
+<meta property="og:url" content="http://yoursite.com/2014/12/09/%E9%AB%98%E6%80%A7%E8%83%BDMysql-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:locale">
+<meta property="article:published_time" content="2014-12-09T13:33:07.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.956Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="mysql">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="mysql优化">
+<meta property="article:tag" content="索引">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2014/12/09/%E9%AB%98%E6%80%A7%E8%83%BDMysql-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>高性能Mysql-创建高性能的索引 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2014/12/09/%E9%AB%98%E6%80%A7%E8%83%BDMysql-%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          高性能Mysql-创建高性能的索引
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2014-12-09 21:33:07" itemprop="dateCreated datePublished" datetime="2014-12-09T21:33:07+08:00">2014-12-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MYSQL/" itemprop="url" rel="index"><span itemprop="name">MYSQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id=""><a href="#" class="headerlink" title=""></a><span id="more"></span></h2><h1 id="创建高性能的索引"><a href="#创建高性能的索引" class="headerlink" title="创建高性能的索引"></a>创建高性能的索引</h1><p>索引，再mysql中也叫做 键 key,是存储引擎用于快速找到纪录的一种数据结构。<br>索引对于良好的性能非常关键。尤其是当表中的数据量越来越大，索引对性能的影响愈发重要。<br>当数据量增大，性能会急剧下降。</p>
+<h2 id="1-索引基础"><a href="#1-索引基础" class="headerlink" title="1. 索引基础"></a>1. 索引基础</h2><p>在mysql中，存储引擎用类似的方法使用索引，其先在索引中找到对应值，然后根据匹配的索引纪录找到对应的数据行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT first_name FROM sakila.actor WHERE actor_id = 5;</span><br></pre></td></tr></table></figure>
+<p>如果在actor_id列上建有索引，则Mysql将使用该索引找到actor_id为5的行，也就是说，先在索引上按值进行查找，然后返回所有包含该值的的数据行。</p>
+<p>索引可以包含一个或多个列的值。如果索引包含多个列，那么列的顺序也十分重要，因为mysql只能高校地使用索引最左前缀列。创建一个包含两个列地索引，和创建只包含一列地索引是大不相同地。</p>
+<h3 id="1-1-索引的类型"><a href="#1-1-索引的类型" class="headerlink" title="1.1 索引的类型"></a>1.1 索引的类型</h3><hr>
+<h3 id="B-Tree索引"><a href="#B-Tree索引" class="headerlink" title="B-Tree索引"></a>B-Tree索引</h3><p>B-Tree索引能够加快访问数据的速度，因为存储引擎不再需要进行全表扫描来获取需要的数据，取而代之的是从索引的根节点开始进行搜索。<br>其是顺序组织的<br>可以使用btree索引的查询类型。全键值，键值范围或键前缀查找。<br>全值匹配：指的是和索引中的素有列进行匹配<br>匹配列前缀：匹配某一列值得开头部分。最好也是第一列<br>匹配最左前缀：只使用索引的第一列<br>匹配范围值：查找A~B范围之间。第一列<br>精确匹配某一列并范围匹配另外一列：第一列全值匹配，第二列范围匹配<br>至访问索引的查询：只访问索引的查询。须后续优化</p>
+<p>索引可以用于查询中的ORDEY BY操作</p>
+<p>限制：<br>不是按照索引最左列开始的<br>不能跳过索引的列<br>查询中有某列的范围查询，则右边所有列无法使用索引优化</p>
+<hr>
+<h3 id="哈希索引"><a href="#哈希索引" class="headerlink" title="哈希索引"></a>哈希索引</h3><p>哈希索引是基于哈希表实现。只有精确匹配索引所有列的查询才有效。对于每一行数据，存储引擎都会对所有的索引列计算一个哈希码。</p>
+<p>限制：哈希索引只包含哈希值和行指针，不存储字段值。<br>不按照索引的存储，所以无法用于排序<br>哈希索引也不支持部分索引列匹配查找<br>哈希索引只支持等值比较查询，包括 = IN() &lt;=&gt;<br>不支持范围查询<br>访问哈希索引的数据非常快，除非有很多哈希冲突<br>避免哈希冲突过多</p>
+<p>如果使用场合使用哈希索引，性能提升将非常显著<br>比如要关联很多查找表，哈希索引就非常适合查找表的需求。</p>
+<p>NDB集群引擎是支持唯一哈希索引。</p>
+<p>innodb有一个特殊功能叫做自适应哈希索引：基于Btree之上建立哈希索引</p>
+<h2 id="这是完全自动的，内部的行为，用户无法控制或者配置，不过可以关闭。"><a href="#这是完全自动的，内部的行为，用户无法控制或者配置，不过可以关闭。" class="headerlink" title="这是完全自动的，内部的行为，用户无法控制或者配置，不过可以关闭。"></a>这是完全自动的，内部的行为，用户无法控制或者配置，不过可以关闭。</h2><h3 id="空间数据索引-R-Tree"><a href="#空间数据索引-R-Tree" class="headerlink" title="空间数据索引(R-Tree)"></a>空间数据索引(R-Tree)</h3><p>可用作地理数据存储。空间会从所有唯独来索引数据。<br>MYSQL支持交叉。<br>使用POSTGRESQL的postGIS</p>
+<hr>
+<h3 id="全文索引"><a href="#全文索引" class="headerlink" title="全文索引"></a>全文索引</h3><p>这种索引更类似与搜索引擎，搜索文中关键词。</p>
+<h2 id="5-2-索引的优点"><a href="#5-2-索引的优点" class="headerlink" title="5.2 索引的优点"></a>5.2 索引的优点</h2><ul>
+<li>索引大大减少了服务器需要扫描的数据量</li>
+<li>索引可以帮助服务器避免排序和临时表。</li>
+<li>索引可以随机I/O变为顺序I/O</li>
+</ul>
+<h2 id="5-3-噶破性能的索引策略"><a href="#5-3-噶破性能的索引策略" class="headerlink" title="5.3 噶破性能的索引策略"></a>5.3 噶破性能的索引策略</h2><h3 id="5-3-1-独立的列"><a href="#5-3-1-独立的列" class="headerlink" title="5.3.1 独立的列"></a>5.3.1 独立的列</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT actor_id FROM sakila.actor WHERE actor_id + 1 =5;</span><br></pre></td></tr></table></figure>
+<p>这条SQL不能使用索引，尽量把索引列单独放在比较符号的一端</p>
+<h3 id="5-3-2-前缀索引和索引选择性"><a href="#5-3-2-前缀索引和索引选择性" class="headerlink" title="5.3.2 前缀索引和索引选择性"></a>5.3.2 前缀索引和索引选择性</h3><p>过长的字符咧作为索引，会让索引变得大且慢。根据你的数据条数，选择一定长度作为索引</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT COUNT(*) AS cnt ,LEFT(city, 4 ) AS pref ...(order by/<span class="built_in">limit</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="5-3-4-多列索引"><a href="#5-3-4-多列索引" class="headerlink" title="5.3.4 多列索引"></a>5.3.4 多列索引</h3><p>不要给每个WHERE 的条件家索引，这只是个最垃圾的索引的加法。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT film_id, actor_id FROM sakil.film.actor WHERE acotr_id=1 OR file_id=1</span><br></pre></td></tr></table></figure><br>这种写法效率较低</p>
+<p>使用合并<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; EXPLAIN SELECT film_id, acotr_id FROM sakila.film_acotr WHERE actor_id=1 OR film_id=1\G</span><br></pre></td></tr></table></figure><br>这种方法有三种类似方法。<br>OR条件联合(union)<br>and条件的相交(intersection)<br>组合前两种情况的联合及相交</p>
+<p>索引合并策略有时候是一种好的优化的结果，但是更多时候说明表上索引建德很糟糕。</p>
+<ul>
+<li>多个相交时，包含多列索引，而不是独立的单列索引</li>
+<li>多个OR操作时，会消耗大量的CPU和内存</li>
+</ul>
+<h3 id="5-3-4-选择合适的索引列顺序"><a href="#5-3-4-选择合适的索引列顺序" class="headerlink" title="5.3.4 选择合适的索引列顺序"></a>5.3.4 选择合适的索引列顺序</h3><p>在一个多列B-TREE索引中，索引列的顺序意味着索引首先按照最左列进行排序。其次是第二列。所以索引可以按照升序或者是降序进行扫描（ORDER BY /GROUP BY\DISTINCT）</p>
+<p>当不考虑排序和分组时，将选择性最高的列（少、快的）放在前边是最好的，这时候索引的作用在于优化WHERE条件的查找。</p>
+<h3 id="5-3-5-聚簇索引"><a href="#5-3-5-聚簇索引" class="headerlink" title="5.3.5 聚簇索引"></a>5.3.5 聚簇索引</h3><p>这种索引并不是一种专门的索引形式，而是一种存储结构。<br>INNODB使用。</p>
+<p>优点</p>
+<ul>
+<li>可以把相关数据保存在一起。可以根据用户ID来聚集数据，少量磁盘IO就能读取某个用户的全部邮件。如果没有使用聚簇索引，可能每列都导致一次磁盘IO</li>
+<li>数据访问更快，把索引和数据保存在同一个BTREE中。</li>
+<li>使用覆盖索引扫描的查询可以直接使用页节点中的主键值</li>
+</ul>
+<p>缺点：<br>仅适用于传统硬盘<br>插入速度严重依赖于插入顺序<br>更新聚簇索引咧的代价很高，因为会强制INNODB将每个被更新的行移动到新的位置<br>插入会导致页分裂<br>可能导致全表扫描变慢，尤其是页分裂导致页不连续<br>二级索引可能回避想想的要更大，因为二级索引的叶子节点包含了引用行的主键列<br>二级索引访问需要两次索引查找。不同的物理存储位置。但是INNODB可以通过自适应哈希索引所减少这样重复的工作</p>
+<h3 id="5-3-6-覆盖索引"><a href="#5-3-6-覆盖索引" class="headerlink" title="5.3.6 覆盖索引"></a>5.3.6 覆盖索引</h3><p>根据WHERE条件来创造合适的索引，这只是索引优化的一个方面。<br>索引的叶子节点中已经包含要查询的数据的话，那么直接从索引取出，</p>
+<p>能极大的提高性能，无须回表</p>
+<ul>
+<li>索引条目远小于数据行大小，所以只读取索引，会降低数据访问量。降低IO.</li>
+<li>因为索引是按照列值顺序存储的,所以对于IO密集型的范围查询回避随机从磁盘读取每一行数据的I.O小得多。</li>
+<li>一些存储引擎如MYISAM在内存中只缓存索引，会导致严重性能问题</li>
+<li>INNODB二级索引在叶子节点中保存了行的主键值，所以如果二级主键能够覆盖查询，则可以避免对主键索引的二次查询</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"># mysql</a>
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/mysql%E4%BC%98%E5%8C%96/" rel="tag"># mysql优化</a>
+              <a href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag"># 索引</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2014/12/03/%E9%AB%98%E6%80%A7%E8%83%BDMysql-Schema%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%BC%98%E5%8C%96/" rel="prev" title="高性能Mysql Schema与数据类型优化">
+      <i class="fa fa-chevron-left"></i> 高性能Mysql Schema与数据类型优化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2015/01/02/Git%E5%88%86%E6%94%AF%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/" rel="next" title="Git分支最佳实践(Reproduce)">
+      Git分支最佳实践(Reproduce) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-number">1.</span> <span class="nav-text"></span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95"><span class="nav-number"></span> <span class="nav-text">创建高性能的索引</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%B4%A2%E5%BC%95%E5%9F%BA%E7%A1%80"><span class="nav-number">1.</span> <span class="nav-text">1. 索引基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E7%B4%A2%E5%BC%95%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 索引的类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#B-Tree%E7%B4%A2%E5%BC%95"><span class="nav-number">1.2.</span> <span class="nav-text">B-Tree索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%93%88%E5%B8%8C%E7%B4%A2%E5%BC%95"><span class="nav-number">1.3.</span> <span class="nav-text">哈希索引</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%99%E6%98%AF%E5%AE%8C%E5%85%A8%E8%87%AA%E5%8A%A8%E7%9A%84%EF%BC%8C%E5%86%85%E9%83%A8%E7%9A%84%E8%A1%8C%E4%B8%BA%EF%BC%8C%E7%94%A8%E6%88%B7%E6%97%A0%E6%B3%95%E6%8E%A7%E5%88%B6%E6%88%96%E8%80%85%E9%85%8D%E7%BD%AE%EF%BC%8C%E4%B8%8D%E8%BF%87%E5%8F%AF%E4%BB%A5%E5%85%B3%E9%97%AD%E3%80%82"><span class="nav-number">2.</span> <span class="nav-text">这是完全自动的，内部的行为，用户无法控制或者配置，不过可以关闭。</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E6%95%B0%E6%8D%AE%E7%B4%A2%E5%BC%95-R-Tree"><span class="nav-number">2.1.</span> <span class="nav-text">空间数据索引(R-Tree)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E6%96%87%E7%B4%A2%E5%BC%95"><span class="nav-number">2.2.</span> <span class="nav-text">全文索引</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BC%98%E7%82%B9"><span class="nav-number">3.</span> <span class="nav-text">5.2 索引的优点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3-%E5%99%B6%E7%A0%B4%E6%80%A7%E8%83%BD%E7%9A%84%E7%B4%A2%E5%BC%95%E7%AD%96%E7%95%A5"><span class="nav-number">4.</span> <span class="nav-text">5.3 噶破性能的索引策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-1-%E7%8B%AC%E7%AB%8B%E7%9A%84%E5%88%97"><span class="nav-number">4.1.</span> <span class="nav-text">5.3.1 独立的列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-2-%E5%89%8D%E7%BC%80%E7%B4%A2%E5%BC%95%E5%92%8C%E7%B4%A2%E5%BC%95%E9%80%89%E6%8B%A9%E6%80%A7"><span class="nav-number">4.2.</span> <span class="nav-text">5.3.2 前缀索引和索引选择性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-4-%E5%A4%9A%E5%88%97%E7%B4%A2%E5%BC%95"><span class="nav-number">4.3.</span> <span class="nav-text">5.3.4 多列索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-4-%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E7%B4%A2%E5%BC%95%E5%88%97%E9%A1%BA%E5%BA%8F"><span class="nav-number">4.4.</span> <span class="nav-text">5.3.4 选择合适的索引列顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-5-%E8%81%9A%E7%B0%87%E7%B4%A2%E5%BC%95"><span class="nav-number">4.5.</span> <span class="nav-text">5.3.5 聚簇索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-6-%E8%A6%86%E7%9B%96%E7%B4%A2%E5%BC%95"><span class="nav-number">4.6.</span> <span class="nav-text">5.3.6 覆盖索引</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

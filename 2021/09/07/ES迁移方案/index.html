@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="一、迁移方案使用 snapshot 进行存量迁移需求： 有hdfs集群 且大于1T的空间  拷贝 HDFS 集群配置文件:  hdfsip、hdfs 端口、hdfs配置文件根据需求修改 1scp -P&lt;36000&gt; -r &lt;HDFS 一台机器ip&gt;:&#x2F;usr&#x2F;local&#x2F;services&#x2F;hadoop-3.2.1&#x2F;etc&#x2F;hadoop&#x2F;*  &#x2F;data&#x2F;tmp&#x2F;hadoop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ES迁移方案">
+<meta property="og:url" content="http://yoursite.com/2021/09/07/ES%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="一、迁移方案使用 snapshot 进行存量迁移需求： 有hdfs集群 且大于1T的空间  拷贝 HDFS 集群配置文件:  hdfsip、hdfs 端口、hdfs配置文件根据需求修改 1scp -P&lt;36000&gt; -r &lt;HDFS 一台机器ip&gt;:&#x2F;usr&#x2F;local&#x2F;services&#x2F;hadoop-3.2.1&#x2F;etc&#x2F;hadoop&#x2F;*  &#x2F;data&#x2F;tmp&#x2F;hadoop">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-09-07T15:37:10.000Z">
+<meta property="article:modified_time" content="2021-09-07T15:37:10.259Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="es">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/09/07/ES%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>ES迁移方案 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/ES%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ES迁移方案
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-09-07 23:37:10" itemprop="dateCreated datePublished" datetime="2021-09-07T23:37:10+08:00">2021-09-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="一、迁移方案"><a href="#一、迁移方案" class="headerlink" title="一、迁移方案"></a>一、迁移方案</h2><h3 id="使用-snapshot-进行存量迁移"><a href="#使用-snapshot-进行存量迁移" class="headerlink" title="使用 snapshot 进行存量迁移"></a>使用 snapshot 进行存量迁移</h3><p>需求：</p>
+<p>有hdfs集群 且大于1T的空间</p>
+<ol>
+<li>拷贝 HDFS 集群配置文件:</li>
+</ol>
+<p>hdfsip、hdfs 端口、hdfs配置文件根据需求修改</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp -P&lt;36000&gt; -r &lt;HDFS 一台机器ip&gt;:/usr/local/services/hadoop-3.2.1/etc/hadoop/*  /data/tmp/hadoop/</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建共享 HDFS 仓库</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">curl -XPUT &quot;&lt;新es ip&gt;:9200/_snapshot/my_backup&quot; -H &#x27;Content-Type: application/json&#x27; -d &#x27;</span><br><span class="line">&#123;</span><br><span class="line">  &quot;type&quot;: &quot;hdfs&quot;,</span><br><span class="line">  &quot;settings&quot;: &#123;</span><br><span class="line">    &quot;uri&quot;: &quot;hdfs://&lt;hdfs IP&gt;:9000&quot;,</span><br><span class="line">    &quot;path&quot;: &quot;/es_backup/data&quot;,</span><br><span class="line">    &quot;conf_location&quot;: &quot;/itcast/hadoop-2.2.0/etc/hadoop/hdfs-site.xml&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125; &#x27;</span><br></pre></td></tr></table></figure>
+<p>重新拉起ES集群</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pid=$(ps -ef | grep -v grep | grep elasticsearch | awk &#x27;&#123;print $2&#125;&#x27;) &amp;&amp; [ -n &quot;$pid&quot; ] &amp;&amp; kill -15 $pid</span><br></pre></td></tr></table></figure>
+<ol>
+<li>备份数据到 HDFS 仓库：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">curl -XPUT &quot;localhost:9200/_snapshot/my_backup/snapshot_1?wait_for_completion=true&quot; -H &#x27;Content-Type: application/json&#x27; -d &#x27;</span><br><span class="line"> &#123;</span><br><span class="line">   &quot;ignore_unavailable&quot;:true,</span><br><span class="line">  &quot;include_global_state&quot;:false</span><br><span class="line"> &#125; &#x27;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>检查备份，返回结果中的state字段为SUCCESS则说明快照已经备份成功：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -XGET &#x27;localhost:9201/_snapshot/my_backup/snapshot_1?pretty&#x27;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>登录目标 ES 集群，拷贝 HDFS 配置</li>
+</ol>
+<p>scp -P36000 -r HDFS 一台机器 ip:/usr/local/services/hadoop-3.2.1/etc/hadoop/*  /itcast/hadoop-2.2.0/etc/hadoop/ll itcast/hadoop-2.2.0/etc/hadoop/</p>
+<ol>
+<li>登录目标集群，配置和源 ES 集群同一个 HDFS 仓库，如果实例不是 9200 需换对应实例端口</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">curl -XPUT &quot;localhost:9200/_snapshot/my_backup&quot; -H &#x27;Content-Type: application/json&#x27; -d </span><br><span class="line">&#x27;&#123;</span><br><span class="line">  &quot;type&quot;: &quot;hdfs&quot;,</span><br><span class="line">  &quot;settings&quot;: &#123;</span><br><span class="line">    &quot;uri&quot;: &quot;hdfs://&lt;hdfs IP&gt;:9000&quot;,</span><br><span class="line">    &quot;path&quot;: &quot;/es_backup/data&quot;,</span><br><span class="line">    &quot;conf_location&quot;: &quot;/itcast/hadoop-2.2.0/etc/hadoop/hdfs-site.xml&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125; &#x27;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>重启目标 ES 集群进程</li>
+<li>登录目标集群，灌输数据到目标 ES 集群：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -XPOST &#x27;http://&lt;新ES IP&gt;:9200/_snapshot/my_backup/snapshot_1/_restore?wait_for_completion=true&#x27;</span><br></pre></td></tr></table></figure>
+<p>查询更新状态</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -XPOST &#x27;http://&lt;新ES IP&gt;:9200/_snapshot/my_backup/snapshot_1/_status</span><br></pre></td></tr></table></figure>
+<h3 id="少量增量数据使用-elasticdump进行增量迁移"><a href="#少量增量数据使用-elasticdump进行增量迁移" class="headerlink" title="少量增量数据使用 elasticdump进行增量迁移"></a>少量增量数据使用 elasticdump进行增量迁移</h3><p>需求：</p>
+<p>提前准备镜像并导入到用户环境</p>
+<p>docker pull elasticdump/elasticsearch-dump</p>
+<p>docker save -o elasticsearch-dump.tar.gz elasticdump/elasticsearch-dump</p>
+<p>docker load -i elasticsearch-dump.tar.gz</p>
+<p>全部索引同步</p>
+<p>同步mapping</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker run --rm -ti elasticdump/elasticsearch-dump \</span><br><span class="line">  --input=http://&lt;旧es ip&gt;:9200 \</span><br><span class="line">  --output=http://&lt;新es ip&gt; \</span><br><span class="line">  --type=mapping</span><br></pre></td></tr></table></figure>
+<p>单个索引同步</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># Copy an index from production to staging with analyzer and mapping: </span><br><span class="line">elasticdump  --input=http://&lt;旧es ip&gt;:9200/&lt;index_name&gt;  --output=http://&lt;新es ip&gt;:9200/my_index   --type=analyzer </span><br><span class="line"></span><br><span class="line">elasticdump  --input=http://&lt;旧es ip&gt;:9200/&lt;index_name&gt;  --output=http://&lt;新es ip&gt;:9200/my_index --type=mapping </span><br><span class="line"></span><br><span class="line">elasticdump  --input=http://&lt;旧es ip&gt;:9200/&lt;index_name&gt;  --output=http://&lt;新es ip&gt;:9200/my_index --type=data</span><br></pre></td></tr></table></figure>
+<h3 id="大量增量数据实时同步es方案"><a href="#大量增量数据实时同步es方案" class="headerlink" title="大量增量数据实时同步es方案"></a>大量增量数据实时同步es方案</h3><p>需求</p>
+<p>准备与es同版本的logstash</p>
+<p>logstash 支持从一个 ES 集群中读取数据然后写入到另一个 ES 集群，因此可以使用 logstash 进行数据迁移，使用 logstash 进行迁移前，需要注意以下几点：</p>
+<p>需要在和ES 集群相同的 VPC 下创建 CVM，部署 logstash，同时保证该 CVM 能够访问到源 ES 集群。</p>
+<p>用于部署 logstash 的 CVM 最好选择比较高的配置，例如 CPU 为16核，内存为32GB。</p>
+<p>logstash 应该和目标 ES 集群的主版本号相同，例如目标 ES 集群为6.8.2版本，则 logstash 也需要使用6.8版本。</p>
+<p>需要特别注意索引 type 的问题，因为 ES 的不同版本对索引 type 的约束不同，跨大版本迁移 ES 集群时可能出现因为索引的 type 而导致写入目标集群失败等的问题。具体可参考 logstash-output-elasticsearch 插件中对 document_type 参数的说明。</p>
+<p>一个常用的使用 logstash 进行跨集群数据迁移的配置文件如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">input &#123;</span><br><span class="line">   elasticsearch &#123;</span><br><span class="line">       hosts =&gt; &quot;1.1.1.1:9200&quot;</span><br><span class="line">       index =&gt; &quot;*&quot;</span><br><span class="line">       docinfo =&gt; true</span><br><span class="line">       size =&gt; 5000</span><br><span class="line">       scroll =&gt; &quot;5m&quot;</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br><span class="line">output &#123;</span><br><span class="line">   elasticsearch &#123;</span><br><span class="line">       hosts =&gt; [&quot;http://2.2.2.2:9200&quot;]</span><br><span class="line">       user =&gt; &quot;elastic&quot;</span><br><span class="line">       password =&gt; &quot;your_password&quot;</span><br><span class="line">       index =&gt; &quot;%&#123;[@metadata][_index]&#125;&quot;</span><br><span class="line">       document_type =&gt; &quot;%&#123;[@metadata][_type]&#125;&quot;</span><br><span class="line">       document_id =&gt; &quot;%&#123;[@metadata][_id]&#125;&quot;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上述配置文件将源 ES 集群的所有索引同步到目标集群中，同时也可以设置只同步指定的索引</p>
+<p>备注：</p>
+<p>logstash 多次使用后，需要清理游标，否则会导致数据写入不进去。</p>
+<p>清理sincedb_path</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">![](https://docimg10.docs.qq.com/image/I00JlBYKqhjSH09icv2o5w.png?w=1280&amp;h=337.54569190600523)</span><br></pre></td></tr></table></figure>
+<p>sincedb_path ：表示文件读取进度的记录，每行表示一个文件，每行有两个数字</p>
+<p>清理logstash/data/ 目录下隐藏文件 .lock</p>
+<p>确认新es集群存在以下psg索引及最新日期</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">psg-ids_block </span><br><span class="line">psg-external_block_api</span><br><span class="line">psg-flow_sum</span><br><span class="line">psg-flow_log</span><br><span class="line">psg-http_log</span><br><span class="line">psg-ip_log</span><br><span class="line">psg-dns_log</span><br><span class="line">psg-*</span><br><span class="line">threat_alarm_repress_raw_log</span><br><span class="line">threat_block_repress_log</span><br></pre></td></tr></table></figure>
+<h2 id="二、切换psg的es集群配置"><a href="#二、切换psg的es集群配置" class="headerlink" title="二、切换psg的es集群配置"></a>二、切换psg的es集群配置</h2><p>更新iplist，重新出包渲染</p>
+<h2 id="三、es相关命令"><a href="#三、es相关命令" class="headerlink" title="三、es相关命令"></a>三、es相关命令</h2><p>查询集群状态</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /_cat/health?v</span><br></pre></td></tr></table></figure>
+<p>查询集群节点</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /_cat/nodes</span><br></pre></td></tr></table></figure>
+<p>查询ES集群机器详细 信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /search/clusters|python -m json.tool</span><br></pre></td></tr></table></figure>
+<p>查询节点存储相关信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /_cat/allocation?v</span><br></pre></td></tr></table></figure>
+<p>查询集群分片</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /_cat/shards?v</span><br></pre></td></tr></table></figure>
+<p>查询doc条数</p>
+<p><code>curl -s 10.29.1.6:9200/_cat/shards?v|awk &#39;&#123;count=$5+count&#125;END&#123;print count&#125;&#39;</code></p>
+<p>查询索引数量</p>
+<p><code>curl -s 10.29.1.6:9200/_cat/indices|wc -l</code></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/es/" rel="tag"># es</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/07/k8s-1-1-%E5%8D%B8%E8%BD%BD%E6%9C%AC%E5%9C%B0k8s/" rel="prev" title="k8s-1.1 卸载本地k8s">
+      <i class="fa fa-chevron-left"></i> k8s-1.1 卸载本地k8s
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/09/07/ES%E8%8A%82%E7%82%B9%E8%A7%84%E5%88%92/" rel="next" title="ES节点规划">
+      ES节点规划 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88"><span class="nav-number">1.</span> <span class="nav-text">一、迁移方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-snapshot-%E8%BF%9B%E8%A1%8C%E5%AD%98%E9%87%8F%E8%BF%81%E7%A7%BB"><span class="nav-number">1.1.</span> <span class="nav-text">使用 snapshot 进行存量迁移</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%91%E9%87%8F%E5%A2%9E%E9%87%8F%E6%95%B0%E6%8D%AE%E4%BD%BF%E7%94%A8-elasticdump%E8%BF%9B%E8%A1%8C%E5%A2%9E%E9%87%8F%E8%BF%81%E7%A7%BB"><span class="nav-number">1.2.</span> <span class="nav-text">少量增量数据使用 elasticdump进行增量迁移</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E9%87%8F%E5%A2%9E%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%90%8C%E6%AD%A5es%E6%96%B9%E6%A1%88"><span class="nav-number">1.3.</span> <span class="nav-text">大量增量数据实时同步es方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%88%87%E6%8D%A2psg%E7%9A%84es%E9%9B%86%E7%BE%A4%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">二、切换psg的es集群配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81es%E7%9B%B8%E5%85%B3%E5%91%BD%E4%BB%A4"><span class="nav-number">3.</span> <span class="nav-text">三、es相关命令</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

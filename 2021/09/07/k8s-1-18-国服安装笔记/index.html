@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1 系统准备12[root@k8s1 ~]# cat &#x2F;etc&#x2F;centos-releaseCentOS Linux release 7.8.2003 (Core) 2 配置固定ip1234567891011121314151617181920[root@k8s1 ~]# cat &#x2F;etc&#x2F;sysconfig&#x2F;network-scripts&#x2F;ifcfg-ens33TYPE&#x3D;EthernetPROX">
+<meta property="og:type" content="article">
+<meta property="og:title" content="k8s 1.18 国服安装笔记">
+<meta property="og:url" content="http://yoursite.com/2021/09/07/k8s-1-18-%E5%9B%BD%E6%9C%8D%E5%AE%89%E8%A3%85%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="1 系统准备12[root@k8s1 ~]# cat &#x2F;etc&#x2F;centos-releaseCentOS Linux release 7.8.2003 (Core) 2 配置固定ip1234567891011121314151617181920[root@k8s1 ~]# cat &#x2F;etc&#x2F;sysconfig&#x2F;network-scripts&#x2F;ifcfg-ens33TYPE&#x3D;EthernetPROX">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/images/2021/09/07/a23d7f20-0587-46cc-a51d-59eed3dd37a0.png">
+<meta property="article:published_time" content="2021-09-07T15:21:19.000Z">
+<meta property="article:modified_time" content="2021-09-07T15:22:09.352Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="k8s">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/2021/09/07/a23d7f20-0587-46cc-a51d-59eed3dd37a0.png">
+
+<link rel="canonical" href="http://yoursite.com/2021/09/07/k8s-1-18-%E5%9B%BD%E6%9C%8D%E5%AE%89%E8%A3%85%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>k8s 1.18 国服安装笔记 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/k8s-1-18-%E5%9B%BD%E6%9C%8D%E5%AE%89%E8%A3%85%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          k8s 1.18 国服安装笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-09-07 23:21:19 / Modified: 23:22:09" itemprop="dateCreated datePublished" datetime="2021-09-07T23:21:19+08:00">2021-09-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%91%E5%8E%9F%E7%94%9F/" itemprop="url" rel="index"><span itemprop="name">云原生</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="1-系统准备"><a href="#1-系统准备" class="headerlink" title="1 系统准备"></a>1 系统准备</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat /etc/centos-release</span><br><span class="line">CentOS Linux release 7.8.2003 (Core)</span><br></pre></td></tr></table></figure>
+<h2 id="2-配置固定ip"><a href="#2-配置固定ip" class="headerlink" title="2 配置固定ip"></a>2 配置固定ip</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33</span><br><span class="line">TYPE=Ethernet</span><br><span class="line">PROXY_METHOD=none</span><br><span class="line">BROWSER_ONLY=no</span><br><span class="line">BOOTPROTO=static</span><br><span class="line">#BOOTPROTO=dhcp</span><br><span class="line">DEFROUTE=yes</span><br><span class="line">IPV4_FAILURE_FATAL=no</span><br><span class="line">IPV6INIT=yes</span><br><span class="line">IPV6_AUTOCONF=yes</span><br><span class="line">IPV6_DEFROUTE=yes</span><br><span class="line">IPV6_FAILURE_FATAL=no</span><br><span class="line">IPV6_ADDR_GEN_MODE=stable-privacy</span><br><span class="line">NAME=ens33</span><br><span class="line">UUID=2cb41960-5518-4366-8aa9-3b387ab22468</span><br><span class="line">DEVICE=ens33</span><br><span class="line">ONBOOT=yes</span><br><span class="line">IPADDR=192.168.232.201</span><br><span class="line">NETMASK=255.255.255.0</span><br><span class="line">GATEWAY=192.168.232.2</span><br></pre></td></tr></table></figure>
+<h2 id="3-添加阿里源"><a href="#3-添加阿里源" class="headerlink" title="3 添加阿里源"></a>3 添加阿里源</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# rm -rfv /etc/yum.repos.d/*</span><br><span class="line">[root@k8s1 ~]# curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure>
+<h2 id="4-配置主机名"><a href="#4-配置主机名" class="headerlink" title="4 配置主机名"></a>4 配置主机名</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat /etc/hosts</span><br><span class="line">127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4</span><br><span class="line">::1         localhost localhost.localdomain localhost6 localhost6.localdomain6</span><br><span class="line">192.168.232.201 k8s1.hank.im</span><br><span class="line">192.168.232.202 k8s2.hank.im</span><br></pre></td></tr></table></figure>
+<h2 id="5-关闭swap，注释swap分区"><a href="#5-关闭swap，注释swap分区" class="headerlink" title="5 关闭swap，注释swap分区"></a>5 关闭swap，注释swap分区</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# swapoff -a</span><br><span class="line">[root@k8s1 ~]# sed -i &#x27;/swap/d&#x27; /etc/fstab</span><br></pre></td></tr></table></figure>
+<h2 id="6-配置内核参数，将桥接的IPv4流量传递到iptables的链"><a href="#6-配置内核参数，将桥接的IPv4流量传递到iptables的链" class="headerlink" title="6 配置内核参数，将桥接的IPv4流量传递到iptables的链"></a>6 配置内核参数，将桥接的IPv4流量传递到iptables的链</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat &gt; /etc/sysctl.d/k8s.conf &lt;&lt;EOF</span><br><span class="line">net.bridge.bridge-nf-call-ip6tables = 1</span><br><span class="line">net.bridge.bridge-nf-call-iptables = 1</span><br><span class="line">EOF</span><br><span class="line">sysctl --system</span><br><span class="line">[root@k8s1 ~]# setenforce 0</span><br><span class="line">[root@k8s1 ~]# sed -i &#x27;s/SELINUX=enforcing/SELINUX=disabled/&#x27;  /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<h2 id="7-安装常用包"><a href="#7-安装常用包" class="headerlink" title="7 安装常用包"></a>7 安装常用包</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# yum install vim bash-completion net-tools gcc -y</span><br><span class="line">[root@k8s1 ~]# yum group install Development Tools -y</span><br></pre></td></tr></table></figure>
+<h2 id="7-5-插入一条-ulimit-修改"><a href="#7-5-插入一条-ulimit-修改" class="headerlink" title="7.5 插入一条 ulimit 修改"></a>7.5 插入一条 ulimit 修改</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># 重启后生效</span><br><span class="line">[root@k8s1 ~]# cat &gt;&gt; /etc/security/limits.conf &lt;&lt; EOF</span><br><span class="line">*             soft    nofile         204800</span><br><span class="line">*             hard    nofile         204800</span><br><span class="line">*             soft    nproc          204800</span><br><span class="line">*             hard    nproc          204800</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">[root@k8s1 ~]# cat &gt; /etc/security/limits.d/20-nproc.conf &lt;&lt; EOF</span><br><span class="line">*          soft    nproc     204800</span><br><span class="line">root       soft    nproc     unlimited</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 立即生效</span><br><span class="line">[root@k8s1 ~]# ulimit -SHn 204800</span><br><span class="line">[root@k8s1 ~]# ulimit -SHq 819200</span><br><span class="line">[root@k8s1 ~]# ulimit -SHu 204800</span><br><span class="line"></span><br><span class="line"># 查看</span><br><span class="line">[root@k8s2 ~]# ulimit -a </span><br><span class="line"></span><br><span class="line"># cat /proc/$PID/limits  如果看到Max open files 65535 65535 files 则说明配置已生效</span><br></pre></td></tr></table></figure>
+<h2 id="8-查看时间是否正确"><a href="#8-查看时间是否正确" class="headerlink" title="8 查看时间是否正确"></a>8 查看时间是否正确</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# yum install ntpdate -y</span><br><span class="line">[root@k8s1 ~]# ntpdate -u time1.cloud.tencent.com </span><br><span class="line">[root@k8s1 ~]# echo &quot;*/20 * * * * /usr/sbin/ntpdate -u time1.cloud.tencent.com  &gt;/dev/null &amp;&quot; &gt;&gt; /var/spool/cron/root</span><br><span class="line">16 Aug 08:48:33 ntpdate[109431]: step time server 114.118.7.161 offset 352572.538751 sec</span><br></pre></td></tr></table></figure>
+<h2 id="9-使用aliyun源安装docker-ce"><a href="#9-使用aliyun源安装docker-ce" class="headerlink" title="9 使用aliyun源安装docker-ce"></a>9 使用aliyun源安装docker-ce</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# yum install -y yum-utils device-mapper-persistent-data lvm2</span><br><span class="line">[root@k8s1 ~]# yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docke</span><br><span class="line">r-ce.repo</span><br><span class="line">[root@k8s1 ~]# yum -y install docker-ce</span><br><span class="line">[root@k8s1 ~]# mkdir -p /etc/docker</span><br><span class="line">[root@k8s1 ~]# cat /etc/docker/daemon.json</span><br><span class="line">&#123;</span><br><span class="line">  &quot;graph&quot;: &quot;/data/docker&quot;,</span><br><span class="line">  &quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;],</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://x9o4p9lt.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">[root@k8s1 ~]# systemctl daemon-reload</span><br><span class="line">[root@k8s1 ~]# systemctl restart docker</span><br><span class="line">[root@k8s1 ~]# systemctl enable docker</span><br><span class="line">[root@k8s1 ~]# systemctl stop firewalld</span><br><span class="line">[root@k8s1 ~]# systemctl disable firewalld</span><br></pre></td></tr></table></figure>
+<h2 id="10-装kubectl、kubelet、kubeadm"><a href="#10-装kubectl、kubelet、kubeadm" class="headerlink" title="10 装kubectl、kubelet、kubeadm"></a>10 装kubectl、kubelet、kubeadm</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo</span><br><span class="line">[kubernetes]</span><br><span class="line">name=Kubernetes</span><br><span class="line">baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">repo_gpgcheck=1</span><br><span class="line">gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg</span><br><span class="line">EOF</span><br><span class="line">[root@k8s1 ~]# yum install -y kubectl-1.18.6 kubelet-1.18.6 kubeadm-1.18.6</span><br><span class="line">[root@k8s1 ~]# systemctl enable kubelet</span><br></pre></td></tr></table></figure>
+<h2 id="11-初始化安装集群"><a href="#11-初始化安装集群" class="headerlink" title="11 初始化安装集群"></a>11 初始化安装集群</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># --apiserver-advertise-address 本机地址</span><br><span class="line">kubeadm init --kubernetes-version=1.18.0  --apiserver-advertise-address=192.168.232.201  --image-repository registry.aliyuncs.com/google_containers  </span><br><span class="line">  --service-cidr=192.168.0.0/16 --pod-network-cidr=192.169.0.0/16   # 互无联系</span><br><span class="line">...</span><br><span class="line">To start using your cluster, you need to run the following as a regular user:</span><br><span class="line"></span><br><span class="line">  mkdir -p $HOME/.kube</span><br><span class="line">  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">  sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br><span class="line"></span><br><span class="line">You should now deploy a pod network to the cluster.</span><br><span class="line">Run &quot;kubectl apply -f [podnetwork].yaml&quot; with one of the options listed at:</span><br><span class="line">  https://kubernetes.io/docs/concepts/cluster-administration/addons/</span><br><span class="line"></span><br><span class="line">Then you can join any number of worker nodes by running the following on each as root:</span><br><span class="line">[root@k8s1 ~]# mkdir -p $HOME/.kube</span><br><span class="line">[root@k8s1 ~]# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">[root@k8s1 ~]# sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br><span class="line">[root@k8s1 ~]# source &lt;(kubectl completion bash)</span><br></pre></td></tr></table></figure>
+<h2 id="12-查看节点-pod"><a href="#12-查看节点-pod" class="headerlink" title="12 查看节点 pod"></a>12 查看节点 pod</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">NAME                STATUS     ROLES    AGE     VERSION</span><br><span class="line">master01.paas.com   NotReady   master   2m29s   v1.18.0</span><br><span class="line">[root@master01 ~]# kubectl get pod --all-namespaces</span><br><span class="line">NAMESPACE     NAME                                        READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system   coredns-7ff77c879f-fsj9l                    0/1     Pending   0          2m12s</span><br><span class="line">kube-system   coredns-7ff77c879f-q5ll2                    0/1     Pending   0          2m12s</span><br><span class="line">kube-system   etcd-master01.paas.com                      1/1     Running   0          2m22s</span><br><span class="line">kube-system   kube-apiserver-master01.paas.com            1/1     Running   0          2m22s</span><br><span class="line">kube-system   kube-controller-manager-master01.paas.com   1/1     Running   0          2m22s</span><br><span class="line">kube-system   kube-proxy-th472                            1/1     Running   0          2m12s</span><br><span class="line">kube-system   kube-scheduler-master01.paas.com            1/1     Running   0          2m22s</span><br></pre></td></tr></table></figure>
+<h2 id="13-安装calico网络"><a href="#13-安装calico网络" class="headerlink" title="13 安装calico网络"></a>13 安装calico网络</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml</span><br></pre></td></tr></table></figure>
+<h2 id="14-再次查看node"><a href="#14-再次查看node" class="headerlink" title="14 再次查看node"></a>14 再次查看node</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl get pod --all-namespaces</span><br><span class="line">NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system   calico-kube-controllers-578894d4cd-8p9xr   1/1     Running   0          5m18s</span><br><span class="line">kube-system   calico-node-czgqs                          1/1     Running   0          5m19s</span><br><span class="line">kube-system   coredns-7ff77c879f-f6p5r                   1/1     Running   0          4d10h</span><br><span class="line">kube-system   coredns-7ff77c879f-p2xl8                   1/1     Running   0          4d10h</span><br><span class="line">kube-system   etcd-k8s1.hank.im                          1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-apiserver-k8s1.hank.im                1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-controller-manager-k8s1.hank.im       1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-proxy-qjczn                           1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-scheduler-k8s1.hank.im                1/1     Running   0          4d10h</span><br><span class="line">[root@k8s1 ~]#</span><br></pre></td></tr></table></figure>
+<h2 id="15-如果报错，查看日志"><a href="#15-如果报错，查看日志" class="headerlink" title="15 如果报错，查看日志"></a>15 如果报错，查看日志</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 查日志				</span><br><span class="line">kubectl describe pod/calico-node-28fwk -n kube-system</span><br></pre></td></tr></table></figure>
+<h2 id="16-添加dashboard"><a href="#16-添加dashboard" class="headerlink" title="16 添加dashboard"></a>16 添加dashboard</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">[root@master01 ~]# wget  https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc7/aio/deploy/recommended.yaml</span><br><span class="line">[root@master01 ~]# vim recommended.yaml</span><br><span class="line">kind: Service</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br><span class="line">  name: kubernetes-dashboard</span><br><span class="line">  namespace: kubernetes-dashboard</span><br><span class="line">spec:</span><br><span class="line">  type: NodePort   # add</span><br><span class="line">  ports:</span><br><span class="line">    - port: 443</span><br><span class="line">      targetPort: 8443</span><br><span class="line">      nodePort: 30000  # add</span><br><span class="line">  selector:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br><span class="line"></span><br><span class="line">[root@master01 ~]# kubectl create -f recommended.yaml</span><br><span class="line">namespace/kubernetes-dashboard created</span><br><span class="line">serviceaccount/kubernetes-dashboard created</span><br><span class="line">service/kubernetes-dashboard created</span><br><span class="line">secret/kubernetes-dashboard-certs created</span><br><span class="line">secret/kubernetes-dashboard-csrf created</span><br><span class="line">secret/kubernetes-dashboard-key-holder created</span><br><span class="line">configmap/kubernetes-dashboard-settings created</span><br><span class="line">role.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">deployment.apps/kubernetes-dashboard created</span><br><span class="line">service/dashboard-metrics-scraper created</span><br><span class="line">deployment.apps/dashboard-metrics-scraper created</span><br></pre></td></tr></table></figure>
+<h2 id="17-查看状态"><a href="#17-查看状态" class="headerlink" title="17 查看状态"></a>17 查看状态</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]#  kubectl get pods -A</span><br><span class="line">NAMESPACE              NAME                                        READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system            calico-kube-controllers-578894d4cd-8p9xr    1/1     Running   0          11m</span><br><span class="line">kube-system            calico-node-czgqs                           1/1     Running   0          11m</span><br><span class="line">kube-system            coredns-7ff77c879f-f6p5r                    1/1     Running   0          4d10h</span><br><span class="line">kube-system            coredns-7ff77c879f-p2xl8                    1/1     Running   0          4d10h</span><br><span class="line">kube-system            etcd-k8s1.hank.im                           1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-apiserver-k8s1.hank.im                 1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-controller-manager-k8s1.hank.im        1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-proxy-qjczn                            1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-scheduler-k8s1.hank.im                 1/1     Running   0          4d10h</span><br><span class="line">kubernetes-dashboard   dashboard-metrics-scraper-dc6947fbf-4ghbd   1/1     Running   0          2m4s</span><br><span class="line">kubernetes-dashboard   kubernetes-dashboard-5d4dc8b976-67lkz       1/1     Running   0          2m4s</span><br><span class="line">[root@k8s1 ~]# kubectl get svc -n kubernetes-dashboard</span><br><span class="line">NAME                        TYPE        CLUSTER-IP        EXTERNAL-IP   PORT(S)         AGE</span><br><span class="line">dashboard-metrics-scraper   ClusterIP   192.168.178.170   &lt;none&gt;        8000/TCP        104s</span><br><span class="line">kubernetes-dashboard        NodePort    192.168.26.221    &lt;none&gt;        443:30000/TCP   104s</span><br></pre></td></tr></table></figure>
+<h2 id="18-绑定密钥"><a href="#18-绑定密钥" class="headerlink" title="18 绑定密钥"></a>18 绑定密钥</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl -n kubernetes-dashboard get secret</span><br><span class="line">NAME                               TYPE                                  DATA   AGE</span><br><span class="line">default-token-v7k99                kubernetes.io/service-account-token   3      2m50s</span><br><span class="line">kubernetes-dashboard-certs         Opaque                                0      2m50s</span><br><span class="line">kubernetes-dashboard-csrf          Opaque                                1      2m50s</span><br><span class="line">kubernetes-dashboard-key-holder    Opaque                                2      2m50s</span><br><span class="line">kubernetes-dashboard-token-rz9mn   kubernetes.io/service-account-token   3      2m50s</span><br><span class="line">[root@k8s1 ~]# kubectl describe secrets -n kubernetes-dashboard  kubernetes-dashboard-token-rz9mn  | grep token | awk &#x27;NR==3&#123;print $2&#125;&#x27;</span><br><span class="line">eyJhbGciOiJSUzI1NiIsImtpZCI6IlFyaXppQ1JTYV82TDhoM2N6RjgtS05QeGdlLXc2TURxZFFCdnQ5YmtoV0UifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC10b2tlbi1yejltbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjczZjU0YTdmLTU4NWYtNGIwOS1iNTAwLTZlOGIyODlhNGQ0YiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDprdWJlcm5ldGVzLWRhc2hib2FyZCJ9.gNfY2Jysj3o7klavdHzcd055D6E3lAiYwmE8-ldAWKBo7jVX4CsjjJuwXgMAudCJheEILx52TcgDnvh-kwqUH1xQuTR9z4PWGTGAoE58TEnMJFVRc6c3-CB5hX5zJ_gs0knEmrocWx1HADfWQ82KFH-zdUUPiio7osMgEmEE0FcY3hIP62CvQ6URMFiJ9MeOBODKeUijAjYj4qxh11IcnpaDqlkkUfhba7G05Jn__A_xKnbqQ9-ljM0Q3fCrMPCD-60gbzXUO7b7svus1KlP8uQKNUHSQOKzVvK17C89WqWwIqjGhs3SZ9ar1hlwHi0SlpHNGrZeMqryhHVoYhm00g</span><br></pre></td></tr></table></figure>
+<h2 id="19-绑定用户资源"><a href="#19-绑定用户资源" class="headerlink" title="19 绑定用户资源"></a>19 绑定用户资源</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl create clusterrolebinding serviceaccount-cluster-admin --clusterrole=cluster-admin --user=system:serviceaccount:kubernetes-dashboard:kubernetes-dashboard</span><br></pre></td></tr></table></figure>
+<p>打开<a href="https://:30000">https://:30000</a><br>输入token 上方一大堆串的字符<br><code>eyJhbGciOiJSUzI1NiIsImtpZCI6IlFyaXppQ1JTYV82TDhoM2N6RjgtS05QeGdlLXc2TURxZFFCdnQ5YmtoV0UifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC10b2tlbi1yejltbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjczZjU0YTdmLTU4NWYtNGIwOS1iNTAwLTZlOGIyODlhNGQ0YiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDprdWJlcm5ldGVzLWRhc2hib2FyZCJ9.gNfY2Jysj3o7klavdHzcd055D6E3lAiYwmE8-ldAWKBo7jVX4CsjjJuwXgMAudCJheEILx52TcgDnvh-kwqUH1xQuTR9z4PWGTGAoE58TEnMJFVRc6c3-CB5hX5zJ_gs0knEmrocWx1HADfWQ82KFH-zdUUPiio7osMgEmEE0FcY3hIP62CvQ6URMFiJ9MeOBODKeUijAjYj4qxh11IcnpaDqlkkUfhba7G05Jn__A_xKnbqQ9-ljM0Q3fCrMPCD-60gbzXUO7b7svus1KlP8uQKNUHSQOKzVvK17C89WqWwIqjGhs3SZ9ar1hlwHi0SlpHNGrZeMqryhHVoYhm00g</code></p>
+<h4 id="主节点搭建完成"><a href="#主节点搭建完成" class="headerlink" title="主节点搭建完成"></a>主节点搭建完成</h4><h2 id="20-其他节点加入主节点"><a href="#20-其他节点加入主节点" class="headerlink" title="20 其他节点加入主节点"></a>20 其他节点加入主节点</h2><p>其他主机同步到本机的第10点</p>
+<h3 id="1-导出config"><a href="#1-导出config" class="headerlink" title="1 导出config"></a>1 导出config</h3><p>master中的节点认证信息24小时会失效，可以重新生成（master端操作）<br>重新生成用于节点加入集群的认证命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat ~/.kube/config</span><br><span class="line">apiVersion: v1</span><br><span class="line">clusters:</span><br><span class="line">- cluster:</span><br><span class="line">    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01Ea3lOREUxTXpVME1Wb1hEVE13TURreU1qRTFNelUwTVZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTUJtCjZrTDUwUFdRMExyUDhPZ2RTaGdzblNiWCttckcveUZrR2Vxa2cyRE9MeExuUElmcFBrcm9zOCtMZ2ZNbGRKK28KNUtZL1dJQmhpeWtydHQ0RVNqRGJUQXZKbWljTjZnSndQOGRzUVJOUHJCUlpGd0VEZU5jMWp3WXZETmRodU1EZAprVE9UT3N0aEhBaG1qVXJPVENLT3A4Z2VOK05zRm9DcjFQV2Z4MmVUQnpCNU56bXllRENiWG50eWViQ1hiYnVwCmlrS3p0cDBTTUpUSVlMUEUvRTIrTm91UlZiMCs3MXpHTzRJQXcyYVZTa25KOFNHSktVQm1WdWo5Y3FlcWRqQ1AKekphZnlRZ2dUSXcyZkl3aUxtYnNBY210WVhKUmh5VUQzZ2tNSzRDSGcydzczZ3FoaUFHRlc5bWtiVjJuTzRNNgpyZmRmSERXTWpjdjhubzJTakRzQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFFbkdtelpvZXE4dVpaRHZZZGVuVURiQnk0T1gKTXVUSlZCbEcvYmNua2tsQ2RKUGtjcmsyMFBqNkxjSmptNXJkVjZlZmJ3ZXlNSjU0ZjZJdEhmSHIrcFBlMitQNgo2NEZRMENlTlRRT0krN1hGSmZHQnJzMERTdGs1OG5uQ3dHVEwzRVI3NlN4Q1BUaTMvM3BzM3MzcGZhNldTSVQ2CjN5eDZYMVRkaFFjcWp4YTJ0eEdpUjVCODd1WkUzMFlYNGIwR2JGNElsNDFNemZpSTVwRGtXNXl0a2xHZVhFdzMKQUxXUHpOaytPOVZsSmtOMTFXQzZoSjBvWTNGUGJXYzQzWTAxWkcyQUhNOEVHNEVCTUxBbzM2RFFkMXQwQUwzTQpsbk00cjdXSE5wWXZyRTgyazhQRHBkVllyRERrYnJrMVpHbkk0K2NGSEhhNVN6YnFKa0xOZHNUVHhTcz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=</span><br><span class="line">    server: https://192.168.232.201:6443</span><br><span class="line">  name: kubernetes</span><br><span class="line">contexts:</span><br><span class="line">- context:</span><br><span class="line">    cluster: kubernetes</span><br><span class="line">    user: kubernetes-admin</span><br><span class="line">  name: kubernetes-admin@kubernetes</span><br><span class="line">current-context: kubernetes-admin@kubernetes</span><br><span class="line">kind: Config</span><br><span class="line">preferences: &#123;&#125;</span><br><span class="line">users:</span><br><span class="line">- name: kubernetes-admin</span><br><span class="line">  user:</span><br><span class="line">    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4akNDQWRxZ0F3SUJBZ0lJVEdkOXhUU29za013RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TURBNU1qUXhOVE0xTkRGYUZ3MHlNVEE1TWpReE5UTTFORE5hTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXVGWmp1Z2EvWUxkenMvVFAKR3NiZExKaFd3QUFRWG83b1pQNGt5T2dlTnNkQ2pPTkplcWYrTTNnN010TnVoM20xS0VKRmt0KzhRaFEzV0FRQQpCRThObE05SWQwY2pUT053ME90cElURVJBVVoyamhxcmtMeDJLamRVK3Nra1UwWUhTc3hYN0ZVdHJTNzUyM2hCCnZPUkROSlJKdkU2RzZKbVowL3M5cE5XY0NVTDFleUlTejd1UDFTZE0vUWt4S0tqcTFHT2tWS1JtV01oWXhWMzIKb2RMaXQrMTltb2xhdU1KWU8wZ3FiL3lyMXY0MFZ6WjdoVzJCN29KMHVCSXBsQXJhYUtncGoyNXBDbVEzRHZCTApTajZ0bmZvUi9vdCtaeFJ4MUJqNUpmTWpPQnBvTHcvZXhLL2U5STlaUG84THBEWlltMkRIaXptaU1VdTZ5Uks1CktscEQvUUlEQVFBQm95Y3dKVEFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFBT2JiajRmTDYzQ3kzelJHTFZrdW1maWF1RHM2bzk4Z3NpMworcmp5blo3RTJFcHpWeG9uNFFTdlArd0FBckE1aGJVL3hPWXR0WFIxME9nSTkralJFMnBsTy95TUwxcXF1THdZCndqR28wSXRvYloyb1NFdzBQSG5wYzhPWVAxUldJWjVpV0tpK3ZFTCt5d1lZWGwxaHc2V3R5ckJWbVRLejNIRkYKdjNsM3lKa1RBSVV3LzBFNEdiKzg1c3B3VGFxeG1IZDRJQUtqTXErVURCdVNOa2JNUUU4Q1JFMEFUQmswSWpLWQo2UE4zTWRHT3NKdmVZNjViVVVQeGIwVjQwWmExOEZ6cm15R0FCZ1lmQUE2OXhrNXcyQUtQMm4xaC9TRnNkaFR2Ck02ZEZUZEJJUFZBQVJjVWtlRU1HMm1ZQmhRVVBlMjVvbmdqUUV0SFRyVXFqajNXT1hwST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=</span><br><span class="line">    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBdUZaanVnYS9ZTGR6cy9UUEdzYmRMSmhXd0FBUVhvN29aUDRreU9nZU5zZENqT05KCmVxZitNM2c3TXROdWgzbTFLRUpGa3QrOFFoUTNXQVFBQkU4TmxNOUlkMGNqVE9OdzBPdHBJVEVSQVVaMmpocXIKa0x4MktqZFUrc2trVTBZSFNzeFg3RlV0clM3NTIzaEJ2T1JETkpSSnZFNkc2Sm1aMC9zOXBOV2NDVUwxZXlJUwp6N3VQMVNkTS9Ra3hLS2pxMUdPa1ZLUm1XTWhZeFYzMm9kTGl0KzE5bW9sYXVNSllPMGdxYi95cjF2NDBWelo3CmhXMkI3b0owdUJJcGxBcmFhS2dwajI1cENtUTNEdkJMU2o2dG5mb1Ivb3QrWnhSeDFCajVKZk1qT0Jwb0x3L2UKeEsvZTlJOVpQbzhMcERaWW0yREhpem1pTVV1NnlSSzVLbHBEL1FJREFRQUJBb0lCQUZFWCtERmJUSS9neEs3VApNTlVuelI4VU9YMm55WXUvdEs3Uk94K0ROZCtGVTFxbGxxcTJBdGRqdWk5RzRtWUkvZEFqTDNaSXBRb3cySlFJCjFuVU96ZnU4SUxZUWZwQVJzb3pHTTI2ZHBreDRVaWw3eENRZE5LS255dU8wM3gwZlBwQUNTMSsxclMxMThBZEQKNVMrUy81bSs3cDAvc292Ykh0Z3B1OW1xKzBUN0I5N25ZU2RLWXFQS1JQSlNVZ0JOeE9FeVozZTZKOGRmMVFLWgoxZFVHeXpOSFVjMU5jRlZ2bHdINFZGTlhoaHBLTE1JZStuYWtoTkoxbEJkdmhldVEyY2tEVmZ3YmFRc2lqb1BIClV1ZkN2OUdkQ29VWE5od05nU3pFOTFTUWVQNEF4SDJDREJoWmZxeVZiSnJnKzRMUU9sZVFzV2dKdGdsYkl4a0YKNTdHcTZXRUNnWUVBMklnYllVTE4zckpnd2llNk9yV1RWQTE2YW83VUIzLzROVmJnejZlYkJnR0ZwSEU0MVFDSApmYVVPd1NjS2RPRVE2WVBVT1cvbklFaG05SGlIUDl3a3dOWWJBWlZobE45emNyMHg0WjBsWEZ0NURkVG9zQ01iCk5qeE05Q1B5em5jTTBxaFNvMjZGL2ZSOWwxQTNoajVEeXRKZDN1c3FiS3A0aEt6b0s0QmhkQWtDZ1lFQTJmQUYKMEdIcGh6VEJ5MUdOOTdJc2pKNk5UUW9wV0lVbnlyQU9JNVkwYWpzTW81cklDRkZtSjRlMllwNldzUVNCR3lpcAp5ekYxbnp4d21IaU5KYnVqbVhaeWZkWUJZY25KVWJGcmh1eUc2ektSR3J1VU82T0hDSitIazZpUHdRUDgwd3g3CjJSREVNVTNqRHprUXEyQi9kV1ZBYzV0ZXZaZkt1a0o3QXZJcUZWVUNnWUVBcTR1QkxaZndZOXNzSHdXOFc2RFkKM01GazE2RGFTQ3JSS09qd2FITmZ0TzFseEhiUzBLVi9za0lmSTFWYnltYzRyOWY2UFpyeklEZGNJWmlQaGo5UgpldGpsUW1ibmpUdE9TbnVyVmhQYXNvWGhyTnlka0ZYdnpCTVA0R2ZPaUZYMitiblM1cG04WEFyanFRb3JReFozClBPdFc1VEdvUmJqMGpDQTBPNnFWQ29rQ2dZQVhVK2piYUUrZDZGakNFYVczbUx2S0JZS3NkMlQ3azYweHRleWQKaEl0eHY0WlgwTTZPalYvNDVUN3hpWFlwMW9pWFJwLytIdm92SkVJTklBSkR3clQ5VFQ5dUZzVXBHWGRTSmtLVApPNmdwYnMwM1psSzBtNGx0czkzSVFXZTV5bHA2b01CMCtLVjNmWlhMWUZsWGJzblY0Qk9wREQxMDM5V1VZRjlZCmJtRnd6UUtCZ0FMdWsxSVNFam94TXlvaWdqODQydU9WUU1BMU1rdHdTOFN2SnBya0V5SllOcmZyeWU1NzFaRUoKL1Bhb21nU0I1Tnd4ZzQ4K20vNW5aaWtJS1IyUm1aS2I5ZEI4Uko4ZHBld05GS3BScFZvMHpnN2dwZFFFMmtpNwpoVFI1S3JYTXE3bm4rYmZKRm5RbnZxeUlzMDZHVFB3eG9McFFxOVRuNGRzODR6NEFOakhDCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==</span><br></pre></td></tr></table></figure>
+<p>复制到从节点</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# mkdir -p $HOME/.kube</span><br><span class="line">[root@k8s2 ~]# vim .kube/config   # 粘贴到这里</span><br><span class="line">[root@k8s2 ~]# sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br><span class="line">[root@k8s2 ~]# source &lt;(kubectl completion bash)</span><br></pre></td></tr></table></figure>
+<h3 id="2-创建token"><a href="#2-创建token" class="headerlink" title="2 创建token"></a>2 创建token</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubeadm token create</span><br><span class="line">W0925 23:27:24.185638   44148 configset.go:202] WARNING: kubeadm cannot validate component configs for API groups [kubelet.config.k8s.io kubeproxy.config.k8s.io]</span><br><span class="line">90u07f.em5awzxwxkrk5j5t</span><br><span class="line">[root@k8s1 ~]# openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2&gt;/dev/null |openssl dgst -sha256 -hex| sed &#x27;s/^.* //&#x27;</span><br></pre></td></tr></table></figure>
+<h3 id="3-加入集群"><a href="#3-加入集群" class="headerlink" title="3 加入集群"></a>3 加入集群</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# kubeadm join 192.168.232.201:6443 --token a941el.3psezyof2fi00bma --discovery-token-ca-cert-hash sha256:91c1c19df2c2abcaf0a98a6b02d4a7c1a56dbb514e18a5bc6267739edb3ad5a0</span><br></pre></td></tr></table></figure>
+<h3 id="4-查看nodes"><a href="#4-查看nodes" class="headerlink" title="4 查看nodes"></a>4 查看nodes</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# kubectl get nodes</span><br><span class="line">NAME           STATUS   ROLES    AGE   VERSION</span><br><span class="line">k8s1.hank.im   Ready    master   23h   v1.18.6</span><br><span class="line">k8s2.hank.im   Ready    &lt;none&gt;   19s   v1.18.6</span><br></pre></td></tr></table></figure>
+<h2 id="21-设置节点标签"><a href="#21-设置节点标签" class="headerlink" title="21 设置节点标签"></a>21 设置节点标签</h2><p>设置标签</p>
+<p><code>kubectl label node k8s2.hank.im type=nginx</code></p>
+<p>删除标签</p>
+<p><code>kubectl label nodes k8s2.hank.im type-</code></p>
+<p>查看标签</p>
+<p><code>kubectl get node k8s2.hank.im --show-labels</code></p>
+<p>修改覆盖标签</p>
+<p><code>kubectl label nodes k8s2.hank.im &lt;key&gt;=&lt;value&gt; --overwrite</code></p>
+<h2 id="22-设置污点-以标签"><a href="#22-设置污点-以标签" class="headerlink" title="22 设置污点 - 以标签"></a>22 设置污点 - 以标签</h2><ul>
+<li>NoSchedule:node 添加这个effect类型污点，新的不能容忍的pod，不能再调度过来，但是老的运行在node上不受影响</li>
+<li>NoExecute：node 添加这个effect类型污点，新的不能容忍的pod，不能调度过来，老的pod也会被驱逐</li>
+<li>PreferNoSchedule：pod会尝试将pod分配到该节点</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl taint nodes node1 key=value:NoSchedule</span><br><span class="line">kubectl taint nodes node1 key=value:NoExecute</span><br><span class="line">kubectl taint nodes node1 key=value:PreferNoSchedule</span><br></pre></td></tr></table></figure>
+<p><em>添加污点</em></p>
+<blockquote>
+<p>必须配合标签使用</p>
+</blockquote>
+<p><code>kubectl taint node xxx.xxx.xxx.xxx key=nginx:NoSchedule</code></p>
+<p><em>查看污点</em></p>
+<p><code>kubectl describe node xxx.xxx.xxx.xxx|grep -E &quot;Name:|Taint&quot;</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]#  kubectl taint node k8s1.hank.im  key=nginx:NoSchedule</span><br><span class="line">[root@k8s2 ~]#  kubectl taint node k8s2.hank.im  key=mysql:NoSchedule</span><br><span class="line"></span><br><span class="line">[root@k8s2 ~]# kubectl describe nodes |grep -E &quot;Name:|Taint&quot;</span><br><span class="line">Name:               k8s1.hank.im</span><br><span class="line">Taints:             key=nginx:NoSchedule</span><br><span class="line">Name:               k8s2.hank.im</span><br><span class="line">Taints:             key=mysql:NoSchedule</span><br><span class="line"></span><br><span class="line">[root@k8s2 ~]# kubectl taint node k8s2.hank.im  key=mysql:NoSchedule-</span><br><span class="line">node/k8s2.hank.im untainted</span><br><span class="line">[root@k8s2 ~]# kubectl taint node k8s1.hank.im  key=nginx:NoSchedule-</span><br><span class="line">node/k8s1.hank.im untainted</span><br><span class="line"></span><br><span class="line">[root@k8s2 ~]# kubectl describe nodes |grep -E &quot;Name:|Taint&quot;</span><br><span class="line">Name:               k8s1.hank.im</span><br><span class="line">Taints:             &lt;none&gt;</span><br><span class="line">Name:               k8s2.hank.im</span><br><span class="line">Taints:             &lt;none&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/2021/09/07/a23d7f20-0587-46cc-a51d-59eed3dd37a0.png" alt="Image.jpg"></p>
+<h2 id="23-master-单机使用"><a href="#23-master-单机使用" class="headerlink" title="23 master 单机使用"></a>23 master 单机使用</h2><p>查看master的污点</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl describe node k8s1.hank.im</span><br><span class="line">...</span><br><span class="line">Taints:             node-role.kubernetes.io/master:NoSchedule</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>所以主节点模式是不接受新pod调度<br>那么我们可以让master接受调度，成为单机模式</p>
+<p><code>kubectl taint node k8s1.hank.im node-role.kubernetes.io/master-</code></p>
+<p>那么我们如何恢复主节点master only的状态</p>
+<p><code>kubectl taint node k8s1.hank.im node-role.kubernetes.io/master=&quot;&quot;:NoSchedule</code></p>
+<h2 id="24-停止调度"><a href="#24-停止调度" class="headerlink" title="24 停止调度"></a>24 停止调度</h2><blockquote>
+<p>影响最小，只会将node调为SchedulingDisabled<br>之后再发创建pod，不会被调度到该节点<br>旧有的pod不会受到影响，仍正常对外提供服务</p>
+</blockquote>
+<p>停止调度</p>
+<p><code>kubectl cordon k8s2.hank.im</code></p>
+<p>取消停止调度</p>
+<p><code>kubectl uncordon k8s2.hank.im</code></p>
+<p>查看停止调度</p>
+<p><code>kubectl describe nodes|grep -E &quot;Name:|Unschedulable&quot;</code></p>
+<h2 id="25-驱逐节点"><a href="#25-驱逐节点" class="headerlink" title="25 驱逐节点"></a>25 驱逐节点</h2><blockquote>
+<p>首先，驱逐node上的pod，其他节点重新创建<br>接着，将节点调为<strong> SchedulingDisabled</strong></p>
+</blockquote>
+<p>驱逐pod</p>
+<p><code>kubectl drain k8s2.hank.im</code><br><code>kubectl drain k8s2.hank.im --ignore-daemonsets</code></p>
+<p>恢复驱逐pod</p>
+<p><code>kubectl uncordon k8s2.hank.im</code></p>
+<p>查看驱逐调度</p>
+<p><code>kubectl describe nodes|grep -E &quot;Name:|Unschedulable&quot;</code></p>
+<h2 id="26-在指定节点部署"><a href="#26-在指定节点部署" class="headerlink" title="26 在指定节点部署"></a>26 在指定节点部署</h2><h3 id="1-查看节点信息"><a href="#1-查看节点信息" class="headerlink" title="1. 查看节点信息"></a>1. 查看节点信息</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# kubectl get nodes</span><br><span class="line">NAME           STATUS   ROLES    AGE   VERSION</span><br><span class="line">k8s1.hank.im   Ready    master   24h   v1.18.6</span><br><span class="line">k8s2.hank.im   Ready    &lt;none&gt;   56m   v1.18.6</span><br></pre></td></tr></table></figure>
+<h3 id="2-选择一个节点，给这个节点添加一个标签"><a href="#2-选择一个节点，给这个节点添加一个标签" class="headerlink" title="2. 选择一个节点，给这个节点添加一个标签"></a>2. 选择一个节点，给这个节点添加一个标签</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]#  kubectl label nodes k8s2.hank.im app=nginx</span><br><span class="line">node/k8s2.hank.im labeled</span><br></pre></td></tr></table></figure>
+<h3 id="3-查看标签信息"><a href="#3-查看标签信息" class="headerlink" title="3. 查看标签信息"></a>3. 查看标签信息</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# kubectl get node k8s2.hank.im --show-labels</span><br><span class="line">NAME           STATUS   ROLES    AGE   VERSION   LABELS</span><br><span class="line">k8s2.hank.im   Ready    &lt;none&gt;   58m   v1.18.6   app=nginx,beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s2.hank.im,kubernetes.io/os=linux</span><br></pre></td></tr></table></figure>
+<h3 id="4-nginx-部署"><a href="#4-nginx-部署" class="headerlink" title="4. nginx 部署"></a>4. nginx 部署</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# cat &gt; ~/nginx-dp.yaml&lt;&lt; EOF</span><br><span class="line">apiVersion: apps/v1</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    app: nginx</span><br><span class="line">  name: nginx</span><br><span class="line">spec:</span><br><span class="line">  replicas: 3</span><br><span class="line">  selector:</span><br><span class="line">    matchLabels:</span><br><span class="line">      app: nginx</span><br><span class="line">  strategy:</span><br><span class="line">    type: RollingUpdate</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        app: nginx</span><br><span class="line">    spec:              # pod spec</span><br><span class="line">      nodeSelector:    # 选 择在 app=nginx标签的node</span><br><span class="line">        app: nginx</span><br><span class="line">      containers:</span><br><span class="line">        - image: nginx</span><br><span class="line">          imagePullPolicy: Always</span><br><span class="line">          name: nginx</span><br><span class="line">      imagePullSecrets:</span><br><span class="line">        - name: default-secret</span><br><span class="line">EOF</span><br><span class="line">[root@k8s2 ~]# kubectl apply -f nginx-dp.yaml</span><br><span class="line">[root@k8s2 ~]# kubectl get pods -o wide</span><br><span class="line"></span><br><span class="line"># 查看pod状态</span><br><span class="line">[root@k8s2 ~]# kubectl describe pod nginx-764bc788c-kb8xv</span><br><span class="line"></span><br><span class="line"># 查看部署状态</span><br><span class="line">[root@k8s2 ~]# kubectl get pods -o wide</span><br><span class="line">NAME                    READY   STATUS    RESTARTS   AGE     IP               NODE           NOMINATED NODE   READINESS GATES</span><br><span class="line">nginx-764bc788c-7n8lm   1/1     Running   0          4m19s   192.169.62.128   k8s2.hank.im   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">nginx-764bc788c-7rd7g   1/1     Running   0          2m23s   192.169.62.129   k8s2.hank.im   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">nginx-764bc788c-kb8xv   1/1     Running   0          2m23s   192.169.62.130   k8s2.hank.im   &lt;none&gt;           &lt;none&gt;</span><br></pre></td></tr></table></figure>
+<p>可以看到全部node都创建在k8s2.hank.im</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/07/%E6%8A%80%E6%9C%AF%E8%BF%90%E7%BB%B4%E5%9F%BA%E7%A1%80%E6%8A%80%E8%83%BD%E9%9D%A2%E8%AF%95%E9%A2%98/" rel="prev" title="技术运维基础技能面试题">
+      <i class="fa fa-chevron-left"></i> 技术运维基础技能面试题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/09/07/k8s-2-%E6%97%A0%E7%8A%B6%E6%80%81%E5%BA%94%E7%94%A8-deployment/" rel="next" title="k8s-2 无状态应用/deployment">
+      k8s-2 无状态应用/deployment <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%B3%BB%E7%BB%9F%E5%87%86%E5%A4%87"><span class="nav-number">1.</span> <span class="nav-text">1 系统准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AE%E5%9B%BA%E5%AE%9Aip"><span class="nav-number">2.</span> <span class="nav-text">2 配置固定ip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%B7%BB%E5%8A%A0%E9%98%BF%E9%87%8C%E6%BA%90"><span class="nav-number">3.</span> <span class="nav-text">3 添加阿里源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E9%85%8D%E7%BD%AE%E4%B8%BB%E6%9C%BA%E5%90%8D"><span class="nav-number">4.</span> <span class="nav-text">4 配置主机名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%85%B3%E9%97%ADswap%EF%BC%8C%E6%B3%A8%E9%87%8Aswap%E5%88%86%E5%8C%BA"><span class="nav-number">5.</span> <span class="nav-text">5 关闭swap，注释swap分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E9%85%8D%E7%BD%AE%E5%86%85%E6%A0%B8%E5%8F%82%E6%95%B0%EF%BC%8C%E5%B0%86%E6%A1%A5%E6%8E%A5%E7%9A%84IPv4%E6%B5%81%E9%87%8F%E4%BC%A0%E9%80%92%E5%88%B0iptables%E7%9A%84%E9%93%BE"><span class="nav-number">6.</span> <span class="nav-text">6 配置内核参数，将桥接的IPv4流量传递到iptables的链</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%AE%89%E8%A3%85%E5%B8%B8%E7%94%A8%E5%8C%85"><span class="nav-number">7.</span> <span class="nav-text">7 安装常用包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-5-%E6%8F%92%E5%85%A5%E4%B8%80%E6%9D%A1-ulimit-%E4%BF%AE%E6%94%B9"><span class="nav-number">8.</span> <span class="nav-text">7.5 插入一条 ulimit 修改</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%9F%A5%E7%9C%8B%E6%97%B6%E9%97%B4%E6%98%AF%E5%90%A6%E6%AD%A3%E7%A1%AE"><span class="nav-number">9.</span> <span class="nav-text">8 查看时间是否正确</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E4%BD%BF%E7%94%A8aliyun%E6%BA%90%E5%AE%89%E8%A3%85docker-ce"><span class="nav-number">10.</span> <span class="nav-text">9 使用aliyun源安装docker-ce</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E8%A3%85kubectl%E3%80%81kubelet%E3%80%81kubeadm"><span class="nav-number">11.</span> <span class="nav-text">10 装kubectl、kubelet、kubeadm</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%88%9D%E5%A7%8B%E5%8C%96%E5%AE%89%E8%A3%85%E9%9B%86%E7%BE%A4"><span class="nav-number">12.</span> <span class="nav-text">11 初始化安装集群</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E6%9F%A5%E7%9C%8B%E8%8A%82%E7%82%B9-pod"><span class="nav-number">13.</span> <span class="nav-text">12 查看节点 pod</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E5%AE%89%E8%A3%85calico%E7%BD%91%E7%BB%9C"><span class="nav-number">14.</span> <span class="nav-text">13 安装calico网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E5%86%8D%E6%AC%A1%E6%9F%A5%E7%9C%8Bnode"><span class="nav-number">15.</span> <span class="nav-text">14 再次查看node</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#15-%E5%A6%82%E6%9E%9C%E6%8A%A5%E9%94%99%EF%BC%8C%E6%9F%A5%E7%9C%8B%E6%97%A5%E5%BF%97"><span class="nav-number">16.</span> <span class="nav-text">15 如果报错，查看日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#16-%E6%B7%BB%E5%8A%A0dashboard"><span class="nav-number">17.</span> <span class="nav-text">16 添加dashboard</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#17-%E6%9F%A5%E7%9C%8B%E7%8A%B6%E6%80%81"><span class="nav-number">18.</span> <span class="nav-text">17 查看状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#18-%E7%BB%91%E5%AE%9A%E5%AF%86%E9%92%A5"><span class="nav-number">19.</span> <span class="nav-text">18 绑定密钥</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#19-%E7%BB%91%E5%AE%9A%E7%94%A8%E6%88%B7%E8%B5%84%E6%BA%90"><span class="nav-number">20.</span> <span class="nav-text">19 绑定用户资源</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BB%E8%8A%82%E7%82%B9%E6%90%AD%E5%BB%BA%E5%AE%8C%E6%88%90"><span class="nav-number">20.0.1.</span> <span class="nav-text">主节点搭建完成</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#20-%E5%85%B6%E4%BB%96%E8%8A%82%E7%82%B9%E5%8A%A0%E5%85%A5%E4%B8%BB%E8%8A%82%E7%82%B9"><span class="nav-number">21.</span> <span class="nav-text">20 其他节点加入主节点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AF%BC%E5%87%BAconfig"><span class="nav-number">21.1.</span> <span class="nav-text">1 导出config</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%88%9B%E5%BB%BAtoken"><span class="nav-number">21.2.</span> <span class="nav-text">2 创建token</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%8A%A0%E5%85%A5%E9%9B%86%E7%BE%A4"><span class="nav-number">21.3.</span> <span class="nav-text">3 加入集群</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%9F%A5%E7%9C%8Bnodes"><span class="nav-number">21.4.</span> <span class="nav-text">4 查看nodes</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#21-%E8%AE%BE%E7%BD%AE%E8%8A%82%E7%82%B9%E6%A0%87%E7%AD%BE"><span class="nav-number">22.</span> <span class="nav-text">21 设置节点标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#22-%E8%AE%BE%E7%BD%AE%E6%B1%A1%E7%82%B9-%E4%BB%A5%E6%A0%87%E7%AD%BE"><span class="nav-number">23.</span> <span class="nav-text">22 设置污点 - 以标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#23-master-%E5%8D%95%E6%9C%BA%E4%BD%BF%E7%94%A8"><span class="nav-number">24.</span> <span class="nav-text">23 master 单机使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#24-%E5%81%9C%E6%AD%A2%E8%B0%83%E5%BA%A6"><span class="nav-number">25.</span> <span class="nav-text">24 停止调度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#25-%E9%A9%B1%E9%80%90%E8%8A%82%E7%82%B9"><span class="nav-number">26.</span> <span class="nav-text">25 驱逐节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#26-%E5%9C%A8%E6%8C%87%E5%AE%9A%E8%8A%82%E7%82%B9%E9%83%A8%E7%BD%B2"><span class="nav-number">27.</span> <span class="nav-text">26 在指定节点部署</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9F%A5%E7%9C%8B%E8%8A%82%E7%82%B9%E4%BF%A1%E6%81%AF"><span class="nav-number">27.1.</span> <span class="nav-text">1. 查看节点信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E9%80%89%E6%8B%A9%E4%B8%80%E4%B8%AA%E8%8A%82%E7%82%B9%EF%BC%8C%E7%BB%99%E8%BF%99%E4%B8%AA%E8%8A%82%E7%82%B9%E6%B7%BB%E5%8A%A0%E4%B8%80%E4%B8%AA%E6%A0%87%E7%AD%BE"><span class="nav-number">27.2.</span> <span class="nav-text">2. 选择一个节点，给这个节点添加一个标签</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%9F%A5%E7%9C%8B%E6%A0%87%E7%AD%BE%E4%BF%A1%E6%81%AF"><span class="nav-number">27.3.</span> <span class="nav-text">3. 查看标签信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-nginx-%E9%83%A8%E7%BD%B2"><span class="nav-number">27.4.</span> <span class="nav-text">4. nginx 部署</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

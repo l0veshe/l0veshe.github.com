@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="rbd-provisioner为kubernetes 1.5+版本提供了类似于 1kubernetes.io&#x2F;rbd 的ceph rbd持久化存储动态配置实现。 一些用户会使用kubeadm来部署集群，或者将kube-controller-manager以容器的方式运行。这种方式下，kubernetes在创建使用ceph rbd pv&#x2F;pvc时没任何问题，但使用dynamic provisioni">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用rbd-provisioner自动提供rbd持久化存储">
+<meta property="og:url" content="http://yoursite.com/2021/09/07/%E4%BD%BF%E7%94%A8rbd-provisioner%E8%87%AA%E5%8A%A8%E6%8F%90%E4%BE%9Brbd%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="rbd-provisioner为kubernetes 1.5+版本提供了类似于 1kubernetes.io&#x2F;rbd 的ceph rbd持久化存储动态配置实现。 一些用户会使用kubeadm来部署集群，或者将kube-controller-manager以容器的方式运行。这种方式下，kubernetes在创建使用ceph rbd pv&#x2F;pvc时没任何问题，但使用dynamic provisioni">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-09-07T15:53:45.000Z">
+<meta property="article:modified_time" content="2021-09-07T15:55:33.551Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/09/07/%E4%BD%BF%E7%94%A8rbd-provisioner%E8%87%AA%E5%8A%A8%E6%8F%90%E4%BE%9Brbd%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>使用rbd-provisioner自动提供rbd持久化存储 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/%E4%BD%BF%E7%94%A8rbd-provisioner%E8%87%AA%E5%8A%A8%E6%8F%90%E4%BE%9Brbd%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用rbd-provisioner自动提供rbd持久化存储
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-09-07 23:53:45 / Modified: 23:55:33" itemprop="dateCreated datePublished" datetime="2021-09-07T23:53:45+08:00">2021-09-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">存储</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>rbd-provisioner为kubernetes 1.5+版本提供了类似于</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubernetes.io/rbd</span><br></pre></td></tr></table></figure>
+<p>的ceph rbd持久化存储动态配置实现。</p>
+<p>一些用户会使用kubeadm来部署集群，或者将kube-controller-manager以容器的方式运行。这种方式下，kubernetes在创建使用ceph rbd pv/pvc时没任何问题，但使用dynamic provisioning自动管理存储生命周期时会报错。提示</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;rbd: create volume failed, err: failed to create rbd image: executable file not found in $PATH:&quot;</span><br></pre></td></tr></table></figure>
+<p>。</p>
+<p>问题来自gcr.io提供的kube-controller-manager容器镜像未打包ceph-common组件，缺少了rbd命令，因此无法通过rbd命令为pod创建rbd image，查了github的相关文章，目前kubernetes官方在kubernetes-incubator/external-storage项目通过External Provisioners的方式来解决此类问题。</p>
+<p>本文主要针对该问题，通过rbd-provisioner的方式，解决ceph rbd的dynamic provisioning问题。</p>
+<ul>
+<li>参考链接<a target="_blank" rel="noopener" href="https://github.com/kubernetes-incubator/external-storage/tree/master/ceph/rbd">RBD Volume Provisioner for Kubernetes 1.5+</a></li>
+</ul>
+<h2 id="部署rbd-provisioner"><a href="#部署rbd-provisioner" class="headerlink" title="部署rbd-provisioner"></a>部署rbd-provisioner</h2><p>首先得在kubernetes集群中安装rbd-provisioner，github仓库链接<a target="_blank" rel="noopener" href="https://github.com/kubernetes-incubator/external-storage">https://github.com/kubernetes-incubator/external-storage</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# git clone https://github.com/kubernetes-incubator/external-storage.git</span><br><span class="line">[root@k8s01 ~]# cd external-storage/ceph/rbd/deploy</span><br><span class="line">[root@k8s01 deploy]# NAMESPACE=kube-system</span><br><span class="line">[root@k8s01 deploy]# sed -r -i &quot;s/namespace: [^ ]+/namespace: $NAMESPACE/g&quot; ./rbac/clusterrolebinding.yaml ./rbac/rolebinding.yaml</span><br><span class="line">[root@k8s01 deploy]# kubectl -n $NAMESPACE apply -f ./rbac</span><br></pre></td></tr></table></figure>
+<ul>
+<li>根据自己需要，修改rbd-provisioner的namespace；</li>
+</ul>
+<p>部署完成后检查rbd-provisioner deployment，确保已经正常部署；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# kubectl describe deployments.apps -n kube-system rbd-provisioner</span><br><span class="line">Name:               rbd-provisioner</span><br><span class="line">Namespace:          kube-system</span><br><span class="line">CreationTimestamp:  Sat, 13 Oct 2018 20:08:45 +0800</span><br><span class="line">Labels:             app=rbd-provisioner</span><br><span class="line">Annotations:        deployment.kubernetes.io/revision: 1</span><br><span class="line">                    kubectl.kubernetes.io/last-applied-configuration:</span><br><span class="line">                      &#123;&quot;apiVersion&quot;:&quot;extensions/v1beta1&quot;,&quot;kind&quot;:&quot;Deployment&quot;,&quot;metadata&quot;:&#123;&quot;annotations&quot;:&#123;&#125;,&quot;name&quot;:&quot;rbd-provisioner&quot;,&quot;namespace&quot;:&quot;kube-system&quot;&#125;,&quot;s...</span><br><span class="line">Selector:           app=rbd-provisioner</span><br><span class="line">Replicas:           1 desired | 1 updated | 1 total | 1 available | 0 unavailable</span><br><span class="line">StrategyType:       Recreate</span><br><span class="line">MinReadySeconds:    0</span><br><span class="line">Pod Template:</span><br><span class="line">  Labels:           app=rbd-provisioner</span><br><span class="line">  Service Account:  rbd-provisioner</span><br><span class="line">  Containers:</span><br><span class="line">   rbd-provisioner:</span><br><span class="line">    Image:      quay.io/external_storage/rbd-provisioner:latest</span><br><span class="line">    Port:       &lt;none&gt;</span><br><span class="line">    Host Port:  &lt;none&gt;</span><br><span class="line">    Environment:</span><br><span class="line">      PROVISIONER_NAME:  ceph.com/rbd</span><br><span class="line">    Mounts:              &lt;none&gt;</span><br><span class="line">  Volumes:               &lt;none&gt;</span><br><span class="line">Conditions:</span><br><span class="line">  Type           Status  Reason</span><br><span class="line">  ----           ------  ------</span><br><span class="line">  Available      True    MinimumReplicasAvailable</span><br><span class="line">OldReplicaSets:  &lt;none&gt;</span><br><span class="line">NewReplicaSet:   rbd-provisioner-db574c5c (1/1 replicas created)</span><br><span class="line">Events:          &lt;none&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="创建storageclass"><a href="#创建storageclass" class="headerlink" title="创建storageclass"></a>创建storageclass</h2><p>部署完rbd-provisioner，还需要创建StorageClass。创建SC前，我们还需要创建相关用户的secret；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# vi secrets.yaml</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-admin-secret</span><br><span class="line">  namespace: kube-system</span><br><span class="line">type: &quot;kubernetes.io/rbd&quot;</span><br><span class="line">data:</span><br><span class="line">  # ceph auth get-key client.admin | base64</span><br><span class="line">  key: QVFCdng4QmJKQkFsSFJBQWl1c1o0TGdOV250NlpKQ1BSMHFCa1E9PQ==</span><br><span class="line">---</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-secret</span><br><span class="line">  namespace: kube-system</span><br><span class="line">type: &quot;kubernetes.io/rbd&quot;</span><br><span class="line">data:</span><br><span class="line">  # ceph auth add client.kube mon &#x27;allow r&#x27; osd &#x27;allow rwx pool=kube&#x27;</span><br><span class="line">  # ceph auth get-key client.kube | base64</span><br><span class="line">  key: QVFCTHdNRmJueFZ4TUJBQTZjd1MybEJ2Q0JUcmZhRk4yL2tJQVE9PQ==</span><br><span class="line"></span><br><span class="line">[root@k8s01 ~]#  kubectl create -f secrets.yaml</span><br><span class="line"></span><br><span class="line">[root@k8s01 ~]# vi secrets-default.yaml</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-secret</span><br><span class="line">type: &quot;kubernetes.io/rbd&quot;</span><br><span class="line">data:</span><br><span class="line">  # ceph auth add client.kube mon &#x27;allow r&#x27; osd &#x27;allow rwx pool=kube&#x27;</span><br><span class="line">  # ceph auth get-key client.kube | base64</span><br><span class="line">  key: QVFCTHdNRmJueFZ4TUJBQTZjd1MybEJ2Q0JUcmZhRk4yL2tJQVE9PQ==</span><br><span class="line"></span><br><span class="line">[root@k8s01 ~]#  kubectl create -f secrets-default.yaml -n default</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建secret保存client.admin和client.kube用户的key，client.admin和client.kube用户的secret可以放在kube-system namespace，但如果其他namespace需要使用ceph rbd的dynamic provisioning功能的话，要在相应的namespace创建secret来保存client.kube用户key信息；</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# vi ceph-rbd-sc.yaml</span><br><span class="line">apiVersion: storage.k8s.io/v1beta1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-rbd</span><br><span class="line">  annotations:</span><br><span class="line">     storageclass.beta.kubernetes.io/is-default-class: &quot;true&quot;</span><br><span class="line">provisioner: ceph.com/rbd</span><br><span class="line">parameters:</span><br><span class="line">  monitors: 172.16.16.81,172.16.16.82,172.16.16.83</span><br><span class="line">  adminId: admin</span><br><span class="line">  adminSecretName: ceph-admin-secret</span><br><span class="line">  adminSecretNamespace: kube-system</span><br><span class="line">  pool: rbd</span><br><span class="line">  userId: kube</span><br><span class="line">  userSecretName: ceph-secret</span><br><span class="line">  fsType: ext4</span><br><span class="line">  imageFormat: &quot;2&quot;</span><br><span class="line">  imageFeatures: &quot;layering&quot;</span><br><span class="line"></span><br><span class="line">[root@k8s01 ~]#  kubectl create -f  ceph-rbd-sc.yaml</span><br></pre></td></tr></table></figure>
+<p>其他设置和普通的ceph rbd StorageClass一致，但provisioner需要设置为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph.com/rbd</span><br></pre></td></tr></table></figure>
+<p>，不是默认的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubernetes.io/rbd</span><br></pre></td></tr></table></figure>
+<p>，这样rbd的请求将由rbd-provisioner来处理；</p>
+<blockquote>
+<p>考虑到兼容性，建议尽量关闭rbd image feature，并且kubelet节点的ceph-common版本尽量和ceph服务器端保持一致，我的环境都使用的L版本；</p>
+</blockquote>
+<h2 id="测试ceph-rbd自动分配"><a href="#测试ceph-rbd自动分配" class="headerlink" title="测试ceph rbd自动分配"></a>测试ceph rbd自动分配</h2><p>在kube-system和default namespace分别创建pod，通过启动一个busybox实例，将ceph rbd镜像挂载到</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/share/busybox</span><br></pre></td></tr></table></figure>
+<p>；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# vi test-pod.yaml</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-pod1</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">  - name: ceph-busybox</span><br><span class="line">    image: busybox</span><br><span class="line">    command: [&quot;sleep&quot;, &quot;60000&quot;]</span><br><span class="line">    volumeMounts:</span><br><span class="line">    - name: ceph-vol1</span><br><span class="line">      mountPath: /usr/share/busybox</span><br><span class="line">      readOnly: false</span><br><span class="line">  volumes:</span><br><span class="line">  - name: ceph-vol1</span><br><span class="line">    persistentVolumeClaim:</span><br><span class="line">      claimName: ceph-claim</span><br><span class="line">---</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-claim</span><br><span class="line">spec:</span><br><span class="line">  accessModes:  </span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 2Gi</span><br><span class="line"></span><br><span class="line">[root@k8s01 ~]# kubectl create -f test-pod.yaml -n kube-system</span><br><span class="line">pod/ceph-pod1 created</span><br><span class="line">persistentvolumeclaim/ceph-claim created</span><br><span class="line">[root@k8s01 ~]# kubectl create -f test-pod.yaml -n default</span><br><span class="line">pod/ceph-pod1 created</span><br><span class="line">persistentvolumeclaim/ceph-claim created</span><br></pre></td></tr></table></figure>
+<p>检查pv和pvc的创建状态，是否都已经创建；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# kubectl get pvc</span><br><span class="line">NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE</span><br><span class="line">ceph-claim   Bound    pvc-ee0f1c35-cef7-11e8-8484-005056a33f16   2Gi        RWO            ceph-rbd       25s</span><br><span class="line">[root@k8s01 ~]# kubectl get pvc -n kube-system</span><br><span class="line">NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE</span><br><span class="line">ceph-claim   Bound    pvc-ea377cad-cef7-11e8-8484-005056a33f16   2Gi        RWO            ceph-rbd       36s</span><br><span class="line">[root@k8s01 ~]# kubectl get pv</span><br><span class="line">NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                    STORAGECLASS   REASON   AGE</span><br><span class="line">pvc-ea377cad-cef7-11e8-8484-005056a33f16   2Gi        RWO            Delete           Bound    kube-system/ceph-claim   ceph-rbd                40s</span><br><span class="line">pvc-ee0f1c35-cef7-11e8-8484-005056a33f16   2Gi        RWO            Delete           Bound    default/ceph-claim       ceph-rbd                32s</span><br></pre></td></tr></table></figure>
+<p>在ceph服务器上，检查rbd镜像创建情况和镜像的信息；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# rbd ls --pool rbd</span><br><span class="line">kubernetes-dynamic-pvc-ea390cbf-cef7-11e8-aa22-0a580af40202</span><br><span class="line">kubernetes-dynamic-pvc-eef5814f-cef7-11e8-aa22-0a580af40202</span><br><span class="line"></span><br><span class="line">[root@k8s01 ~]# rbd info rbd/kubernetes-dynamic-pvc-ea390cbf-cef7-11e8-aa22-0a580af40202</span><br><span class="line">rbd image &#x27;kubernetes-dynamic-pvc-ea390cbf-cef7-11e8-aa22-0a580af40202&#x27;:</span><br><span class="line">    size 2048 MB in 512 objects</span><br><span class="line">    order 22 (4096 kB objects)</span><br><span class="line">    block_name_prefix: rbd_data.456876b8b4567</span><br><span class="line">    format: 2</span><br><span class="line">    features: layering</span><br><span class="line">    flags:</span><br><span class="line">    create_timestamp: Sat Oct 13 22:54:41 2018</span><br><span class="line">[root@k8s01 ~]# rbd info rbd/kubernetes-dynamic-pvc-eef5814f-cef7-11e8-aa22-0a580af40202</span><br><span class="line">rbd image &#x27;kubernetes-dynamic-pvc-eef5814f-cef7-11e8-aa22-0a580af40202&#x27;:</span><br><span class="line">    size 2048 MB in 512 objects</span><br><span class="line">    order 22 (4096 kB objects)</span><br><span class="line">    block_name_prefix: rbd_data.ad6c6b8b4567</span><br><span class="line">    format: 2</span><br><span class="line">    features: layering</span><br><span class="line">    flags:</span><br><span class="line">    create_timestamp: Sat Oct 13 22:54:49 2018</span><br></pre></td></tr></table></figure>
+<p>检查busybox内的文件系统挂载和使用情况，确认能正常工作；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# kubectl exec -it ceph-pod1 mount |grep rbd</span><br><span class="line">/dev/rbd0 on /usr/share/busybox type ext4 (rw,seclabel,relatime,stripe=1024,data=ordered)</span><br><span class="line">[root@k8s01 ~]# kubectl exec -it -n kube-system ceph-pod1 mount |grep rbd</span><br><span class="line">/dev/rbd0 on /usr/share/busybox type ext4 (rw,seclabel,relatime,stripe=1024,data=ordered)</span><br><span class="line"></span><br><span class="line">[root@k8s01 ~]# kubectl exec -it -n kube-system ceph-pod1 df |grep rbd</span><br><span class="line">/dev/rbd0              1998672      6144   1976144   0% /usr/share/busybox</span><br><span class="line">[root@k8s01 ~]# kubectl exec -it ceph-pod1 df |grep rbd</span><br><span class="line">/dev/rbd0              1998672      6144   1976144   0% /usr/share/busybox</span><br></pre></td></tr></table></figure>
+<p>测试删除pod能否自动删除pv和pvc，生产环境中谨慎，设置好回收策略；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# kubectl delete -f test-pod.yaml</span><br><span class="line">pod &quot;ceph-pod1&quot; deleted</span><br><span class="line">persistentvolumeclaim &quot;ceph-claim&quot; deleted</span><br><span class="line"></span><br><span class="line">[root@k8s01 ~]# kubectl delete -f test-pod.yaml -n kube-system</span><br><span class="line">pod &quot;ceph-pod1&quot; deleted</span><br><span class="line">persistentvolumeclaim &quot;ceph-claim&quot; deleted</span><br><span class="line"></span><br><span class="line">[root@k8s01 ~]# kubectl get pv</span><br><span class="line">No resources found.</span><br><span class="line">[root@k8s01 ~]# kubectl get pvc</span><br><span class="line">No resources found.</span><br><span class="line">[root@k8s01 ~]# kubectl get pvc -n kube-system</span><br><span class="line">No resources found.</span><br></pre></td></tr></table></figure>
+<p>ceph服务器上的rbd image也已清除，自动回收成功；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s01 ~]# rbd ls --pool rbd</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p> 确认之前创建的rbd images都已经删除；</p>
+</blockquote>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>大部分情况下，我们无需使用rbd provisioner来提供ceph rbd的dynamic provisioning能力。经测试，在OpenShift、Rancher、SUSE CaaS以及本Handbook的二进制文件方式部署，在安装好ceph-common软件包的情况下，定义StorageClass时使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubernetes.io/rbd</span><br></pre></td></tr></table></figure>
+<p>即可正常使用ceph rbd provisioning功能。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/07/%E6%90%AD%E5%BB%BAharbor2-x-%E8%AE%B0%E5%BD%95/" rel="prev" title="搭建harbor2.x 记录 ">
+      <i class="fa fa-chevron-left"></i> 搭建harbor2.x 记录 
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/09/07/CEPH-%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/" rel="next" title="CEPH 操作指南">
+      CEPH 操作指南 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2rbd-provisioner"><span class="nav-number">1.</span> <span class="nav-text">部署rbd-provisioner</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BAstorageclass"><span class="nav-number">2.</span> <span class="nav-text">创建storageclass</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95ceph-rbd%E8%87%AA%E5%8A%A8%E5%88%86%E9%85%8D"><span class="nav-number">3.</span> <span class="nav-text">测试ceph rbd自动分配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

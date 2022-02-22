@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="LVS相关术语 DS：Director Server。指的是前端负载均衡器节点 RS：Real Server。后端真实的工作服务器 VIP：向外部直接面向用户请求，作为用户请求的目标的IP地址 DIP：Director Server IP，主要用于和内部主机通讯的IP地址 RIP：Real Server IP，后端服务器的IP地址 CIP：Client IP，访问客户端的IP地址  LVS负载均衡">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lvs dr 模式搭建与分析 (1) 搭建">
+<meta property="og:url" content="http://yoursite.com/2021/09/06/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-1-%E6%90%AD%E5%BB%BA/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="LVS相关术语 DS：Director Server。指的是前端负载均衡器节点 RS：Real Server。后端真实的工作服务器 VIP：向外部直接面向用户请求，作为用户请求的目标的IP地址 DIP：Director Server IP，主要用于和内部主机通讯的IP地址 RIP：Real Server IP，后端服务器的IP地址 CIP：Client IP，访问客户端的IP地址  LVS负载均衡">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/images/2021/09/06/ba2df7a9-35de-48fd-a1e9-a9f2e0fcbd66.jpg">
+<meta property="article:published_time" content="2021-09-06T14:06:59.000Z">
+<meta property="article:modified_time" content="2021-09-06T15:48:17.516Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="lvs">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/2021/09/06/ba2df7a9-35de-48fd-a1e9-a9f2e0fcbd66.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2021/09/06/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-1-%E6%90%AD%E5%BB%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>lvs dr 模式搭建与分析 (1) 搭建 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/06/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-1-%E6%90%AD%E5%BB%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          lvs dr 模式搭建与分析 (1) 搭建
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-09-06 22:06:59 / Modified: 23:48:17" itemprop="dateCreated datePublished" datetime="2021-09-06T22:06:59+08:00">2021-09-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">网络</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BD%91%E7%BB%9C/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" itemprop="url" rel="index"><span itemprop="name">负载均衡</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="LVS相关术语"><a href="#LVS相关术语" class="headerlink" title="LVS相关术语"></a>LVS相关术语</h2><ul>
+<li>DS：Director Server。指的是前端负载均衡器节点</li>
+<li>RS：Real Server。后端真实的工作服务器</li>
+<li>VIP：向外部直接面向用户请求，作为用户请求的目标的IP地址</li>
+<li>DIP：Director Server IP，主要用于和内部主机通讯的IP地址</li>
+<li>RIP：Real Server IP，后端服务器的IP地址</li>
+<li>CIP：Client IP，访问客户端的IP地址</li>
+</ul>
+<h2 id="LVS负载均衡十种算法"><a href="#LVS负载均衡十种算法" class="headerlink" title="LVS负载均衡十种算法"></a>LVS负载均衡十种算法</h2><ul>
+<li>轮循调度 rr<blockquote>
+<p>均等地对待每一台服务器，不管服务器上的实际连接数和系统负载</p>
+</blockquote>
+</li>
+<li>加权轮调 wrr<blockquote>
+<p>调度器可以自动问询真实服务器的负载情况，并动态调整</p>
+</blockquote>
+</li>
+<li>最少链接 lc<blockquote>
+<p>动态地将网络请求调度到已建立的连接数最少的服务器上<br>如果集群真实的服务器具有相近的系统性能，采用该算法可以较好的实现负载均衡</p>
+</blockquote>
+</li>
+<li>加权最少链接 wlc<blockquote>
+<p>调度器可以自动问询真实服务器的负载情况，并动态调整权值<br>带权重的谁不干活就给谁分配，机器配置好的权重高</p>
+</blockquote>
+</li>
+<li>基于局部性的最少连接调度算法 lblc<blockquote>
+<p>这个算法是请求数据包的目标 IP 地址的一种调度算法，该算法先根据请求的目标 IP 地址寻找最近的该目标 IP 地址所有使用的服务器，如果这台服务器依然可用，并且有能力处理该请求，调度器会尽量选择相同的服务器，否则会继续选择其它可行的服务器</p>
+</blockquote>
+</li>
+<li>复杂的基于局部性最少的连接算法 lblcr<blockquote>
+<p>记录的不是要给目标 IP 与一台服务器之间的连接记录，它会维护一个目标 IP 到一组服务器之间的映射关系，防止单点服务器负载过高。</p>
+</blockquote>
+</li>
+<li>目标地址散列调度算法 dh<blockquote>
+<p>该算法是根据目标 IP 地址通过散列函数将目标 IP 与服务器建立映射关系，出现服务器不可用或负载过高的情况下，发往该目标 IP 的请求会固定发给该服务器。</p>
+</blockquote>
+</li>
+<li>源地址散列调度算法 sh<blockquote>
+<p>与目标地址散列调度算法类似，但它是根据源地址散列算法进行静态分配固定的服务器资源。</p>
+</blockquote>
+</li>
+<li>最少期望延迟 sed<blockquote>
+<p>不考虑非活动链接，谁的权重大，优先选择权重大的服务器来接收请求，但权重大的机器会比较忙</p>
+</blockquote>
+</li>
+<li>永不排队 nq<blockquote>
+<p>无需队列，如果有realserver的连接数为0就直接分配过去</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="LVS-DR-工作原理："><a href="#LVS-DR-工作原理：" class="headerlink" title="LVS-DR 工作原理："></a>LVS-DR 工作原理：</h2><ol>
+<li>客户端向VIP发出请求，请求报文中源IP为CIP，目标IP为VIP，源MAC为客户端的MAC，目标MAC为LVS调度器的MAC（Director）</li>
+<li>LVS调度器接收到请求后，修改了请求报文中的目标MAC地址（Director会根据算法将请求报文中的目标MAC地址，修改成指定的RS的MAC地址）。并将请求进行广播。</li>
+<li>RS接受到广播后，拆开报文，发现目标MAC地址是自己，于是开始响应请求。并直接将响应请求发送到客户端。响应的过程不经过LVS调度器。</li>
+</ol>
+<h2 id="LVS-DR模式的特性："><a href="#LVS-DR模式的特性：" class="headerlink" title="LVS DR模式的特性："></a>LVS DR模式的特性：</h2><ul>
+<li>CIP必须能够和VIP通讯，所以通常VIP是外网地址 二级标题</li>
+<li>DIP和RIP为同一物理网络，否则无法向RS发送ARP广播</li>
+<li>RS上必须配置VIP地址，否则响应报文无法送达客户端，RS上的VIP对外界是不可见的，但RS可以接收目标地址为VIP的网络请求，并在回应数据包时将源地址设置为该VIP地址</li>
+<li>RS上必须做ARP抑制，使RS不响应来自CIP的请求，相当于指定Director来响应CIP的请求</li>
+<li>调度器几乎支持所有的UNIX、LINUX系统，但不支持windows，但是RS可以为windows</li>
+<li>RS的网关不能指向DIP，应该指向出口网关</li>
+<li>DR模式下，不支持端口映射，即Director不能更改请求报文的端口</li>
+<li>DR模式效率很高，但配置麻烦，访问量不是非常大的情况下推荐使用haproxy或者nginx。标准：日访问量2000W PV以下，或者并发请求1W以下的可以考虑使用haproxy或nginx或使用LVS-NAT模式。</li>
+<li>直接对外的访问业务，例如：web服务做RS节点，RS最好使用外网IP，如果不直接对外的业务，例如MySQL、存储系统RS节点，最好使用内网I</li>
+</ul>
+<h2 id="部署过程"><a href="#部署过程" class="headerlink" title="部署过程"></a>部署过程</h2><h3 id="实验环境"><a href="#实验环境" class="headerlink" title="实验环境"></a>实验环境</h3><p><img src="/images/2021/09/06/ba2df7a9-35de-48fd-a1e9-a9f2e0fcbd66.jpg" alt="image.jpg"></p>
+<p>实验环境基于vmware虚拟机nat网路环境</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">192.168.1.233 # CIP 访问ip，但是由于虚拟机nat，访问ip为192.168.232.1</span><br><span class="line">192.168.232.120 vip.hank.im # VIP</span><br><span class="line">192.168.232.121 lvs1.hank.im # DIR</span><br><span class="line">192.168.232.122 lvs2.hank.im # DIR</span><br><span class="line">192.168.232.111 nginx1.hank.im # RS</span><br><span class="line">192.168.232.112 nginx2.hank.im # RS</span><br></pre></td></tr></table></figure>
+<h3 id="on-192-168-232-121-122-lvs1-hank-im-lvs2-hank-im"><a href="#on-192-168-232-121-122-lvs1-hank-im-lvs2-hank-im" class="headerlink" title="on 192.168.232.121/122 lvs1.hank.im/lvs2.hank.im"></a>on 192.168.232.121/122 lvs1.hank.im/lvs2.hank.im</h3><p>查看内核版本</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">uname -rm</span><br><span class="line">3.10.0-1062.12.1.el7.x86_64 x86_64</span><br></pre></td></tr></table></figure>
+<p>安装工具</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">yum group install Development Tools -y</span><br><span class="line">yum install net-tools vim tcpdump -y</span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">setenforce 0</span><br><span class="line">sed -i &#x27;s/SELINUX=enforcing/SELINUX=disabled/g&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<p>安装ipvs</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum -y install ipvsadm</span><br><span class="line">ipvsadm</span><br></pre></td></tr></table></figure>
+<p>查看内核是否加载ipvs</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lsmod | grep ip_vs</span><br><span class="line">ip_vs                 145497  0</span><br><span class="line">nf_conntrack          139224  7 ip_vs,nf_nat,nf_nat_ipv4,xt_conntrack,nf_nat_masquerade_ipv4,nf_conntrack_netlink,nf_conntrack_ipv4</span><br><span class="line">libcrc32c              12644  4 xfs,ip_vs,nf_nat,nf_conntrack</span><br></pre></td></tr></table></figure>
+<p>安装keepalived</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install keepalived ipvsadm  -y</span><br></pre></td></tr></table></figure>
+<h3 id="on-192-168-232-121-lvs1-hank-im"><a href="#on-192-168-232-121-lvs1-hank-im" class="headerlink" title="on 192.168.232.121 lvs1.hank.im"></a>on 192.168.232.121 lvs1.hank.im</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">[root@lvs1 ~]# cat /etc/keepalived/keepalived.conf</span><br><span class="line">! Configuration File for keepalived</span><br><span class="line"></span><br><span class="line">global_defs &#123;</span><br><span class="line">    router_id nginx.hank.im</span><br><span class="line">    #vrrp_mcast_group4 10.0.7.110</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">vrrp_instance VI_1 &#123;</span><br><span class="line">    state MASTER</span><br><span class="line">    interface ens33 vrrp</span><br><span class="line">    virtual_router_id 51 # vrrp id</span><br><span class="line">    priority 150 # weight</span><br><span class="line">    nopreempt    # 非抢占</span><br><span class="line">    advert_int 1 # heartbeat 1s</span><br><span class="line">    authentication &#123;</span><br><span class="line">        auth_type PASS</span><br><span class="line">        auth_pass haha</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    track_interface &#123;</span><br><span class="line">        ens33</span><br><span class="line">    &#125;</span><br><span class="line">    virtual_ipaddress &#123;</span><br><span class="line">        192.168.232.120/24 dev ens33</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">virtual_server 192.168.232.120 80 &#123;</span><br><span class="line">    delay_loop 3  # delay_loop</span><br><span class="line">    #lvs_sched rr  # LVS的调度算法</span><br><span class="line">    #lvs_method DR  #  LVS 模式</span><br><span class="line">    lb_algo rr</span><br><span class="line">    lb_kind DR</span><br><span class="line">    protocol TCP # 4层协议</span><br><span class="line">    real_server 192.168.232.111 80 &#123;</span><br><span class="line">        weight 100</span><br><span class="line">        TCP_CHECK &#123;</span><br><span class="line">            connect_timeout 3</span><br><span class="line">            nb_get_retry 3  # get尝试次数</span><br><span class="line">            delay_before_retry 10 # 在尝试之前延迟多长时间</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    real_server 192.168.232.112 80 &#123;</span><br><span class="line">        weight 100</span><br><span class="line">        TCP_CHECK &#123;</span><br><span class="line">            connect_timeout 3</span><br><span class="line">            nb_get_retry 3  # get尝试次数</span><br><span class="line">            delay_before_retry 10 # 在尝试之前延迟多长时间</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="on-192-168-232-122-lvs2-hank-im"><a href="#on-192-168-232-122-lvs2-hank-im" class="headerlink" title="on 192.168.232.122 lvs2.hank.im"></a>on 192.168.232.122 lvs2.hank.im</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vrrp_instance VI_1 &#123;</span><br><span class="line">state MASTER</span><br><span class="line">改成</span><br><span class="line">state SLAVE</span><br></pre></td></tr></table></figure>
+<h3 id="on-192-168-232-121-122-lvs1-hank-im-lvs2-hank-im-1"><a href="#on-192-168-232-121-122-lvs1-hank-im-lvs2-hank-im-1" class="headerlink" title="on 192.168.232.121/122 lvs1.hank.im/lvs2.hank.im"></a>on 192.168.232.121/122 lvs1.hank.im/lvs2.hank.im</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@lvs1 ~]# systemctl restart keepalived</span><br><span class="line">[root@lvs1 ~]# ipvsadm -Ln</span><br><span class="line">[root@lvs2 ~]# ipvsadm -Ln</span><br><span class="line">IP Virtual Server version 1.2.1 (size=4096)</span><br><span class="line">Prot LocalAddress:Port Scheduler Flags</span><br><span class="line">  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn</span><br><span class="line">TCP  192.168.232.120:80 rr</span><br><span class="line">  -&gt; 192.168.232.111:80           Route   100    0          0</span><br><span class="line">  -&gt; 192.168.232.112:80           Route   100    0          0</span><br></pre></td></tr></table></figure>
+<h3 id="部署nginx"><a href="#部署nginx" class="headerlink" title="部署nginx"></a>部署nginx</h3><h3 id="on-192-168-232-111-112-nginx1-hank-im-nginx2-hank-im"><a href="#on-192-168-232-111-112-nginx1-hank-im-nginx2-hank-im" class="headerlink" title="on 192.168.232.111/112 nginx1.hank.im/nginx2.hank.im"></a>on 192.168.232.111/112 nginx1.hank.im/nginx2.hank.im</h3><p>安装工具</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">yum group install Development Tools -y</span><br><span class="line">yum install net-tools vim tcpdump -y</span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">setenforce 0</span><br><span class="line">sed -i &#x27;s/SELINUX=enforcing/SELINUX=disabled/g&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<p>更新源</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rm -rfv /etc/yum.repos.d/*</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo</span><br><span class="line">yum install -y yum-utils device-mapper-persistent-data lvm2</span><br><span class="line">yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">yum -y install docker-ce</span><br></pre></td></tr></table></figure>
+<p>安装docker-compose</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">curl -L https://get.daocloud.io/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` &gt; /usr/bin/docker-compose</span><br><span class="line">chmod +x /usr/bin/docker-compose</span><br><span class="line">mkdir /etc/docker</span><br><span class="line">cat &gt;&gt; /etc/docker/daemon.json &lt;&lt; EOF</span><br><span class="line">&#123;</span><br><span class="line">  &quot;graph&quot;: &quot;/data/docker&quot;,</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://cqu2yr19.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">systemctl start docker</span><br><span class="line">docker info</span><br></pre></td></tr></table></figure>
+<p>安装docker nginx镜像</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">[root@nginx2 shells]# mkdir /data/hank/shells -p</span><br><span class="line">[root@nginx2 shells]# cd /data/hank/shells</span><br><span class="line">[root@nginx2 shells]# cat .env </span><br><span class="line">HOST_UID=0</span><br><span class="line">HOST_GID=0</span><br><span class="line"></span><br><span class="line">[root@nginx2 shells]# cat docker-compose-nginx.yml</span><br><span class="line">version: &#x27;3&#x27;</span><br><span class="line">services:</span><br><span class="line">  nginx:</span><br><span class="line">    image: nginx:1.19.1</span><br><span class="line">    restart: always</span><br><span class="line">    container_name: nginx</span><br><span class="line">    ports:</span><br><span class="line">      - 80:80</span><br><span class="line">      - 443:443</span><br><span class="line">    volumes:</span><br><span class="line">      - /data/hank/logs/nginx:/var/log/nginx</span><br><span class="line">      - /data/hank/config/nginx/conf.d:/etc/nginx/conf.d</span><br><span class="line">      - /data/hank/data/nginx:/html</span><br><span class="line">    environment:</span><br><span class="line">      - TZ=Asia/Shanghai</span><br><span class="line">      - HOST_UID=$&#123;HOST_UID&#125;</span><br><span class="line">      - HOST_GID=$&#123;HOST_GID&#125;</span><br><span class="line">    logging:</span><br><span class="line">      options:</span><br><span class="line">        max-size: &#x27;100m&#x27;</span><br><span class="line">        max-file: &#x27;10&#x27;</span><br><span class="line"></span><br><span class="line">[root@nginx2 shells]# docker-compose -f docker-compose-nginx.yml up -d</span><br><span class="line">[root@nginx2 shells]# cat /data/hank/config/nginx/conf.d/hello.conf</span><br><span class="line"># HTTP redirect</span><br><span class="line">server &#123;</span><br><span class="line">    listen      80;</span><br><span class="line">    listen      [::]:80;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        root /html;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="on-192-168-232-111-nginx1-hank-im"><a href="#on-192-168-232-111-nginx1-hank-im" class="headerlink" title="on 192.168.232.111 nginx1.hank.im"></a>on 192.168.232.111 nginx1.hank.im</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@nginx1 shells]# cat  /data/hank/data/nginx/index.html</span><br><span class="line">&lt;h1&gt;hello world&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">&lt;br&gt;</span><br><span class="line">nginx1.hank.im&lt;br&gt;</span><br><span class="line">192.168.232.111</span><br></pre></td></tr></table></figure>
+<h3 id="on-192-168-232-112-nginx2-hank-im"><a href="#on-192-168-232-112-nginx2-hank-im" class="headerlink" title="on 192.168.232.112 nginx2.hank.im"></a>on 192.168.232.112 nginx2.hank.im</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@nginx2 shells]# cat  /data/hank/data/nginx/index.html</span><br><span class="line">&lt;h1&gt;hello world&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">&lt;br&gt;</span><br><span class="line">nginx2.hank.im&lt;br&gt;</span><br><span class="line">192.168.232.112</span><br></pre></td></tr></table></figure>
+<h3 id="on-192-168-232-121-122-nginx1-hank-im-nginx2-hank-im"><a href="#on-192-168-232-121-122-nginx1-hank-im-nginx2-hank-im" class="headerlink" title="on 192.168.232.121/122 nginx1.hank.im/nginx2.hank.im"></a>on 192.168.232.121/122 nginx1.hank.im/nginx2.hank.im</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@nginx2 shells]# docker exec -it nginx nginx -t</span><br><span class="line">nginx: the configuration file /etc/nginx/nginx.conf syntax is ok</span><br><span class="line">nginx: configuration file /etc/nginx/nginx.conf test is successful</span><br><span class="line">[root@nginx2 shells]# docker exec -it nginx nginx -s reload</span><br></pre></td></tr></table></figure>
+<h3 id="开启lo回环地址与vip绑定"><a href="#开启lo回环地址与vip绑定" class="headerlink" title="开启lo回环地址与vip绑定"></a>开启lo回环地址与vip绑定</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@nginx2 ~]# cd lvs_real.sh</span><br><span class="line">[root@nginx2 ~]# lvs_real.sh start </span><br><span class="line">RealServer Start OK</span><br></pre></td></tr></table></figure>
+<h2 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h2><h4 id="on-client-ip"><a href="#on-client-ip" class="headerlink" title="on client ip"></a>on client ip</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">➜  ~ curl http://192.168.232.120/</span><br><span class="line">&lt;h1&gt;hello world&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">&lt;br&gt;</span><br><span class="line">nginx2.hank.im&lt;br&gt;</span><br><span class="line">192.168.232.112</span><br><span class="line">➜  ~ curl http://192.168.232.120/</span><br><span class="line">&lt;h1&gt;hello world&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">&lt;br&gt;</span><br><span class="line">nginx1.hank.im&lt;br&gt;</span><br><span class="line">192.168.232.111</span><br><span class="line">➜  ~ curl http://192.168.232.120/</span><br><span class="line">&lt;h1&gt;hello world&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">&lt;br&gt;</span><br><span class="line">nginx2.hank.im&lt;br&gt;</span><br><span class="line">192.168.232.112</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/lvs/" rel="tag"># lvs</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/06/pgsql-%E5%BA%93%E8%A1%A8%E5%AF%B9%E8%80%83/" rel="prev" title="pgsql 库表对考">
+      <i class="fa fa-chevron-left"></i> pgsql 库表对考
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/09/07/lvs-dr-%E6%A8%A1%E5%BC%8F%E6%90%AD%E5%BB%BA%E4%B8%8E%E5%88%86%E6%9E%90-2-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90/" rel="next" title="lvs dr 模式搭建与分析 (2) 抓包分析">
+      lvs dr 模式搭建与分析 (2) 抓包分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#LVS%E7%9B%B8%E5%85%B3%E6%9C%AF%E8%AF%AD"><span class="nav-number">1.</span> <span class="nav-text">LVS相关术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LVS%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E5%8D%81%E7%A7%8D%E7%AE%97%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">LVS负载均衡十种算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LVS-DR-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">LVS-DR 工作原理：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LVS-DR%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%89%B9%E6%80%A7%EF%BC%9A"><span class="nav-number">4.</span> <span class="nav-text">LVS DR模式的特性：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%E8%BF%87%E7%A8%8B"><span class="nav-number">5.</span> <span class="nav-text">部署过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83"><span class="nav-number">5.1.</span> <span class="nav-text">实验环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#on-192-168-232-121-122-lvs1-hank-im-lvs2-hank-im"><span class="nav-number">5.2.</span> <span class="nav-text">on 192.168.232.121&#x2F;122 lvs1.hank.im&#x2F;lvs2.hank.im</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#on-192-168-232-121-lvs1-hank-im"><span class="nav-number">5.3.</span> <span class="nav-text">on 192.168.232.121 lvs1.hank.im</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#on-192-168-232-122-lvs2-hank-im"><span class="nav-number">5.4.</span> <span class="nav-text">on 192.168.232.122 lvs2.hank.im</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#on-192-168-232-121-122-lvs1-hank-im-lvs2-hank-im-1"><span class="nav-number">5.5.</span> <span class="nav-text">on 192.168.232.121&#x2F;122 lvs1.hank.im&#x2F;lvs2.hank.im</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2nginx"><span class="nav-number">5.6.</span> <span class="nav-text">部署nginx</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#on-192-168-232-111-112-nginx1-hank-im-nginx2-hank-im"><span class="nav-number">5.7.</span> <span class="nav-text">on 192.168.232.111&#x2F;112 nginx1.hank.im&#x2F;nginx2.hank.im</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#on-192-168-232-111-nginx1-hank-im"><span class="nav-number">5.8.</span> <span class="nav-text">on 192.168.232.111 nginx1.hank.im</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#on-192-168-232-112-nginx2-hank-im"><span class="nav-number">5.9.</span> <span class="nav-text">on 192.168.232.112 nginx2.hank.im</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#on-192-168-232-121-122-nginx1-hank-im-nginx2-hank-im"><span class="nav-number">5.10.</span> <span class="nav-text">on 192.168.232.121&#x2F;122 nginx1.hank.im&#x2F;nginx2.hank.im</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%90%AFlo%E5%9B%9E%E7%8E%AF%E5%9C%B0%E5%9D%80%E4%B8%8Evip%E7%BB%91%E5%AE%9A"><span class="nav-number">5.11.</span> <span class="nav-text">开启lo回环地址与vip绑定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E6%B5%8B%E8%AF%95"><span class="nav-number">6.</span> <span class="nav-text">访问测试</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#on-client-ip"><span class="nav-number">6.0.1.</span> <span class="nav-text">on client ip</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

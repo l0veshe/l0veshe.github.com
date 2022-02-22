@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="StatefulSet是为了解决有状态服务的问题（对应Deployments和ReplicaSets是为无状态服务而设计），其应用场景包括  稳定的持久化存储，即Pod重新调度后还是能访问到相同的持久化数据，基于PVC来实现 稳定的网络标志，即Pod重新调度后其PodName和HostName不变，基于Headless Service（即没有Cluster IP的Service）来实现 有序部署，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="k8s-4 StatefulSet&#x2F;有状态服务">
+<meta property="og:url" content="http://yoursite.com/2021/09/07/k8s-4-StatefulSet-%E6%9C%89%E7%8A%B6%E6%80%81%E6%9C%8D%E5%8A%A1/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="StatefulSet是为了解决有状态服务的问题（对应Deployments和ReplicaSets是为无状态服务而设计），其应用场景包括  稳定的持久化存储，即Pod重新调度后还是能访问到相同的持久化数据，基于PVC来实现 稳定的网络标志，即Pod重新调度后其PodName和HostName不变，基于Headless Service（即没有Cluster IP的Service）来实现 有序部署，">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-09-07T15:32:28.000Z">
+<meta property="article:modified_time" content="2021-09-07T15:32:29.039Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="k8s">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/09/07/k8s-4-StatefulSet-%E6%9C%89%E7%8A%B6%E6%80%81%E6%9C%8D%E5%8A%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>k8s-4 StatefulSet/有状态服务 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/k8s-4-StatefulSet-%E6%9C%89%E7%8A%B6%E6%80%81%E6%9C%8D%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          k8s-4 StatefulSet/有状态服务
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-09-07 23:32:28 / Modified: 23:32:29" itemprop="dateCreated datePublished" datetime="2021-09-07T23:32:28+08:00">2021-09-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%91%E5%8E%9F%E7%94%9F/" itemprop="url" rel="index"><span itemprop="name">云原生</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>StatefulSet是为了解决有状态服务的问题（对应Deployments和ReplicaSets是为无状态服务而设计），其应用场景包括</p>
+<ul>
+<li>稳定的持久化存储，即Pod重新调度后还是能访问到相同的持久化数据，基于PVC来实现</li>
+<li>稳定的网络标志，即Pod重新调度后其PodName和HostName不变，基于Headless Service（即没有Cluster IP的Service）来实现</li>
+<li>有序部署，有序扩展，即Pod是有顺序的，在部署或者扩展的时候要依据定义的顺序依次依次进行（即从0到N-1，在下一个Pod运行之前所有之前的Pod必须都是Running和Ready状态），基于init containers来实现</li>
+<li>有序收缩，有序删除（即从N-1到0）</li>
+</ul>
+<p>从上面的应用场景可以发现，StatefulSet由以下几个部分组成：</p>
+<ul>
+<li>用于定义网络标志（DNS domain）的<strong>Headless Service</strong></li>
+<li>用于创建PersistentVolumes的<strong>volumeClaimTemplates</strong></li>
+<li>定义具体应用的<strong>StatefulSet</strong></li>
+</ul>
+<p>StatefulSet中每个Pod的DNS格式为<code>statefulSetName-&#123;0..N-1&#125;.serviceName.namespace.svc.cluster.local</code>，其中</p>
+<ul>
+<li><code>serviceName</code>为Headless Service的名字<br>0..N-1为Pod所在的序号，从0开始到N-1</li>
+<li><code>statefulSetName</code>为StatefulSet的名字</li>
+<li><code>namespace</code>为服务所在的namespace，Headless Servic和StatefulSet必须在相同的namespace</li>
+<li><code>.cluster.local</code>为Cluster Domain，</li>
+</ul>
+<h2 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h2><p>以一个简单的nginx服务web.yaml为例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  name: nginx</span><br><span class="line">  labels:</span><br><span class="line">    app: nginx</span><br><span class="line">spec:</span><br><span class="line">  ports:</span><br><span class="line">  - port: 80</span><br><span class="line">    name: web</span><br><span class="line">  clusterIP: None</span><br><span class="line">  selector:</span><br><span class="line">    app: nginx</span><br><span class="line">---</span><br><span class="line">apiVersion: apps/v1beta1</span><br><span class="line">kind: StatefulSet</span><br><span class="line">metadata:</span><br><span class="line">  name: web</span><br><span class="line">spec:</span><br><span class="line">  serviceName: &quot;nginx&quot;</span><br><span class="line">  replicas: 2</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        app: nginx</span><br><span class="line">    spec:</span><br><span class="line">      containers:</span><br><span class="line">      - name: nginx</span><br><span class="line">        image: gcr.io/google_containers/nginx-slim:0.8</span><br><span class="line">        ports:</span><br><span class="line">        - containerPort: 80</span><br><span class="line">          name: web</span><br><span class="line">        volumeMounts:</span><br><span class="line">        - name: www</span><br><span class="line">          mountPath: /usr/share/nginx/html</span><br><span class="line">  volumeClaimTemplates:</span><br><span class="line">  - metadata:</span><br><span class="line">      name: www</span><br><span class="line">      annotations:</span><br><span class="line">        volume.alpha.kubernetes.io/storage-class: anything</span><br><span class="line">    spec:</span><br><span class="line">      accessModes: [ &quot;ReadWriteOnce&quot; ]</span><br><span class="line">      resources:</span><br><span class="line">        requests:</span><br><span class="line">          storage: 1Gi</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create -f web.yaml</span><br><span class="line">service &quot;nginx&quot; created</span><br><span class="line">statefulset &quot;web&quot; created</span><br><span class="line"></span><br><span class="line"># 查看创建的headless service和statefulset</span><br><span class="line">$ kubectl get service nginx</span><br><span class="line">NAME      CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE</span><br><span class="line">nginx     None         &lt;none&gt;        80/TCP    1m</span><br><span class="line">$ kubectl get statefulset web</span><br><span class="line">NAME      DESIRED   CURRENT   AGE</span><br><span class="line">web       2         2         2m</span><br><span class="line"></span><br><span class="line"># 根据volumeClaimTemplates自动创建PVC（在GCE中会自动创建kubernetes.io/gce-pd类型的volume）</span><br><span class="line">$ kubectl get pvc</span><br><span class="line">NAME        STATUS    VOLUME                                     CAPACITY   ACCESSMODES   AGE</span><br><span class="line">www-web-0   Bound     pvc-d064a004-d8d4-11e6-b521-42010a800002   1Gi        RWO           16s</span><br><span class="line">www-web-1   Bound     pvc-d06a3946-d8d4-11e6-b521-42010a800002   1Gi        RWO           16s</span><br><span class="line"></span><br><span class="line"># 查看创建的Pod，他们都是有序的</span><br><span class="line">$ kubectl get pods -l app=nginx</span><br><span class="line">NAME      READY     STATUS    RESTARTS   AGE</span><br><span class="line">web-0     1/1       Running   0          5m</span><br><span class="line">web-1     1/1       Running   0          4m</span><br><span class="line"></span><br><span class="line"># 使用nslookup查看这些Pod的DNS</span><br><span class="line">$ kubectl run -i --tty --image busybox dns-test --restart=Never --rm /bin/sh</span><br><span class="line">/ # nslookup web-0.nginx</span><br><span class="line">Server:    10.0.0.10</span><br><span class="line">Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local</span><br><span class="line"></span><br><span class="line">Name:      web-0.nginx</span><br><span class="line">Address 1: 10.244.2.10</span><br><span class="line">/ # nslookup web-1.nginx</span><br><span class="line">Server:    10.0.0.10</span><br><span class="line">Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local</span><br><span class="line"></span><br><span class="line">Name:      web-1.nginx</span><br><span class="line">Address 1: 10.244.3.12</span><br><span class="line">/ # nslookup web-0.nginx.default.svc.cluster.local</span><br><span class="line">Server:    10.0.0.10</span><br><span class="line">Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local</span><br><span class="line"></span><br><span class="line">Name:      web-0.nginx.default.svc.cluster.local</span><br><span class="line">Address 1: 10.244.2.10</span><br></pre></td></tr></table></figure>
+<p><strong>为什么需要 headless service 无头服务？</strong><br>在用Deployment时，每一个Pod名称是没有顺序的，是随机字符串，因此是Pod名称是无序的，但是在statefulset中要求必须是有序 ，每一个pod不能被随意取代，pod重建后pod名称还是一样的。而pod IP是变化的，所以是以Pod名称来识别。pod名称是pod唯一性的标识符，必须持久稳定有效。这时候要用到无头服务，它可以给每个Pod一个唯一的名称 。</p>
+<p><strong>为什么需要volumeClaimTemplate？</strong><br>对于有状态的副本集都会用到持久存储，对于分布式系统来讲，它的最大特点是数据是不一样的，所以各个节点不能使用同一存储卷，每个节点有自已的专用存储，但是如果在Deployment中的Pod template里定义的存储卷，是所有副本集共用一个存储卷，数据是相同的，因为是基于模板来的 ，而statefulset中每个Pod都要自已的专有存储卷，所以statefulset的存储卷就不能再用Pod模板来创建了，于是statefulSet使用volumeClaimTemplate，称为卷申请模板，它会为每个Pod生成不同的pvc，并绑定pv， 从而实现各pod有专用存储。这就是为什么要用volumeClaimTemplate的原因。</p>
+<p>还可以进行其他的操作</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># 扩容</span><br><span class="line">$ kubectl scale statefulset web --replicas=5</span><br><span class="line"></span><br><span class="line"># 缩容</span><br><span class="line">$ kubectl patch statefulset web -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;replicas&quot;:3&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># 镜像更新（目前还不支持直接更新image，需要patch来间接实现）</span><br><span class="line">$ kubectl patch statefulset web --type=&#x27;json&#x27; -p=&#x27;[&#123;&quot;op&quot;: &quot;replace&quot;, &quot;path&quot;: &quot;/spec/template/spec/containers/0/image&quot;, &quot;value&quot;:&quot;gcr.io/google_containers/nginx-slim:0.7&quot;&#125;]&#x27;</span><br><span class="line"></span><br><span class="line"># 删除StatefulSet和Headless Service</span><br><span class="line">$ kubectl delete statefulset web</span><br><span class="line">$ kubectl delete service nginx</span><br><span class="line"></span><br><span class="line"># StatefulSet删除后PVC还会保留着，数据不再使用的话也需要删除</span><br><span class="line">$ kubectl delete pvc www-web-0 www-web-1</span><br></pre></td></tr></table></figure>
+<h4 id="zookeeper"><a href="#zookeeper" class="headerlink" title="zookeeper"></a>zookeeper</h4><p>另外一个更能说明StatefulSet强大功能的示例为zookeeper.yaml。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  name: zk-headless</span><br><span class="line">  labels:</span><br><span class="line">    app: zk-headless</span><br><span class="line">spec:</span><br><span class="line">  ports:</span><br><span class="line">  - port: 2888</span><br><span class="line">    name: server</span><br><span class="line">  - port: 3888</span><br><span class="line">    name: leader-election</span><br><span class="line">  clusterIP: None</span><br><span class="line">  selector:</span><br><span class="line">    app: zk</span><br><span class="line">---</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: zk-config</span><br><span class="line">data:</span><br><span class="line">  ensemble: &quot;zk-0;zk-1;zk-2&quot;</span><br><span class="line">  jvm.heap: &quot;2G&quot;</span><br><span class="line">  tick: &quot;2000&quot;</span><br><span class="line">  init: &quot;10&quot;</span><br><span class="line">  sync: &quot;5&quot;</span><br><span class="line">  client.cnxns: &quot;60&quot;</span><br><span class="line">  snap.retain: &quot;3&quot;</span><br><span class="line">  purge.interval: &quot;1&quot;</span><br><span class="line">---</span><br><span class="line">apiVersion: policy/v1beta1</span><br><span class="line">kind: PodDisruptionBudget</span><br><span class="line">metadata:</span><br><span class="line">  name: zk-budget</span><br><span class="line">spec:</span><br><span class="line">  selector:</span><br><span class="line">    matchLabels:</span><br><span class="line">      app: zk</span><br><span class="line">  minAvailable: 2</span><br><span class="line">---</span><br><span class="line">apiVersion: apps/v1beta1</span><br><span class="line">kind: StatefulSet</span><br><span class="line">metadata:</span><br><span class="line">  name: zk</span><br><span class="line">spec:</span><br><span class="line">  serviceName: zk-headless</span><br><span class="line">  replicas: 3</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        app: zk</span><br><span class="line">      annotations:</span><br><span class="line">        pod.alpha.kubernetes.io/initialized: &quot;true&quot;</span><br><span class="line">        scheduler.alpha.kubernetes.io/affinity: &gt;</span><br><span class="line">            &#123;</span><br><span class="line">              &quot;podAntiAffinity&quot;: &#123;</span><br><span class="line">                &quot;requiredDuringSchedulingRequiredDuringExecution&quot;: [&#123;</span><br><span class="line">                  &quot;labelSelector&quot;: &#123;</span><br><span class="line">                    &quot;matchExpressions&quot;: [&#123;</span><br><span class="line">                      &quot;key&quot;: &quot;app&quot;,</span><br><span class="line">                      &quot;operator&quot;: &quot;In&quot;,</span><br><span class="line">                      &quot;values&quot;: [&quot;zk-headless&quot;]</span><br><span class="line">                    &#125;]</span><br><span class="line">                  &#125;,</span><br><span class="line">                  &quot;topologyKey&quot;: &quot;kubernetes.io/hostname&quot;</span><br><span class="line">                &#125;]</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">    spec:</span><br><span class="line">      containers:</span><br><span class="line">      - name: k8szk</span><br><span class="line">        imagePullPolicy: Always</span><br><span class="line">        image: gcr.io/google_samples/k8szk:v1</span><br><span class="line">        resources:</span><br><span class="line">          requests:</span><br><span class="line">            memory: &quot;4Gi&quot;</span><br><span class="line">            cpu: &quot;1&quot;</span><br><span class="line">        ports:</span><br><span class="line">        - containerPort: 2181</span><br><span class="line">          name: client</span><br><span class="line">        - containerPort: 2888</span><br><span class="line">          name: server</span><br><span class="line">        - containerPort: 3888</span><br><span class="line">          name: leader-election</span><br><span class="line">        env:</span><br><span class="line">        - name : ZK_ENSEMBLE</span><br><span class="line">          valueFrom:</span><br><span class="line">            configMapKeyRef:</span><br><span class="line">              name: zk-config</span><br><span class="line">              key: ensemble</span><br><span class="line">        - name : ZK_HEAP_SIZE</span><br><span class="line">          valueFrom:</span><br><span class="line">            configMapKeyRef:</span><br><span class="line">                name: zk-config</span><br><span class="line">                key: jvm.heap</span><br><span class="line">        - name : ZK_TICK_TIME</span><br><span class="line">          valueFrom:</span><br><span class="line">            configMapKeyRef:</span><br><span class="line">                name: zk-config</span><br><span class="line">                key: tick</span><br><span class="line">        - name : ZK_INIT_LIMIT</span><br><span class="line">          valueFrom:</span><br><span class="line">            configMapKeyRef:</span><br><span class="line">                name: zk-config</span><br><span class="line">                key: init</span><br><span class="line">        - name : ZK_SYNC_LIMIT</span><br><span class="line">          valueFrom:</span><br><span class="line">            configMapKeyRef:</span><br><span class="line">                name: zk-config</span><br><span class="line">                key: tick</span><br><span class="line">        - name : ZK_MAX_CLIENT_CNXNS</span><br><span class="line">          valueFrom:</span><br><span class="line">            configMapKeyRef:</span><br><span class="line">                name: zk-config</span><br><span class="line">                key: client.cnxns</span><br><span class="line">        - name: ZK_SNAP_RETAIN_COUNT</span><br><span class="line">          valueFrom:</span><br><span class="line">            configMapKeyRef:</span><br><span class="line">                name: zk-config</span><br><span class="line">                key: snap.retain</span><br><span class="line">        - name: ZK_PURGE_INTERVAL</span><br><span class="line">          valueFrom:</span><br><span class="line">            configMapKeyRef:</span><br><span class="line">                name: zk-config</span><br><span class="line">                key: purge.interval</span><br><span class="line">        - name: ZK_CLIENT_PORT</span><br><span class="line">          value: &quot;2181&quot;</span><br><span class="line">        - name: ZK_SERVER_PORT</span><br><span class="line">          value: &quot;2888&quot;</span><br><span class="line">        - name: ZK_ELECTION_PORT</span><br><span class="line">          value: &quot;3888&quot;</span><br><span class="line">        command:</span><br><span class="line">        - sh</span><br><span class="line">        - -c</span><br><span class="line">        - zkGenConfig.sh &amp;&amp; zkServer.sh start-foreground</span><br><span class="line">        readinessProbe:</span><br><span class="line">          exec:</span><br><span class="line">            command:</span><br><span class="line">            - &quot;zkOk.sh&quot;</span><br><span class="line">          initialDelaySeconds: 15</span><br><span class="line">          timeoutSeconds: 5</span><br><span class="line">        livenessProbe:</span><br><span class="line">          exec:</span><br><span class="line">            command:</span><br><span class="line">            - &quot;zkOk.sh&quot;</span><br><span class="line">          initialDelaySeconds: 15</span><br><span class="line">          timeoutSeconds: 5</span><br><span class="line">        volumeMounts:</span><br><span class="line">        - name: datadir</span><br><span class="line">          mountPath: /var/lib/zookeeper</span><br><span class="line">      securityContext:</span><br><span class="line">        runAsUser: 1000</span><br><span class="line">        fsGroup: 1000</span><br><span class="line">  volumeClaimTemplates:</span><br><span class="line">  - metadata:</span><br><span class="line">      name: datadir</span><br><span class="line">      annotations:</span><br><span class="line">        volume.alpha.kubernetes.io/storage-class: anything</span><br><span class="line">    spec:</span><br><span class="line">      accessModes: [ &quot;ReadWriteOnce&quot; ]</span><br><span class="line">      resources:</span><br><span class="line">        requests:</span><br><span class="line">          storage: 20Gi</span><br></pre></td></tr></table></figure>
+<p><code>kubectl create -f zookeeper.yaml</code></p>
+<h4 id="StatefulSet注意事项"><a href="#StatefulSet注意事项" class="headerlink" title="StatefulSet注意事项"></a>StatefulSet注意事项</h4><ol>
+<li>还在beta状态，需要kubernetes v1.5版本以上才支持</li>
+<li>所有Pod的Volume必须使用PersistentVolume或者是管理员事先创建好</li>
+<li>为了保证数据安全，删除StatefulSet时不会删除Volume</li>
+<li>StatefulSet需要一个Headless Service来定义DNS domain，需要在StatefulSet之前创建好</li>
+<li>目前StatefulSet还没有feature complete，比如更新操作还需要手动patch。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/07/k8s-3-secret-%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/" rel="prev" title="k8s-3 secret/环境变量">
+      <i class="fa fa-chevron-left"></i> k8s-3 secret/环境变量
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/09/07/k8s-5-DaemonSet-%E7%B3%BB%E7%BB%9F%E5%8A%9F%E8%83%BD%E5%BA%94%E7%94%A8/" rel="next" title="k8s-5 DaemonSet/系统功能应用">
+      k8s-5 DaemonSet/系统功能应用 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.</span> <span class="nav-text">简单示例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#zookeeper"><span class="nav-number">1.0.1.</span> <span class="nav-text">zookeeper</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#StatefulSet%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">1.0.2.</span> <span class="nav-text">StatefulSet注意事项</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

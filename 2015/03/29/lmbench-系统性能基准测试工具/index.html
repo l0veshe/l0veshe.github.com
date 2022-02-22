@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="软件说明:    Lmbench是一套简易，可移植的，符合ANSI&#x2F;C标准为UNIX&#x2F;POSIX而制定的微型测评工具。可以测试包括文件读写、内存操作、进程创建销毁开销、网络等性能,一般来说，它衡量两个关键特征：反应时间和带宽。Lmbench旨在使系统开发者深入了解关键操作的基础成本。    Lmbench是一个多平台软件，因此可以对同级别的系统进行比较测试，反映不同系统的优劣势，通过选择不同的库函">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lmbench 系统性能基准测试工具">
+<meta property="og:url" content="http://yoursite.com/2015/03/29/lmbench-%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="软件说明:    Lmbench是一套简易，可移植的，符合ANSI&#x2F;C标准为UNIX&#x2F;POSIX而制定的微型测评工具。可以测试包括文件读写、内存操作、进程创建销毁开销、网络等性能,一般来说，它衡量两个关键特征：反应时间和带宽。Lmbench旨在使系统开发者深入了解关键操作的基础成本。    Lmbench是一个多平台软件，因此可以对同级别的系统进行比较测试，反映不同系统的优劣势，通过选择不同的库函">
+<meta property="og:locale">
+<meta property="article:published_time" content="2015-03-29T05:11:36.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.964Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2015/03/29/lmbench-%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>lmbench 系统性能基准测试工具 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/03/29/lmbench-%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          lmbench 系统性能基准测试工具
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2015-03-29 13:11:36" itemprop="dateCreated datePublished" datetime="2015-03-29T13:11:36+08:00">2015-03-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>软件说明:<br>    Lmbench是一套简易，可移植的，符合ANSI/C标准为UNIX/POSIX而制定的微型测评工具。可以测试包括文件读写、内存操作、进程创建销毁开销、网络等性能,一般来说，它衡量两个关键特征：反应时间和带宽。Lmbench旨在使系统开发者深入了解关键操作的基础成本。<br>    Lmbench是一个多平台软件，因此可以对同级别的系统进行比较测试，反映不同系统的优劣势，通过选择不同的库函数我们就可以比较库函数的性能；更为重要的是，作为一个开源软件，lmbench提供一个测试框架，如果测试者对测试项目有更高的测试要求，可以通过少量的修改源代码达到目的（比如现在只能评测进程创建、终止的性能和进程切换的开销，通过修改部分代码即可实现线程级别的性能测试）。<br><span id="more"></span></p>
+<h3 id="具体测试内容"><a href="#具体测试内容" class="headerlink" title="具体测试内容:"></a>具体测试内容:</h3><ul>
+<li><p><em>Bandwidth benchmarks</em><br>Cached file read<br>Memory copy (bcopy)<br>Memory read<br>Memory write<br>Pipe<br>TCP</p>
+</li>
+<li><p><em>Latency benchmarks</em><br>Context switching.<br>Networking: connection establishment, pipe, TCP, UDP, and RPC hot potato<br>File system creates and deletes.<br>Process creation.<br>Signal handling<br>System call overhead<br>Memory read latency</p>
+</li>
+<li><p><em>Miscellanious</em><br>Processor clock rate calculation</p>
+</li>
+</ul>
+<h1 id="下载-amp-安装"><a href="#下载-amp-安装" class="headerlink" title="下载&amp;安装:"></a>下载&amp;安装:</h1><p>1.下载页面:<br><a target="_blank" rel="noopener" href="http://www.bitmover.com/lmbench/get_lmbench.html">http://www.bitmover.com/lmbench/get_lmbench.html</a></p>
+<p>2.下载地址<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#LMbench version2</span></span><br><span class="line">wget http://www.bitmover.com/lmbench/lmbench2.tar.gz</span><br><span class="line"><span class="comment">#LMbench version3</span></span><br><span class="line">wget http://www.bitmover.com/lmbench/lmbench3.tar.gz</span><br></pre></td></tr></table></figure></p>
+<p>3.安装<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br></pre></td><td class="code"><pre><span class="line">tar -zxf lmbench3.tar.gz</span><br><span class="line"><span class="built_in">cd</span> ./lmbench3</span><br><span class="line">cat README </span><br><span class="line">README <span class="keyword">for</span> lmbench 2alpha8 net release.</span><br><span class="line"></span><br><span class="line">To run the benchmark, you should be able to say: <span class="comment">#如果要进行测试</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">cd</span> src</span><br><span class="line">	make results</span><br><span class="line"></span><br><span class="line">If you want to see how you did compared to the other system results <span class="comment">#对比其他系统结果</span></span><br><span class="line">included here, say</span><br><span class="line"></span><br><span class="line">	make see</span><br><span class="line"></span><br><span class="line">Be warned that many of these benchmarks are sensitive to other things</span><br><span class="line">being run on the system, mainly from CPU cache and CPU cycle effects.</span><br><span class="line">So make sure your screen saver is not running, etc.</span><br><span class="line"></span><br><span class="line">It<span class="string">&#x27;s a good idea to do several runs and compare the output like so #进行更多次测试</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">	make results</span></span><br><span class="line"><span class="string">	make rerun</span></span><br><span class="line"><span class="string">	make rerun</span></span><br><span class="line"><span class="string">	make rerun</span></span><br><span class="line"><span class="string">	cd Results &amp;&amp; make LIST=&lt;your OS&gt;/*</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">mkdir SCCS</span></span><br><span class="line"><span class="string">touch ./SCCS/s.ChangeSet</span></span><br><span class="line"><span class="string">make results</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">		L M B E N C H   C ON F I G U R A T I O N</span></span><br><span class="line"><span class="string">		----------------------------------------</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">You need to configure some parameters to lmbench.  Once you have configured</span></span><br><span class="line"><span class="string">these parameters, you may do multiple runs by saying </span></span><br><span class="line"><span class="string">		----------------------------------------</span></span><br><span class="line"><span class="string">#在多核CPU上并行多少个lmbench。作者说这个目前还是实验性质的，结果可能不正确并有随机性。更重要的是，整个benchmark的速度会变得非常慢（100倍）。既然这样，当然用缺省的数值1了。</span></span><br><span class="line"><span class="string">OPIES [default 1]: 1</span></span><br><span class="line"><span class="string">#测试任务的分配方式。按回车选择缺省的方案1。</span></span><br><span class="line"><span class="string">Job placement selection [default 1]: 1 &gt; Allow scheduler to place jobs</span></span><br><span class="line"><span class="string">#有些测试需要一段内存</span></span><br><span class="line"><span class="string">MB [default 469]</span></span><br><span class="line"><span class="string">#选择测试项目。分别是全部测试、硬件测试、OS测试和操作系统开发阶段的测试。缺省选择为全部测试。</span></span><br><span class="line"><span class="string">SUBSET (ALL|HARWARE|OS|DEVELOPMENT) [default all]: all</span></span><br><span class="line"><span class="string">#内存延迟测试</span></span><br><span class="line"><span class="string">FASTMEM [default no]: yes</span></span><br><span class="line"><span class="string">#测试文件系统的延迟。</span></span><br><span class="line"><span class="string">SLOWFS [default no]:</span></span><br><span class="line"><span class="string">#测试磁盘的性能</span></span><br><span class="line"><span class="string">DISKS [default none]</span></span><br><span class="line"><span class="string">#网络测试</span></span><br><span class="line"><span class="string">REMOTE [default none]</span></span><br><span class="line"><span class="string">#软件会自动分析CPU的工作频率</span></span><br><span class="line"><span class="string">Processor mhz [default 664 MHz, 1.5060 nanosec clock] </span></span><br><span class="line"><span class="string">#需要一个位置保存临时文件</span></span><br><span class="line"><span class="string">FSDIR [default /tmp]</span></span><br><span class="line"><span class="string">#lmbench的输出设备</span></span><br><span class="line"><span class="string">Status output file [default /dev/tty]</span></span><br><span class="line"><span class="string">#是否将结果上传给作者</span></span><br><span class="line"><span class="string">Mail results [default yes] no</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Basic system parameters</span></span><br><span class="line"><span class="string">基础系统参数</span></span><br><span class="line"><span class="string">----------------------------------------------------</span></span><br><span class="line"><span class="string">Host                 OS Description              Mhz</span></span><br><span class="line"><span class="string">                                                    </span></span><br><span class="line"><span class="string">--------- ------------- ----------------------- ----</span></span><br><span class="line"><span class="string">x1. Linux 2.6.32-        x86_64-linux-gnu 2600</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">#处理器、进程操作时间#越小越好</span></span><br><span class="line"><span class="string">Processor, Processes - times in microseconds - smaller is better</span></span><br><span class="line"><span class="string">----------------------------------------------------------------</span></span><br><span class="line"><span class="string">#Null call	简单系统调用（取进程号）</span></span><br><span class="line"><span class="string">#Null I/O	简单IO操作（空读写的平均）</span></span><br><span class="line"><span class="string">#Stat	取文件状态的操作</span></span><br><span class="line"><span class="string">#Open clos	打开然后立即关闭关闭文件操作</span></span><br><span class="line"><span class="string">#Slct tcp	Select设置</span></span><br><span class="line"><span class="string">#Sig inst	设置信号</span></span><br><span class="line"><span class="string">#Sig hndl	捕获处理信号</span></span><br><span class="line"><span class="string">#Fork proc	Fork进程后直接退出</span></span><br><span class="line"><span class="string">#Exec proc	Fork后执行execve调用再退出</span></span><br><span class="line"><span class="string">#Sh proc	Fork后执行shell再退出</span></span><br><span class="line"><span class="string">Host                 OS  Mhz null null      open selct sig  sig  fork exec sh  </span></span><br><span class="line"><span class="string">                             call  I/O stat clos TCP   inst hndl proc proc proc</span></span><br><span class="line"><span class="string">--------- ------------- ---- ---- ---- ---- ---- ----- ---- ---- ---- ---- ----</span></span><br><span class="line"><span class="string">x1. Linux 2.6.32- 2600 0.09 0.16 1.30 1.98 3.181 0.18 1.21 231. 633. 2869</span></span><br><span class="line"><span class="string">#上下文切换</span></span><br><span class="line"><span class="string">#2p/16K	表示2个并行处理16K大小的数据</span></span><br><span class="line"><span class="string">Context switching - times in microseconds - smaller is better</span></span><br><span class="line"><span class="string">-------------------------------------------------------------</span></span><br><span class="line"><span class="string">Host                 OS 2p/0K 2p/16K 2p/64K 8p/16K 8p/64K 16p/16K 16p/64K</span></span><br><span class="line"><span class="string">                        ctxsw  ctxsw  ctxsw ctxsw  ctxsw   ctxsw   ctxsw</span></span><br><span class="line"><span class="string">--------- ------------- ----- ------ ------ ------ ------ ------- -------</span></span><br><span class="line"><span class="string">x1. Linux 2.6.32- 2.170 3.3600   14.2 3.3900   15.4 3.49000    15.8</span></span><br><span class="line"><span class="string">#本地通信延时，通过不同通信方式发送后自己立刻读</span></span><br><span class="line"><span class="string">*Local* Communication latencies in microseconds - smaller is better</span></span><br><span class="line"><span class="string">-------------------------------------------------------------------</span></span><br><span class="line"><span class="string">Host                 OS 2p/0K  Pipe AF     UDP  RPC/   TCP  RPC/ TCP</span></span><br><span class="line"><span class="string">                        ctxsw       UNIX         UDP         TCP conn</span></span><br><span class="line"><span class="string">--------- ------------- ----- ----- ---- ----- ----- ----- ----- ----</span></span><br><span class="line"><span class="string">x1. Linux 2.6.32- 2.170  12.2 11.4  19.5  25.3  35.3  36.0 17.4</span></span><br><span class="line"><span class="string">#文件、内存延时</span></span><br><span class="line"><span class="string">#File Create &amp; Delete	创建并删除文件</span></span><br><span class="line"><span class="string">#MMap Latency	内存映射</span></span><br><span class="line"><span class="string">#Prot Fault 保护故障</span></span><br><span class="line"><span class="string">#Page Fault 缺页</span></span><br><span class="line"><span class="string">#100fd selct 对100个文件描述符设置select的时间</span></span><br><span class="line"><span class="string">File &amp; VM system latencies in microseconds - smaller is better</span></span><br><span class="line"><span class="string">--------------------------------------------------------------</span></span><br><span class="line"><span class="string">Host                 OS   0K File      10K File      Mmap    Prot    Page	</span></span><br><span class="line"><span class="string">                        Create Delete Create Delete  Latency Fault   Fault </span></span><br><span class="line"><span class="string">--------- ------------- ------ ------ ------ ------  ------- -----   ----- </span></span><br><span class="line"><span class="string">x1. Linux 2.6.32- 7.5800 6.2590   17.4 9.3670   150.4K 0.254        </span></span><br><span class="line"><span class="string">#本地通信带宽</span></span><br><span class="line"><span class="string">#Pipe	管道操作</span></span><br><span class="line"><span class="string">#AF UNIX	Unix协议</span></span><br><span class="line"><span class="string">#TCP	TCP通信</span></span><br><span class="line"><span class="string">#File reread	文件重复读</span></span><br><span class="line"><span class="string">#MMap reread	内存映射重复读</span></span><br><span class="line"><span class="string">#Bcopy(libc)	内存拷贝使用libc</span></span><br><span class="line"><span class="string">#Bcopy(hand)	内存拷贝手工拷贝</span></span><br><span class="line"><span class="string">#Mem read	内存读</span></span><br><span class="line"><span class="string">*Local* Communication bandwidths in MB/s - bigger is better</span></span><br><span class="line"><span class="string">-----------------------------------------------------------</span></span><br><span class="line"><span class="string">Host                OS  Pipe AF    TCP  File   Mmap  Bcopy  Bcopy  Mem   Mem</span></span><br><span class="line"><span class="string">                             UNIX      reread reread (libc) (hand) read write</span></span><br><span class="line"><span class="string">--------- ------------- ---- ---- ---- ------ ------ ------ ------ ---- -----</span></span><br><span class="line"><span class="string">x1. Linux 2.6.32- 1377 7537 3625 10434M  10.3K 2819.9 5063.2 9683 4732.</span></span><br><span class="line"><span class="string">#内存操作延时</span></span><br><span class="line"><span class="string">#L1	缓存1</span></span><br><span class="line"><span class="string">#L2	缓存2</span></span><br><span class="line"><span class="string">#Main Mem	连续内存</span></span><br><span class="line"><span class="string">#Rand Mem	内存随机访问延时</span></span><br><span class="line"><span class="string">#Guesses	如果L1和L2近似，会显示“No L1 cache?”如果L2和Main Mem近似，会显示“No L2 cache?”</span></span><br><span class="line"><span class="string">Memory latencies in nanoseconds - smaller is better</span></span><br><span class="line"><span class="string">    (WARNING - may not be correct, check graphs)</span></span><br><span class="line"><span class="string">---------------------------------------------------</span></span><br><span class="line"><span class="string">Host                 OS   Mhz  L1 $   L2 $    Main mem    Guesses</span></span><br><span class="line"><span class="string">--------- -------------  ---- ----- ------    --------    -------</span></span><br><span class="line"><span class="string">x1. Linux 2.6.32-  2600     -      -           -    Bad mhz?</span></span><br></pre></td></tr></table></figure></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2015/03/27/linux%E6%80%A7%E8%83%BD%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/" rel="prev" title="linux性能基准测试工具">
+      <i class="fa fa-chevron-left"></i> linux性能基准测试工具
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2015/03/29/shell-%E6%A8%A1%E6%8B%9F%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="next" title="shell 模拟多线程">
+      shell 模拟多线程 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E6%B5%8B%E8%AF%95%E5%86%85%E5%AE%B9"><span class="nav-number">1.</span> <span class="nav-text">具体测试内容:</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD-amp-%E5%AE%89%E8%A3%85"><span class="nav-number"></span> <span class="nav-text">下载&amp;安装:</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

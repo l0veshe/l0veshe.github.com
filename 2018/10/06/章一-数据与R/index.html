@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1.1 数据与统计学1.1.1 统计学是一门分析数据的科学，它所提供的是收集数据、处理数据和分析数据的一套方法和技术，通过对数据的分析得出结论">
+<meta property="og:type" content="article">
+<meta property="og:title" content="章一 数据与R">
+<meta property="og:url" content="http://yoursite.com/2018/10/06/%E7%AB%A0%E4%B8%80-%E6%95%B0%E6%8D%AE%E4%B8%8ER/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="1.1 数据与统计学1.1.1 统计学是一门分析数据的科学，它所提供的是收集数据、处理数据和分析数据的一套方法和技术，通过对数据的分析得出结论">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-10-06T02:48:56.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.950Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="Statistic">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2018/10/06/%E7%AB%A0%E4%B8%80-%E6%95%B0%E6%8D%AE%E4%B8%8ER/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>章一 数据与R | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/06/%E7%AB%A0%E4%B8%80-%E6%95%B0%E6%8D%AE%E4%B8%8ER/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          章一 数据与R
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-10-06 10:48:56" itemprop="dateCreated datePublished" datetime="2018-10-06T10:48:56+08:00">2018-10-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%9F%BA%E4%BA%8ER/" itemprop="url" rel="index"><span itemprop="name">统计学基于R</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1-1-数据与统计学"><a href="#1-1-数据与统计学" class="headerlink" title="1.1 数据与统计学"></a>1.1 数据与统计学</h1><h2 id="1-1-1-统计学"><a href="#1-1-1-统计学" class="headerlink" title="1.1.1 统计学"></a>1.1.1 统计学</h2><pre><code>是一门分析数据的科学，它所提供的是收集数据、处理数据和分析数据的一套方法和技术，通过对数据的分析得出结论
+</code></pre><span id="more"></span>
+<h3 id="数据分析的方法"><a href="#数据分析的方法" class="headerlink" title="数据分析的方法"></a>数据分析的方法</h3><h4 id="1-描述统计-descriptive-statistics"><a href="#1-描述统计-descriptive-statistics" class="headerlink" title="1. 描述统计 descriptive statistics"></a>1. 描述统计 descriptive statistics</h4><pre><code>利用图表形式对数据进行汇总和展示， 计算一些简单的统计亮（诸如比例，比例，平均数，标准差）
+</code></pre><h4 id="2-推断统计-iferential-statistics"><a href="#2-推断统计-iferential-statistics" class="headerlink" title="2. 推断统计 iferential statistics"></a>2. 推断统计 iferential statistics</h4><pre><code>根据样本信息来推断总体的特征，内容包括 
+    参数估计
+    假设检验
+</code></pre><h3 id="变量-variable"><a href="#变量-variable" class="headerlink" title="变量 variable"></a>变量 variable</h3><ul>
+<li>变量: 描述观察对象某种特征的概念</li>
+<li><p>-数据: 变量的观测结果就是数据</p>
+<ul>
+<li>类别变量/定性变量<ul>
+<li>名义值类别变量</li>
+<li>顺序值类别变量</li>
+</ul>
+</li>
+<li><p>-类别数据</p>
+<ul>
+<li>分类数据/定性数据</li>
+</ul>
+</li>
+<li><p>数值变量/定量变量</p>
+<ul>
+<li>离散变量</li>
+<li>连续变量</li>
+</ul>
+</li>
+<li>-数值数据/定量数据</li>
+</ul>
+</li>
+<li><p>-数据: </p>
+<ul>
+<li>按收集方法<ul>
+<li>观测数据</li>
+<li>实验数据</li>
+</ul>
+</li>
+<li>按被描述的现象和时间的关系<ul>
+<li>截面数据</li>
+<li>时间序列数据</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="数据的来源"><a href="#数据的来源" class="headerlink" title="数据的来源"></a>数据的来源</h3><ul>
+<li>总体 population</li>
+<li>样本 sample</li>
+<li>样本量 sample size</li>
+<li>概率抽样probability sampling<ul>
+<li>简单随机抽样<ul>
+<li>有放回抽样</li>
+<li>无放回抽样</li>
+<li>简单随机抽样</li>
+</ul>
+</li>
+<li>分层抽样</li>
+<li>系统抽样</li>
+<li>整群抽样</li>
+</ul>
+</li>
+</ul>
+<h2 id="1-2-R的初步使用"><a href="#1-2-R的初步使用" class="headerlink" title="1.2 R的初步使用"></a>1.2 R的初步使用</h2><h3 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h3><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&gt; x&lt;-<span class="number">8</span>	<span class="comment"># 变量</span></span><br><span class="line">&gt; y&lt;-<span class="built_in">c</span>(<span class="number">80</span>,<span class="number">78</span>,<span class="number">81</span>,<span class="number">100</span>,<span class="number">20</span>) <span class="comment"># 集合</span></span><br><span class="line">&gt; z&lt;-read.table(<span class="string">&quot;utf8_table1_1.txt&quot;</span>) <span class="comment"># dataframe 数据框</span></span><br><span class="line">&gt; <span class="built_in">sum</span>(y) </span><br><span class="line">[<span class="number">1</span>] <span class="number">339</span></span><br><span class="line">&gt; mean(y) <span class="comment"># 方差</span></span><br><span class="line">[<span class="number">1</span>] <span class="number">84.75</span></span><br><span class="line">&gt; barplot(y, xlab=<span class="string">&quot;type&quot;</span>, ylab=<span class="string">&quot;size&quot;</span>, col = <span class="built_in">c</span>(<span class="number">1</span>:<span class="number">5</span>))</span><br><span class="line">...</span><br><span class="line">&gt; help(mean) <span class="comment"># 帮助</span></span><br><span class="line">&gt; install.packages(<span class="string">&quot;car&quot;</span>)	<span class="comment"># isntall包</span></span><br><span class="line">&gt; install.packages(<span class="built_in">c</span>(<span class="string">&quot;car&quot;</span>, <span class="string">&quot;vcd&quot;</span>))</span><br><span class="line">&gt; library(car) <span class="comment"># 加载包</span></span><br><span class="line">&gt; require(car) <span class="comment"># 加载包</span></span><br></pre></td></tr></table></figure>
+<h3 id="R的資料型態包含因子-factor-、向量-vector-、矩陣-matrix-以及資料集-data-frame"><a href="#R的資料型態包含因子-factor-、向量-vector-、矩陣-matrix-以及資料集-data-frame" class="headerlink" title="R的資料型態包含因子(factor)、向量(vector)、矩陣(matrix)以及資料集(data frame)"></a>R的資料型態包含因子(factor)、向量(vector)、矩陣(matrix)以及資料集(data frame)</h3><pre><code>factor()    声明因子
+c()    声明向量
+matrix()    声明矩阵
+data.frame()    声明数据框
+</code></pre><h4 id="1-因子-factor"><a href="#1-因子-factor" class="headerlink" title="1 因子 factor"></a>1 因子 factor</h4><p>类别资料</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; car &lt;- <span class="built_in">c</span>(<span class="string">&quot;ford&quot;</span>, <span class="string">&quot;mercedes&quot;</span>, <span class="string">&quot;toyota&quot;</span>, <span class="string">&quot;chevrolet&quot;</span>, <span class="string">&quot;volvo&quot;</span>) </span><br><span class="line">&gt; car&lt;- factor(car) </span><br><span class="line">&gt; car</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h5 id="2-向量-vector"><a href="#2-向量-vector" class="headerlink" title="2 向量 vector"></a>2 向量 vector</h5><p>向量資料可以包含數字、字串以及邏輯值</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt; number&lt;-<span class="built_in">c</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line">&gt; name&lt;-<span class="built_in">c</span>(<span class="string">&quot;mary&quot;</span>, <span class="string">&quot;jenny&quot;</span>, <span class="string">&quot;ariel&quot;</span>)</span><br><span class="line">&gt; logic&lt;-<span class="built_in">c</span>(<span class="literal">FALSE</span>, <span class="literal">FALSE</span>, <span class="literal">TRUE</span>)</span><br><span class="line">&gt; number</span><br><span class="line">[<span class="number">1</span>] <span class="number">1</span> <span class="number">2</span> <span class="number">3</span></span><br><span class="line">&gt; name</span><br><span class="line">[<span class="number">1</span>] <span class="string">&quot;mary&quot;</span>  <span class="string">&quot;jenny&quot;</span> <span class="string">&quot;ariel&quot;</span></span><br><span class="line">&gt;logic</span><br><span class="line">[<span class="number">1</span>] <span class="literal">FALSE</span> <span class="literal">FALSE</span>  <span class="literal">TRUE</span></span><br></pre></td></tr></table></figure>
+<h4 id="3-矩阵-matrix"><a href="#3-矩阵-matrix" class="headerlink" title="3 矩阵 matrix"></a>3 矩阵 matrix</h4><p>矩陣可以是數字、字串或其他類別，但一個矩陣內的資料應該是同類型的，數字資料不能夾雜字串，字串資料也不能含有數字</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt; car&lt;-<span class="built_in">c</span>(<span class="string">&quot;ford&quot;</span>, <span class="string">&quot;mercedes&quot;</span>, <span class="string">&quot;toyota&quot;</span>, <span class="string">&quot;chevrolet&quot;</span>, <span class="string">&quot;volvo&quot;</span>, <span class="string">&quot;mondeo&quot;</span>, <span class="string">&quot;s600&quot;</span>, <span class="string">&quot;camry&quot;</span>, <span class="string">&quot;cruze&quot;</span>, <span class="string">&quot;s60&quot;</span>) <span class="comment">#指定向量資料</span></span><br><span class="line">&gt; car&lt;-matrix(car, nrow=<span class="number">5</span>, ncol=<span class="number">2</span>, byrow=<span class="literal">FALSE</span>, <span class="built_in">dimnames</span>=<span class="built_in">list</span>(<span class="built_in">c</span>(<span class="string">&quot;&quot;</span>,<span class="string">&quot;&quot;</span>,<span class="string">&quot;&quot;</span>,<span class="string">&quot;&quot;</span>,<span class="string">&quot;&quot;</span>), <span class="built_in">c</span>(<span class="string">&quot;brand&quot;</span>, <span class="string">&quot;type&quot;</span>))) <span class="comment"># 將向量轉換為矩陣</span></span><br><span class="line">&gt; car</span><br><span class="line">brand       type</span><br><span class="line"> <span class="string">&quot;ford&quot;</span>      <span class="string">&quot;mondeo&quot;</span></span><br><span class="line"> <span class="string">&quot;mercedes&quot;</span>  <span class="string">&quot;s600&quot;</span></span><br><span class="line"> <span class="string">&quot;toyota&quot;</span>    <span class="string">&quot;camry&quot;</span></span><br><span class="line"> <span class="string">&quot;chevrolet&quot;</span> <span class="string">&quot;cruze&quot;</span></span><br><span class="line"> <span class="string">&quot;volvo&quot;</span>     <span class="string">&quot;s60&quot;</span>	</span><br></pre></td></tr></table></figure>
+<h3 id="4-数据框-data-frame"><a href="#4-数据框-data-frame" class="headerlink" title="4 数据框 data frame"></a>4 数据框 data frame</h3><p>與矩陣只能包含同一類型資料相較，資料集可以看作是涵蓋不同類型資料的矩陣，換句話說資料集可以包含汽車廠牌(字串)、型號(字串)、馬力(數字)等資料，就像是在SPSS、EXCEL儲存格看到的一樣，資料集的使用無疑是統計分析最常見的型態。</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&gt; brand&lt;-<span class="built_in">c</span>(<span class="string">&quot;ford&quot;</span>, <span class="string">&quot;mercedes&quot;</span>, <span class="string">&quot;toyota&quot;</span>, <span class="string">&quot;chevrolet&quot;</span>, <span class="string">&quot;volvo&quot;</span>)</span><br><span class="line">&gt; type&lt;-<span class="built_in">c</span>( <span class="string">&quot;mondeo&quot;</span>, <span class="string">&quot;s600&quot;</span>, <span class="string">&quot;camry&quot;</span>, <span class="string">&quot;cruze&quot;</span>, <span class="string">&quot;s60&quot;</span>)</span><br><span class="line">&gt; power&lt;-<span class="built_in">c</span>(<span class="number">140</span>, <span class="number">258</span>, <span class="number">167</span>, <span class="number">153</span>, <span class="number">190</span>)</span><br><span class="line">&gt; car&lt;-data.frame(brand, type, power)</span><br><span class="line">&gt; <span class="built_in">names</span>(car)&lt;-<span class="built_in">c</span>(<span class="string">&quot;brand&quot;</span>, <span class="string">&quot;type&quot;</span>, <span class="string">&quot;power&quot;</span>)</span><br><span class="line">&gt; car</span><br><span class="line">      brand   type power</span><br><span class="line"><span class="number">1</span>      ford mondeo   <span class="number">140</span></span><br><span class="line"><span class="number">2</span>  mercedes   s600   <span class="number">258</span></span><br><span class="line"><span class="number">3</span>    toyota  camry   <span class="number">167</span></span><br><span class="line"><span class="number">4</span> chevrolet  cruze   <span class="number">153</span></span><br><span class="line"><span class="number">5</span>     volvo    s60   <span class="number">190</span></span><br></pre></td></tr></table></figure>
+<h4 id="集合绑定为数据框"><a href="#集合绑定为数据框" class="headerlink" title="集合绑定为数据框"></a>集合绑定为数据框</h4><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#以向量形式录入表1-1 中的数据</span></span><br><span class="line">&gt; names &lt;- <span class="built_in">c</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>)</span><br><span class="line">&gt; stat &lt;- <span class="built_in">c</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>)</span><br><span class="line">&gt; mark &lt;- <span class="built_in">c</span>(<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>)</span><br><span class="line">&gt; mana &lt;- <span class="built_in">c</span>(<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>)</span><br><span class="line">&gt; acco &lt;- <span class="built_in">c</span>(<span class="number">10</span>,<span class="number">11</span>,<span class="number">12</span>)</span><br><span class="line">&gt; matrix1_1 &lt;- matrix(cbind(stat, mark,mana,acco), ncol=<span class="number">4</span>)</span><br><span class="line">&gt; names &lt;- <span class="built_in">c</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>)</span><br><span class="line">&gt; names2 &lt;- <span class="built_in">c</span>(<span class="string">&quot;stat&quot;</span>, <span class="string">&quot;mark&quot;</span>, <span class="string">&quot;mana&quot;</span>, <span class="string">&quot;acco&quot;</span>)</span><br><span class="line">&gt; <span class="built_in">dimnames</span>(matrix1_1) &lt;- <span class="built_in">list</span>(<span class="built_in">names</span>, names2)</span><br></pre></td></tr></table></figure>
+<h4 id="数据框删除列"><a href="#数据框删除列" class="headerlink" title="数据框删除列"></a>数据框删除列</h4><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">&gt; z&lt;-read.table(<span class="string">&quot;utf8_table1_1.txt&quot;</span>)</span><br><span class="line">&gt; z</span><br><span class="line">   学生姓名 统计学 数学 营销学 管理学 会计学</span><br><span class="line"><span class="number">1</span>    张青松     <span class="number">68</span>   <span class="number">85</span>     <span class="number">84</span>     <span class="number">89</span>     <span class="number">86</span></span><br><span class="line"><span class="number">2</span>    王宇翔     <span class="number">85</span>   <span class="number">91</span>     <span class="number">63</span>     <span class="number">76</span>     <span class="number">66</span></span><br><span class="line"><span class="number">3</span>    田思雨     <span class="number">74</span>   <span class="number">74</span>     <span class="number">61</span>     <span class="number">80</span>     <span class="number">69</span></span><br><span class="line"><span class="number">4</span>    徐丽娜     <span class="number">88</span>  <span class="number">100</span>     <span class="number">49</span>     <span class="number">71</span>     <span class="number">66</span></span><br><span class="line"><span class="number">5</span>    张志杰     <span class="number">63</span>   <span class="number">82</span>     <span class="number">89</span>     <span class="number">78</span>     <span class="number">80</span></span><br><span class="line"><span class="number">6</span>    赵颖颖     <span class="number">78</span>   <span class="number">84</span>     <span class="number">51</span>     <span class="number">60</span>     <span class="number">60</span></span><br><span class="line"><span class="number">7</span>    王智强     <span class="number">90</span>   <span class="number">78</span>     <span class="number">59</span>     <span class="number">72</span>     <span class="number">66</span></span><br><span class="line"><span class="number">8</span>    宋丽媛     <span class="number">80</span>  <span class="number">100</span>     <span class="number">53</span>     <span class="number">73</span>     <span class="number">70</span></span><br><span class="line"><span class="number">9</span>    袁芳芳     <span class="number">58</span>   <span class="number">51</span>     <span class="number">79</span>     <span class="number">91</span>     <span class="number">85</span></span><br><span class="line"><span class="number">10</span>   张建国     <span class="number">63</span>   <span class="number">70</span>     <span class="number">91</span>     <span class="number">85</span>     <span class="number">82</span></span><br><span class="line"></span><br><span class="line">&gt; znames=z$学生姓名</span><br><span class="line">&gt; z=subset(z, select=-学生姓名)</span><br><span class="line">&gt; z</span><br><span class="line">   统计学 数学 营销学 管理学 会计学</span><br><span class="line"><span class="number">1</span>      <span class="number">68</span>   <span class="number">85</span>     <span class="number">84</span>     <span class="number">89</span>     <span class="number">86</span></span><br><span class="line"><span class="number">2</span>      <span class="number">85</span>   <span class="number">91</span>     <span class="number">63</span>     <span class="number">76</span>     <span class="number">66</span></span><br><span class="line"><span class="number">3</span>      <span class="number">74</span>   <span class="number">74</span>     <span class="number">61</span>     <span class="number">80</span>     <span class="number">69</span></span><br><span class="line"><span class="number">4</span>      <span class="number">88</span>  <span class="number">100</span>     <span class="number">49</span>     <span class="number">71</span>     <span class="number">66</span></span><br><span class="line"><span class="number">5</span>      <span class="number">63</span>   <span class="number">82</span>     <span class="number">89</span>     <span class="number">78</span>     <span class="number">80</span></span><br><span class="line"><span class="number">6</span>      <span class="number">78</span>   <span class="number">84</span>     <span class="number">51</span>     <span class="number">60</span>     <span class="number">60</span></span><br><span class="line"><span class="number">7</span>      <span class="number">90</span>   <span class="number">78</span>     <span class="number">59</span>     <span class="number">72</span>     <span class="number">66</span></span><br><span class="line"><span class="number">8</span>      <span class="number">80</span>  <span class="number">100</span>     <span class="number">53</span>     <span class="number">73</span>     <span class="number">70</span></span><br><span class="line"><span class="number">9</span>      <span class="number">58</span>   <span class="number">51</span>     <span class="number">79</span>     <span class="number">91</span>     <span class="number">85</span></span><br><span class="line">&gt; rownames(z) &lt;- znames <span class="comment"># 行重命名</span></span><br><span class="line">&gt; z</span><br><span class="line">       统计学 数学 营销学 管理学 会计学</span><br><span class="line">张青松     <span class="number">68</span>   <span class="number">85</span>     <span class="number">84</span>     <span class="number">89</span>     <span class="number">86</span></span><br><span class="line">王宇翔     <span class="number">85</span>   <span class="number">91</span>     <span class="number">63</span>     <span class="number">76</span>     <span class="number">66</span></span><br><span class="line">田思雨     <span class="number">74</span>   <span class="number">74</span>     <span class="number">61</span>     <span class="number">80</span>     <span class="number">69</span></span><br><span class="line">徐丽娜     <span class="number">88</span>  <span class="number">100</span>     <span class="number">49</span>     <span class="number">71</span>     <span class="number">66</span></span><br><span class="line">张志杰     <span class="number">63</span>   <span class="number">82</span>     <span class="number">89</span>     <span class="number">78</span>     <span class="number">80</span></span><br><span class="line">赵颖颖     <span class="number">78</span>   <span class="number">84</span>     <span class="number">51</span>     <span class="number">60</span>     <span class="number">60</span></span><br><span class="line">王智强     <span class="number">90</span>   <span class="number">78</span>     <span class="number">59</span>     <span class="number">72</span>     <span class="number">66</span></span><br><span class="line">宋丽媛     <span class="number">80</span>  <span class="number">100</span>     <span class="number">53</span>     <span class="number">73</span>     <span class="number">70</span></span><br><span class="line">袁芳芳     <span class="number">58</span>   <span class="number">51</span>     <span class="number">79</span>     <span class="number">91</span>     <span class="number">85</span></span><br><span class="line">张建国     <span class="number">63</span>   <span class="number">70</span>     <span class="number">91</span>     <span class="number">85</span>     <span class="number">82</span></span><br></pre></td></tr></table></figure>
+<h4 id="选择特定变量进行分析"><a href="#选择特定变量进行分析" class="headerlink" title="选择特定变量进行分析"></a>选择特定变量进行分析</h4><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&gt; zs&lt;- z[order(z$统计学,decreasing=<span class="literal">TRUE</span>),]</span><br><span class="line">&gt; mean(z$统计学)</span><br><span class="line">[<span class="number">1</span>] <span class="number">74.7</span></span><br><span class="line">&gt; mean(z[,<span class="number">1</span>])</span><br><span class="line">&gt; colSums(z[,<span class="number">1</span>:<span class="number">5</span>])</span><br><span class="line">&gt; ztr=rbind(a,totals=colSums((z[,<span class="number">1</span>:<span class="number">5</span>])))</span><br><span class="line">&gt; zm &lt;- as.matrix(z) <span class="comment"># 数据框转矩阵</span></span><br><span class="line">&gt; str(zm)</span><br><span class="line">&gt; apply(z, <span class="number">1</span>,<span class="built_in">sum</span>) <span class="comment"># 行求和</span></span><br><span class="line">&gt; apply(z, <span class="number">2</span>, <span class="built_in">sum</span>) <span class="comment"># 列求和</span></span><br><span class="line">&gt; apply(z, <span class="number">1</span>,mean) <span class="comment"># 行求平均数</span></span><br><span class="line">&gt; apply(z, <span class="number">1</span>,sd) <span class="comment"># 行求标准差</span></span><br><span class="line">&gt; apply(z, <span class="number">1</span>, var)</span><br></pre></td></tr></table></figure>
+<h3 id="编辑数据框"><a href="#编辑数据框" class="headerlink" title="编辑数据框"></a>编辑数据框</h3><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&gt; install.packages(<span class="string">&quot;reshape&quot;</span>)</span><br><span class="line">&gt; rename(z,<span class="built_in">c</span>(<span class="string">&quot;学生姓名&quot;</span>=<span class="string">&quot;name&quot;</span>, <span class="string">&quot;统计学&quot;</span>=<span class="string">&quot;Statistic&quot;</span>))</span><br><span class="line">&gt; x&lt;- <span class="built_in">c</span>(<span class="number">2</span>,<span class="number">4</span>,<span class="number">6</span>,<span class="literal">NA</span>)</span><br><span class="line">[<span class="number">1</span>]  <span class="number">2</span>  <span class="number">4</span>  <span class="number">6</span> NAsu,</span><br><span class="line">&gt; <span class="built_in">is.na</span>(x)</span><br><span class="line">[<span class="number">1</span>] <span class="literal">FALSE</span> <span class="literal">FALSE</span> <span class="literal">FALSE</span>  <span class="literal">TRUE</span></span><br><span class="line">&gt; <span class="built_in">sum</span>(x)</span><br><span class="line">[<span class="number">1</span>] <span class="literal">NA</span></span><br><span class="line">&gt; x</span><br><span class="line">[<span class="number">1</span>]  <span class="number">2</span>  <span class="number">4</span>  <span class="number">6</span> <span class="literal">NA</span></span><br><span class="line">&gt; <span class="built_in">sum</span>(x,na.rm=<span class="literal">TRUE</span>)</span><br><span class="line">[<span class="number">1</span>] <span class="number">12</span></span><br><span class="line"><span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">Usage:</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">     sum(..., na.rm = FALSE)</span></span><br><span class="line"><span class="string">&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">&gt; z2&lt;-read.table(<span class="string">&quot;utf8_table1_1_2.txt&quot;</span>)</span><br><span class="line">&gt; z2om&lt;-na.omit(z2)</span><br><span class="line">&gt; z2</span><br></pre></td></tr></table></figure>
+<h3 id="数据类型转换"><a href="#数据类型转换" class="headerlink" title="数据类型转换"></a>数据类型转换</h3><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&gt; z2om_matrix&lt;-as.matrix(z2om)</span><br><span class="line">&gt; z2om_matrix</span><br><span class="line">   学生姓名 统计学 数学  营销学 管理学 会计学</span><br><span class="line"><span class="number">1</span>  <span class="string">&quot;张青松&quot;</span> <span class="string">&quot;68&quot;</span>   <span class="string">&quot; 85&quot;</span> <span class="string">&quot;84&quot;</span>   <span class="string">&quot;89&quot;</span>   <span class="string">&quot;86&quot;</span></span><br><span class="line"><span class="number">2</span>  <span class="string">&quot;王宇翔&quot;</span> <span class="string">&quot;85&quot;</span>   <span class="string">&quot; 91&quot;</span> <span class="string">&quot;63&quot;</span>   <span class="string">&quot;76&quot;</span>   <span class="string">&quot;66&quot;</span></span><br><span class="line"><span class="number">3</span>  <span class="string">&quot;田思雨&quot;</span> <span class="string">&quot;74&quot;</span>   <span class="string">&quot; 74&quot;</span> <span class="string">&quot;61&quot;</span>   <span class="string">&quot;80&quot;</span>   <span class="string">&quot;69&quot;</span></span><br><span class="line"><span class="number">6</span>  <span class="string">&quot;赵颖颖&quot;</span> <span class="string">&quot;78&quot;</span>   <span class="string">&quot; 84&quot;</span> <span class="string">&quot;51&quot;</span>   <span class="string">&quot;60&quot;</span>   <span class="string">&quot;60&quot;</span></span><br><span class="line"><span class="number">7</span>  <span class="string">&quot;王智强&quot;</span> <span class="string">&quot;90&quot;</span>   <span class="string">&quot; 78&quot;</span> <span class="string">&quot;59&quot;</span>   <span class="string">&quot;72&quot;</span>   <span class="string">&quot;66&quot;</span></span><br><span class="line"><span class="number">8</span>  <span class="string">&quot;宋丽媛&quot;</span> <span class="string">&quot;80&quot;</span>   <span class="string">&quot;100&quot;</span> <span class="string">&quot;53&quot;</span>   <span class="string">&quot;73&quot;</span>   <span class="string">&quot;70&quot;</span></span><br><span class="line"><span class="number">9</span>  <span class="string">&quot;袁芳芳&quot;</span> <span class="string">&quot;58&quot;</span>   <span class="string">&quot; 51&quot;</span> <span class="string">&quot;79&quot;</span>   <span class="string">&quot;91&quot;</span>   <span class="string">&quot;85&quot;</span></span><br><span class="line"><span class="number">10</span> <span class="string">&quot;张建国&quot;</span> <span class="string">&quot;63&quot;</span>   <span class="string">&quot; 70&quot;</span> <span class="string">&quot;91&quot;</span>   <span class="string">&quot;85&quot;</span>   <span class="string">&quot;82&quot;</span></span><br><span class="line">&gt; z2om$统计学</span><br><span class="line">[<span class="number">1</span>] <span class="number">68</span> <span class="number">85</span> <span class="number">74</span> <span class="number">78</span> <span class="number">90</span> <span class="number">80</span> <span class="number">58</span> <span class="number">63</span></span><br><span class="line">&gt; z2om_vec &lt;- as.vector(z2om$统计学)</span><br><span class="line">&gt; z2om_vec</span><br><span class="line">[<span class="number">1</span>] <span class="number">68</span> <span class="number">85</span> <span class="number">74</span> <span class="number">78</span> <span class="number">90</span> <span class="number">80</span> <span class="number">58</span> <span class="number">63</span></span><br><span class="line">&gt; str(z2om_vec)</span><br><span class="line"> int [<span class="number">1</span>:<span class="number">8</span>] <span class="number">68</span> <span class="number">85</span> <span class="number">74</span> <span class="number">78</span> <span class="number">90</span> <span class="number">80</span> <span class="number">58</span> <span class="number">63</span></span><br><span class="line">&gt; as.matrix( z2om[,<span class="number">2</span>:<span class="number">6</span>])</span><br><span class="line">&gt; as.vector(as.matrix( z2om[,<span class="number">2</span>:<span class="number">6</span>]))</span><br></pre></td></tr></table></figure>
+<h3 id="生成随机数"><a href="#生成随机数" class="headerlink" title="生成随机数"></a>生成随机数</h3><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt; rnorm(<span class="number">10</span>) <span class="comment"># 标准正态分布随机数</span></span><br><span class="line">&gt; rnorm(<span class="number">10</span>,<span class="number">50</span>,<span class="number">5</span>) <span class="comment"># 产生10个均值为50、标准差为5的正态分布随机数</span></span><br><span class="line">&gt; runif(<span class="number">10</span>,<span class="number">0</span>,<span class="number">100</span>) <span class="comment"># 在0～100之间产生10个均匀分布的随机数</span></span><br><span class="line">&gt; rexp(<span class="number">10</span>) <span class="comment"># 产生10个指数分布随机数</span></span><br><span class="line">&gt; rchisq(<span class="number">10</span>,<span class="number">15</span>) <span class="comment"># 产生10个自由度为15的卡方分布随机数</span></span><br></pre></td></tr></table></figure>
+<h3 id="抽样"><a href="#抽样" class="headerlink" title="抽样"></a>抽样</h3><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt; write.csv(example1_1, file = <span class="string">&quot;/tmp/example1_1.csv&quot;</span>) <span class="comment"># gbk 转utf</span></span><br><span class="line">&gt; exp1 &lt;- read.table(<span class="string">&#x27;/tmp/example1_1.csv&#x27;</span>,sep=<span class="string">&#x27;,&#x27;</span>, header = <span class="built_in">F</span>, fileEncoding = <span class="string">&#x27;gbk&#x27;</span>)</span><br><span class="line">&gt; exp1 = subset(exp1, select=-X)</span><br><span class="line">&gt; sample(exp1$姓名,<span class="number">10</span>,replace=<span class="built_in">F</span>) <span class="comment"># 无放回抽样</span></span><br><span class="line">&gt; sample(exp1$姓名[exp1$分数&lt;<span class="number">60</span>]) <span class="comment"># 条件过滤 分数小于60</span></span><br><span class="line">&gt; sample(exp1$姓名[exp1$分数&gt;=<span class="number">90</span> <span class="comment"># 条件过滤 分数大于等于90</span></span><br></pre></td></tr></table></figure>
+<h3 id="图形控制和布局"><a href="#图形控制和布局" class="headerlink" title="图形控制和布局"></a>图形控制和布局</h3><figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt; ?par <span class="comment"># 略</span></span><br><span class="line">&gt; </span><br><span class="line">&gt; ?layout</span><br><span class="line">&gt; </span><br><span class="line">&gt; a&lt;- <span class="built_in">c</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">3</span>)</span><br><span class="line">&gt; layout(matrix(<span class="built_in">c</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">3</span>), nrow=<span class="number">2</span>, ncol=<span class="number">2</span>), widths=<span class="built_in">c</span>(<span class="number">2</span>,<span class="number">1</span>))</span><br><span class="line">&gt; par(mai=<span class="built_in">c</span>(<span class="number">0.6</span>,<span class="number">0.6</span>,<span class="number">0.1</span>,<span class="number">0.1</span>),cex=<span class="number">0.7</span>)</span><br><span class="line">&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Statistic/" rel="tag"># Statistic</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/03/17/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-tensorflow%E7%AC%94%E8%AE%B0-%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0%E8%AF%B4%E6%98%8E/" rel="prev" title="机器学习-tensorflow笔记-常用函数-变量作用域">
+      <i class="fa fa-chevron-left"></i> 机器学习-tensorflow笔记-常用函数-变量作用域
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/10/06/%E7%AB%A0%E4%BA%8C-%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="next" title="章二 数据的可视化">
+      章二 数据的可视化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-1-%E6%95%B0%E6%8D%AE%E4%B8%8E%E7%BB%9F%E8%AE%A1%E5%AD%A6"><span class="nav-number">1.</span> <span class="nav-text">1.1 数据与统计学</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-1-%E7%BB%9F%E8%AE%A1%E5%AD%A6"><span class="nav-number">1.1.</span> <span class="nav-text">1.1.1 统计学</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-number">1.1.1.</span> <span class="nav-text">数据分析的方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1-descriptive-statistics"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">1. 描述统计 descriptive statistics</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E6%8E%A8%E6%96%AD%E7%BB%9F%E8%AE%A1-iferential-statistics"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">2. 推断统计 iferential statistics</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%98%E9%87%8F-variable"><span class="nav-number">1.1.2.</span> <span class="nav-text">变量 variable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%9A%84%E6%9D%A5%E6%BA%90"><span class="nav-number">1.1.3.</span> <span class="nav-text">数据的来源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-R%E7%9A%84%E5%88%9D%E6%AD%A5%E4%BD%BF%E7%94%A8"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 R的初步使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="nav-number">1.2.1.</span> <span class="nav-text">基本操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R%E7%9A%84%E8%B3%87%E6%96%99%E5%9E%8B%E6%85%8B%E5%8C%85%E5%90%AB%E5%9B%A0%E5%AD%90-factor-%E3%80%81%E5%90%91%E9%87%8F-vector-%E3%80%81%E7%9F%A9%E9%99%A3-matrix-%E4%BB%A5%E5%8F%8A%E8%B3%87%E6%96%99%E9%9B%86-data-frame"><span class="nav-number">1.2.2.</span> <span class="nav-text">R的資料型態包含因子(factor)、向量(vector)、矩陣(matrix)以及資料集(data frame)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9B%A0%E5%AD%90-factor"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">1 因子 factor</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E5%90%91%E9%87%8F-vector"><span class="nav-number">1.2.2.1.1.</span> <span class="nav-text">2 向量 vector</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E7%9F%A9%E9%98%B5-matrix"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">3 矩阵 matrix</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%95%B0%E6%8D%AE%E6%A1%86-data-frame"><span class="nav-number">1.2.3.</span> <span class="nav-text">4 数据框 data frame</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9B%86%E5%90%88%E7%BB%91%E5%AE%9A%E4%B8%BA%E6%95%B0%E6%8D%AE%E6%A1%86"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">集合绑定为数据框</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%A1%86%E5%88%A0%E9%99%A4%E5%88%97"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">数据框删除列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E7%89%B9%E5%AE%9A%E5%8F%98%E9%87%8F%E8%BF%9B%E8%A1%8C%E5%88%86%E6%9E%90"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">选择特定变量进行分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%BE%91%E6%95%B0%E6%8D%AE%E6%A1%86"><span class="nav-number">1.2.4.</span> <span class="nav-text">编辑数据框</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2"><span class="nav-number">1.2.5.</span> <span class="nav-text">数据类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E9%9A%8F%E6%9C%BA%E6%95%B0"><span class="nav-number">1.2.6.</span> <span class="nav-text">生成随机数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%BD%E6%A0%B7"><span class="nav-number">1.2.7.</span> <span class="nav-text">抽样</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BE%E5%BD%A2%E6%8E%A7%E5%88%B6%E5%92%8C%E5%B8%83%E5%B1%80"><span class="nav-number">1.2.8.</span> <span class="nav-text">图形控制和布局</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1、查看当前内核版本12345678$ uname -r3.10.0-514.el7.x86_64$ uname -aLinux k8s-master 3.10.0-514.el7.x86_64 #1 SMP Tue Nov 22 16:42:41 UTC 2016 x86_64 x86_64 x86_64 GNU&#x2F;Linux$ cat &#x2F;etc&#x2F;redhat-release CentOS Lin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="centos7 更新内核">
+<meta property="og:url" content="http://yoursite.com/2022/02/22/centos7-%E6%9B%B4%E6%96%B0%E5%86%85%E6%A0%B8/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="1、查看当前内核版本12345678$ uname -r3.10.0-514.el7.x86_64$ uname -aLinux k8s-master 3.10.0-514.el7.x86_64 #1 SMP Tue Nov 22 16:42:41 UTC 2016 x86_64 x86_64 x86_64 GNU&#x2F;Linux$ cat &#x2F;etc&#x2F;redhat-release CentOS Lin">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-02-22T13:35:16.000Z">
+<meta property="article:modified_time" content="2022-02-22T13:35:16.805Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="centos">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2022/02/22/centos7-%E6%9B%B4%E6%96%B0%E5%86%85%E6%A0%B8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>centos7 更新内核 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2022/02/22/centos7-%E6%9B%B4%E6%96%B0%E5%86%85%E6%A0%B8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          centos7 更新内核
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-02-22 21:35:16" itemprop="dateCreated datePublished" datetime="2022-02-22T21:35:16+08:00">2022-02-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" itemprop="url" rel="index"><span itemprop="name">系统运维</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="1、查看当前内核版本"><a href="#1、查看当前内核版本" class="headerlink" title="1、查看当前内核版本"></a>1、查看当前内核版本</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ uname -r</span><br><span class="line">3.10.0-514.el7.x86_64</span><br><span class="line"></span><br><span class="line">$ uname -a</span><br><span class="line">Linux k8s-master 3.10.0-514.el7.x86_64 #1 SMP Tue Nov 22 16:42:41 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux</span><br><span class="line"></span><br><span class="line">$ cat /etc/redhat-release </span><br><span class="line">CentOS Linux release 7.3.1611 (Core)</span><br></pre></td></tr></table></figure>
+<h2 id="2、升级内核"><a href="#2、升级内核" class="headerlink" title="2、升级内核"></a>2、升级内核</h2><h3 id="更新yum源仓库"><a href="#更新yum源仓库" class="headerlink" title="更新yum源仓库"></a>更新yum源仓库</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum -y update</span><br></pre></td></tr></table></figure>
+<h3 id="启用-ELRepo-仓库"><a href="#启用-ELRepo-仓库" class="headerlink" title="启用 ELRepo 仓库"></a>启用 ELRepo 仓库</h3><p>ELRepo 仓库是基于社区的用于企业级 Linux 仓库，提供对 RedHat Enterprise (RHEL) 和 其他基于 RHEL的 Linux 发行版（CentOS、Scientific、Fedora 等）的支持。<br>ELRepo 聚焦于和硬件相关的软件包，包括文件系统驱动、显卡驱动、网络驱动、声卡驱动和摄像头驱动等。</p>
+<p>#导入ELRepo仓库的公共密钥</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org</span><br></pre></td></tr></table></figure>
+<p>#安装ELRepo仓库的yum源</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-3.el7.elrepo.noarch.rpm</span><br></pre></td></tr></table></figure>
+<h2 id="3、查看可用的系统内核包"><a href="#3、查看可用的系统内核包" class="headerlink" title="3、查看可用的系统内核包"></a>3、查看可用的系统内核包</h2><p>可以看到4.4和4.18两个版本</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">yum --disablerepo=&quot;*&quot; --enablerepo=&quot;elrepo-kernel&quot; list available</span><br><span class="line">Loaded plugins: fastestmirror</span><br><span class="line">Loading mirror speeds from cached hostfile</span><br><span class="line"> * elrepo-kernel: mirrors.tuna.tsinghua.edu.cn</span><br><span class="line">elrepo-kernel                                                                                                                                                                 | 2.9 kB  00:00:00     </span><br><span class="line">elrepo-kernel/primary_db                                                                                                                                                      | 1.8 MB  00:00:03     </span><br><span class="line">Available Packages</span><br><span class="line">kernel-lt.x86_64                                                                                  4.4.155-1.el7.elrepo                                                                  elrepo-kernel</span><br><span class="line">kernel-lt-devel.x86_64                                                                            4.4.155-1.el7.elrepo                                                                  elrepo-kernel</span><br><span class="line">kernel-lt-doc.noarch                                                                              4.4.155-1.el7.elrepo                                                                  elrepo-kernel</span><br><span class="line">kernel-lt-headers.x86_64                                                                          4.4.155-1.el7.elrepo                                                                  elrepo-kernel</span><br><span class="line">kernel-lt-tools.x86_64                                                                            4.4.155-1.el7.elrepo                                                                  elrepo-kernel</span><br><span class="line">kernel-lt-tools-libs.x86_64                                                                       4.4.155-1.el7.elrepo                                                                  elrepo-kernel</span><br><span class="line">kernel-lt-tools-libs-devel.x86_64                                                                 4.4.155-1.el7.elrepo                                                                  elrepo-kernel</span><br><span class="line">kernel-ml.x86_64                                                                                  4.18.7-1.el7.elrepo                                                                   elrepo-kernel</span><br><span class="line">kernel-ml-devel.x86_64                                                                            4.18.7-1.el7.elrepo                                                                   elrepo-kernel</span><br><span class="line">kernel-ml-doc.noarch                                                                              4.18.7-1.el7.elrepo                                                                   elrepo-kernel</span><br><span class="line">kernel-ml-headers.x86_64                                                                          4.18.7-1.el7.elrepo                                                                   elrepo-kernel</span><br><span class="line">kernel-ml-tools.x86_64                                                                            4.18.7-1.el7.elrepo                                                                   elrepo-kernel</span><br><span class="line">kernel-ml-tools-libs.x86_64                                                                       4.18.7-1.el7.elrepo                                                                   elrepo-kernel</span><br><span class="line">kernel-ml-tools-libs-devel.x86_64                                                                 4.18.7-1.el7.elrepo                                                                   elrepo-kernel</span><br><span class="line">perf.x86_64                                                                                       4.18.7-1.el7.elrepo                                                                   elrepo-kernel</span><br><span class="line">python-perf.x86_64                                                                                4.18.7-1.el7.elrepo                                                                   elrepo-</span><br></pre></td></tr></table></figure>
+<h2 id="4、安装最新版本内核"><a href="#4、安装最新版本内核" class="headerlink" title="4、安装最新版本内核"></a>4、安装最新版本内核</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum --enablerepo=elrepo-kernel install kernel-ml</span><br></pre></td></tr></table></figure>
+<p><code>--enablerepo</code> 选项开启 CentOS 系统上的指定仓库。默认开启的是 <code>elrepo</code>，这里用 <code>elrepo-kernel</code> 替换。</p>
+<h2 id="5、设置-grub2"><a href="#5、设置-grub2" class="headerlink" title="5、设置 grub2"></a>5、设置 grub2</h2><p>内核安装好后，需要设置为默认启动选项并重启后才会生效</p>
+<h3 id="查看系统上的所有可用内核："><a href="#查看系统上的所有可用内核：" class="headerlink" title="查看系统上的所有可用内核："></a>查看系统上的所有可用内核：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ sudo awk -F\&#x27; &#x27;$1==&quot;menuentry &quot; &#123;print i++ &quot; : &quot; $2&#125;&#x27; /etc/grub2.cfg</span><br><span class="line">0 : CentOS Linux (4.18.7-1.el7.elrepo.x86_64) 7 (Core)</span><br><span class="line">1 : CentOS Linux (3.10.0-862.11.6.el7.x86_64) 7 (Core)</span><br><span class="line">2 : CentOS Linux (3.10.0-514.el7.x86_64) 7 (Core)</span><br><span class="line">3 : CentOS Linux (0-rescue-063ec330caa04d4baae54c6902c62e54) 7 (Core)</span><br></pre></td></tr></table></figure>
+<h3 id="设置新的内核为grub2的默认版本"><a href="#设置新的内核为grub2的默认版本" class="headerlink" title="设置新的内核为grub2的默认版本"></a>设置新的内核为grub2的默认版本</h3><p>服务器上存在4 个内核，我们要使用 4.18 这个版本，可以通过 <code>grub2-set-default 0</code> 命令或编辑 <code>/etc/default/grub</code> 文件来设置</p>
+<h4 id="方法1、通过-grub2-set-default-0-命令设置"><a href="#方法1、通过-grub2-set-default-0-命令设置" class="headerlink" title="方法1、通过 grub2-set-default 0 命令设置"></a>方法1、通过 <code>grub2-set-default 0</code> 命令设置</h4><p>其中 0 是上面查询出来的可用内核</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grub2-set-default 0</span><br></pre></td></tr></table></figure>
+<h4 id="方法2、编辑-etc-default-grub-文件"><a href="#方法2、编辑-etc-default-grub-文件" class="headerlink" title="方法2、编辑 /etc/default/grub 文件"></a>方法2、编辑 <code>/etc/default/grub</code> 文件</h4><p>设置 GRUB_DEFAULT=0，通过上面查询显示的编号为 0 的内核作为默认内核：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/default/grub</span><br><span class="line">GRUB_TIMEOUT=5</span><br><span class="line">GRUB_DISTRIBUTOR=&quot;$(sed &#x27;s, release .*$,,g&#x27; /etc/system-release)&quot;</span><br><span class="line">GRUB_DEFAULT=0</span><br><span class="line">GRUB_DISABLE_SUBMENU=true</span><br><span class="line">GRUB_TERMINAL_OUTPUT=&quot;console&quot;</span><br><span class="line">GRUB_CMDLINE_LINUX=&quot;crashkernel=auto rd.lvm.lv=cl/root rhgb quiet&quot;</span><br><span class="line">GRUB_DISABLE_RECOVERY=&quot;true&quot;</span><br></pre></td></tr></table></figure>
+<h3 id="生成-grub-配置文件并重启"><a href="#生成-grub-配置文件并重启" class="headerlink" title="生成 grub 配置文件并重启"></a>生成 grub 配置文件并重启</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ grub2-mkconfig -o /boot/grub2/grub.cfg</span><br><span class="line">Generating grub configuration file ...</span><br><span class="line">Found linux image: /boot/vmlinuz-4.18.7-1.el7.elrepo.x86_64</span><br><span class="line">Found initrd image: /boot/initramfs-4.18.7-1.el7.elrepo.x86_64.img</span><br><span class="line">Found linux image: /boot/vmlinuz-3.10.0-862.11.6.el7.x86_64</span><br><span class="line">Found initrd image: /boot/initramfs-3.10.0-862.11.6.el7.x86_64.img</span><br><span class="line">Found linux image: /boot/vmlinuz-3.10.0-514.el7.x86_64</span><br><span class="line">Found initrd image: /boot/initramfs-3.10.0-514.el7.x86_64.img</span><br><span class="line">Found linux image: /boot/vmlinuz-0-rescue-063ec330caa04d4baae54c6902c62e54</span><br><span class="line">Found initrd image: /boot/initramfs-0-rescue-063ec330caa04d4baae54c6902c62e54.img</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">$ reboot</span><br></pre></td></tr></table></figure>
+<h2 id="6、验证"><a href="#6、验证" class="headerlink" title="6、验证"></a>6、验证</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ uname -r</span><br><span class="line">4.18.7-1.el7.elrepo.x86_64</span><br></pre></td></tr></table></figure>
+<h2 id="7、删除旧内核（可选）"><a href="#7、删除旧内核（可选）" class="headerlink" title="7、删除旧内核（可选）"></a>7、删除旧内核（可选）</h2><h3 id="查看系统中全部的内核："><a href="#查看系统中全部的内核：" class="headerlink" title="查看系统中全部的内核："></a>查看系统中全部的内核：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ rpm -qa | grep kernel</span><br><span class="line">kernel-3.10.0-514.el7.x86_64</span><br><span class="line">kernel-ml-4.18.7-1.el7.elrepo.x86_64</span><br><span class="line">kernel-tools-libs-3.10.0-862.11.6.el7.x86_64</span><br><span class="line">kernel-tools-3.10.0-862.11.6.el7.x86_64</span><br><span class="line">kernel-3.10.0-862.11.6.el7.x86_64</span><br></pre></td></tr></table></figure>
+<h3 id="方法1、yum-remove-删除旧内核的-RPM-包"><a href="#方法1、yum-remove-删除旧内核的-RPM-包" class="headerlink" title="方法1、yum remove 删除旧内核的 RPM 包"></a>方法1、yum remove 删除旧内核的 RPM 包</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ yum remove kernel-3.10.0-514.el7.x86_64 \</span><br><span class="line">kernel-tools-libs-3.10.0-862.11.6.el7.x86_64 \</span><br><span class="line">kernel-tools-3.10.0-862.11.6.el7.x86_64 \</span><br><span class="line">kernel-3.10.0-862.11.6.el7.x86_64</span><br></pre></td></tr></table></figure>
+<h3 id="方法2、yum-utils-工具"><a href="#方法2、yum-utils-工具" class="headerlink" title="方法2、yum-utils 工具"></a><code>方法2、yum-utils</code> 工具</h3><p>如果安装的内核不多于 3 个，<code>yum-utils</code> 工具不会删除任何一个。只有在安装的内核大于 3 个时，才会自动删除旧内核。</p>
+<p>安装yum-utils</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install yum-utils</span><br></pre></td></tr></table></figure>
+<p>删除旧版本　　</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">package-cleanup --oldkernels</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/centos/" rel="tag"># centos</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/02/22/%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90/" rel="prev" title="自签名证书自动生成">
+      <i class="fa fa-chevron-left"></i> 自签名证书自动生成
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/02/22/%E7%90%86%E8%A7%A3%E4%BA%91%E5%8E%9F%E7%94%9F-%E5%AE%B9%E5%99%A8-%E7%BD%91%E7%BB%9C/" rel="next" title="理解云原生(容器)网络">
+      理解云原生(容器)网络 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%E3%80%81%E6%9F%A5%E7%9C%8B%E5%BD%93%E5%89%8D%E5%86%85%E6%A0%B8%E7%89%88%E6%9C%AC"><span class="nav-number">1.</span> <span class="nav-text">1、查看当前内核版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2%E3%80%81%E5%8D%87%E7%BA%A7%E5%86%85%E6%A0%B8"><span class="nav-number">2.</span> <span class="nav-text">2、升级内核</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0yum%E6%BA%90%E4%BB%93%E5%BA%93"><span class="nav-number">2.1.</span> <span class="nav-text">更新yum源仓库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E7%94%A8-ELRepo-%E4%BB%93%E5%BA%93"><span class="nav-number">2.2.</span> <span class="nav-text">启用 ELRepo 仓库</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3%E3%80%81%E6%9F%A5%E7%9C%8B%E5%8F%AF%E7%94%A8%E7%9A%84%E7%B3%BB%E7%BB%9F%E5%86%85%E6%A0%B8%E5%8C%85"><span class="nav-number">3.</span> <span class="nav-text">3、查看可用的系统内核包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4%E3%80%81%E5%AE%89%E8%A3%85%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC%E5%86%85%E6%A0%B8"><span class="nav-number">4.</span> <span class="nav-text">4、安装最新版本内核</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5%E3%80%81%E8%AE%BE%E7%BD%AE-grub2"><span class="nav-number">5.</span> <span class="nav-text">5、设置 grub2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E4%B8%8A%E7%9A%84%E6%89%80%E6%9C%89%E5%8F%AF%E7%94%A8%E5%86%85%E6%A0%B8%EF%BC%9A"><span class="nav-number">5.1.</span> <span class="nav-text">查看系统上的所有可用内核：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E6%96%B0%E7%9A%84%E5%86%85%E6%A0%B8%E4%B8%BAgrub2%E7%9A%84%E9%BB%98%E8%AE%A4%E7%89%88%E6%9C%AC"><span class="nav-number">5.2.</span> <span class="nav-text">设置新的内核为grub2的默认版本</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%B3%951%E3%80%81%E9%80%9A%E8%BF%87-grub2-set-default-0-%E5%91%BD%E4%BB%A4%E8%AE%BE%E7%BD%AE"><span class="nav-number">5.2.1.</span> <span class="nav-text">方法1、通过 grub2-set-default 0 命令设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%B3%952%E3%80%81%E7%BC%96%E8%BE%91-etc-default-grub-%E6%96%87%E4%BB%B6"><span class="nav-number">5.2.2.</span> <span class="nav-text">方法2、编辑 &#x2F;etc&#x2F;default&#x2F;grub 文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90-grub-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%B9%B6%E9%87%8D%E5%90%AF"><span class="nav-number">5.3.</span> <span class="nav-text">生成 grub 配置文件并重启</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6%E3%80%81%E9%AA%8C%E8%AF%81"><span class="nav-number">6.</span> <span class="nav-text">6、验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7%E3%80%81%E5%88%A0%E9%99%A4%E6%97%A7%E5%86%85%E6%A0%B8%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="nav-number">7.</span> <span class="nav-text">7、删除旧内核（可选）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E4%B8%AD%E5%85%A8%E9%83%A8%E7%9A%84%E5%86%85%E6%A0%B8%EF%BC%9A"><span class="nav-number">7.1.</span> <span class="nav-text">查看系统中全部的内核：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%951%E3%80%81yum-remove-%E5%88%A0%E9%99%A4%E6%97%A7%E5%86%85%E6%A0%B8%E7%9A%84-RPM-%E5%8C%85"><span class="nav-number">7.2.</span> <span class="nav-text">方法1、yum remove 删除旧内核的 RPM 包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%952%E3%80%81yum-utils-%E5%B7%A5%E5%85%B7"><span class="nav-number">7.3.</span> <span class="nav-text">方法2、yum-utils 工具</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

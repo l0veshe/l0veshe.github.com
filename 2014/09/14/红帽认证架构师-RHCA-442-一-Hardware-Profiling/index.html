@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta property="og:type" content="article">
+<meta property="og:title" content="红帽认证架构师-RHCA 442(一):Hardware Profiling">
+<meta property="og:url" content="http://yoursite.com/2014/09/14/%E7%BA%A2%E5%B8%BD%E8%AE%A4%E8%AF%81%E6%9E%B6%E6%9E%84%E5%B8%88-RHCA-442-%E4%B8%80-Hardware-Profiling/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:locale">
+<meta property="article:published_time" content="2014-09-14T11:40:16.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.962Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="centos">
+<meta property="article:tag" content="RHCA">
+<meta property="article:tag" content="linux红帽认证架构师">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2014/09/14/%E7%BA%A2%E5%B8%BD%E8%AE%A4%E8%AF%81%E6%9E%B6%E6%9E%84%E5%B8%88-RHCA-442-%E4%B8%80-Hardware-Profiling/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>红帽认证架构师-RHCA 442(一):Hardware Profiling | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2014/09/14/%E7%BA%A2%E5%B8%BD%E8%AE%A4%E8%AF%81%E6%9E%B6%E6%9E%84%E5%B8%88-RHCA-442-%E4%B8%80-Hardware-Profiling/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          红帽认证架构师-RHCA 442(一):Hardware Profiling
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2014-09-14 19:40:16" itemprop="dateCreated datePublished" datetime="2014-09-14T19:40:16+08:00">2014-09-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BA%A2%E5%B8%BD%E8%AE%A4%E8%AF%81%E6%9E%B6%E6%9E%84%E5%B8%88-RHCA/" itemprop="url" rel="index"><span itemprop="name">红帽认证架构师-RHCA</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id=""><a href="#" class="headerlink" title=""></a><span id="more"></span></h2><h3 id="RH442"><a href="#RH442" class="headerlink" title="RH442"></a>RH442</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Getting to know your hardware</span><br></pre></td></tr></table></figure>
+<h3 id="Hardware-profiling"><a href="#Hardware-profiling" class="headerlink" title="Hardware profiling"></a>Hardware profiling</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Before tuning the performance, it<span class="string">&#x27;s important to understand the capabilities of your system</span></span><br><span class="line"><span class="string">    CPU 内部寄存器:硬件,时钟周期一致.1级缓存:静态内存,2级缓存:动态高速内存</span></span><br><span class="line"><span class="string">    Memory 相对缓存更慢 </span></span><br><span class="line"><span class="string">    Storage 更慢 到磁盘，终止。</span></span><br><span class="line"><span class="string">Farthe from CPU,slower,bigger,less frequently accessed</span></span><br><span class="line"><span class="string">Three elements of X86 machine, the ways to use system 针对X86结构</span></span><br><span class="line"><span class="string">    I/O address</span></span><br><span class="line"><span class="string">    IRQ</span></span><br><span class="line"><span class="string">    DMA</span></span><br></pre></td></tr></table></figure>
+<h3 id="CPU-profile-指标"><a href="#CPU-profile-指标" class="headerlink" title="CPU profile 指标"></a>CPU profile 指标</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">grep CPU /proc/cpuinfo</span><br><span class="line">model name	: Intel(R) Xeon(R) CPU E5-2620 v2 @ 2.10GHz</span><br><span class="line">model name	: Intel(R) Xeon(R) CPU E5-2620 v2 @ 2.10GHz</span><br><span class="line">Model,Hz 操作系统认为你有两个cpu,Hz是跑步的频率，步子多大无关系</span><br><span class="line">Caches size, L1, L2, L3, private or shared </span><br><span class="line">    lscpu</span><br><span class="line"></span><br><span class="line">    L1d cache:32k L1缓存分为数据缓存</span><br><span class="line"></span><br><span class="line">    L1i cache:32k &amp;指令缓存</span><br><span class="line"></span><br><span class="line">    L2 cache:3072K</span><br><span class="line"></span><br><span class="line">    cpu(s):4 cpu数量为1</span><br><span class="line"></span><br><span class="line">Thread(s) per core:1 每颗物理CPU，1为无超线程</span><br><span class="line"></span><br><span class="line">Core(s) per socket:2 每颗物理CPU有两个核心</span><br><span class="line"></span><br><span class="line">Socket(s):2 两颗物理CPU</span><br><span class="line"></span><br><span class="line">CPU features-VT,Architecture 虚拟化,架构64/32 </span><br><span class="line">是否支持64 cat /proc/cpuinfo |egrep <span class="string">&#x27;(lm)|(pae)&#x27;</span></span><br><span class="line"></span><br><span class="line">Motherboard chipset 主板芯片组，决定主板和CPU效率</span><br><span class="line"></span><br><span class="line">No.of sockets,cores,hyper thereading support</span><br><span class="line"></span><br><span class="line">Interconnect between sockets 物理CPU多颗时。前端总线联系FSB/qpi/amd 物理CPU之间通讯手段</span><br></pre></td></tr></table></figure>
+<h3 id="TOP-CPUs"><a href="#TOP-CPUs" class="headerlink" title="TOP CPUs"></a>TOP CPUs</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">intel E7-8830</span><br><span class="line">8 cores,16 threads 8核，16线程</span><br><span class="line">24M cache, 2.13 GHz,QPI</span><br><span class="line"></span><br><span class="line">AMD 6284 SE</span><br><span class="line">16 cores</span><br><span class="line">16M cache 2.7GHz</span><br></pre></td></tr></table></figure>
+<h3 id="Memory-profile-内存"><a href="#Memory-profile-内存" class="headerlink" title="Memory profile 内存"></a>Memory profile 内存</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">Memory size, max allowed</span><br><span class="line">&gt; free -m</span><br><span class="line"></span><br><span class="line">&gt;cat /proc/meminfo</span><br><span class="line"></span><br><span class="line">Memory technology,bandwidth and latency 内存第几代技术，以及带宽延时</span><br><span class="line"></span><br><span class="line">&gt;DDR2(2 bits),DDR3(4bits),DDR4(8 bits),Rambus(pS/2)</span><br><span class="line"></span><br><span class="line">&gt;Latency(<span class="built_in">wait</span> time before <span class="built_in">read</span> agin,<span class="keyword">in</span> ns) 反映速度 纳秒级 列刷新频率</span><br><span class="line"></span><br><span class="line">&gt;ECC 内存故障修复 发现内存位失效 纠正 减速 slower safer</span><br><span class="line"></span><br><span class="line">Method of memory accessing- UMA NUMA</span><br><span class="line"></span><br><span class="line">    频率/2=速率 2133/2~~ 1G</span><br><span class="line"></span><br><span class="line">UMA or SMP</span><br><span class="line"></span><br><span class="line">&gt;MCH 内存控制器 速度瓶颈  pcieX16 显卡占用 卡死了 这是北桥</span><br><span class="line"></span><br><span class="line">&gt;ICH 南桥连外设 sata usb pcie*1</span><br><span class="line"></span><br><span class="line">NUMA 架构</span><br><span class="line"></span><br><span class="line">&gt;两个CPU自己管理自己内存，MCH内置到CPU</span><br><span class="line"></span><br><span class="line">&gt;IOH 伪北桥，IO控制器</span><br><span class="line"></span><br><span class="line">&gt;ICH 南桥一样</span><br><span class="line"></span><br><span class="line">NUMA form apple Mac Pro</span><br><span class="line"></span><br><span class="line">&gt;MCH &amp; ICH -&gt;I/O HUB 内设&amp; I/O CONTROLLER 外设..GPU很近</span><br></pre></td></tr></table></figure>
+<h3 id="Storage-Profile"><a href="#Storage-Profile" class="headerlink" title="Storage Profile"></a>Storage Profile</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Type of storage used</span><br><span class="line">&gt; Mechanical magnetic platters 盘片 ，磁碟</span><br><span class="line"></span><br><span class="line">&gt; SSD devices </span><br><span class="line">Hardware RAID level, no. of disks, striping size</span><br><span class="line"></span><br><span class="line">Interconnect <span class="built_in">type</span> <span class="keyword">for</span> direct attached storage 内部存储</span><br><span class="line">&gt;SATA SAS IDE     IDE没人用了 sata企业级,第三代sata完虐sas sas可靠</span><br><span class="line"></span><br><span class="line">SCSI,FIBRE,CHANNEL,ISCSI PCI总线接驳，光纤，互联网</span><br><span class="line"></span><br><span class="line">&gt; 带宽，纳秒级，便宜</span><br><span class="line"></span><br><span class="line">burstspped vs. average speed 顺序读写 随机读写</span><br></pre></td></tr></table></figure>
+<h3 id="SSD"><a href="#SSD" class="headerlink" title="SSD"></a>SSD</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">Electronic disk , no moving mechanical components</span><br><span class="line"></span><br><span class="line">No start-up time</span><br><span class="line"></span><br><span class="line">Very low latency on <span class="built_in">read</span> and write</span><br><span class="line"></span><br><span class="line">Faster than traditional HD sequence 500M/S 200M/S</span><br><span class="line"></span><br><span class="line">Silent ,not so hot ,vibration free, magnet free,light,less power required</span><br><span class="line"></span><br><span class="line">Much more expensive,lesser capacity</span><br><span class="line"></span><br><span class="line">Potentially longer life time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">MLC 一个单元存多位闪的多寿命短</span><br><span class="line">SLC 很贵，非常贵</span><br><span class="line"></span><br><span class="line">每次读至少一个block</span><br><span class="line"></span><br><span class="line"><span class="comment">####SSD TRIM COMMAND</span></span><br><span class="line"></span><br><span class="line">when os erases a file, the file will typically be marked <span class="keyword">for</span> deletion</span><br><span class="line">SSD 不停做垃圾回收</span><br><span class="line">ssd 挂载 fstab default,discard</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&gt;IDE UP 133MB/S</span><br><span class="line"></span><br><span class="line">&gt;SATA2 300</span><br><span class="line"></span><br><span class="line">&gt;SATA3 600</span><br><span class="line"></span><br><span class="line">&gt;SCSI 320</span><br><span class="line"></span><br><span class="line">&gt;USB2 60</span><br><span class="line"></span><br><span class="line">&gt;USB3 600</span><br><span class="line"></span><br><span class="line">&gt;ISCSI GIGA NIC 125</span><br><span class="line"></span><br><span class="line">&gt;FIBRE CHANNEL 531</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">###PCI EXPRESS</span></span><br><span class="line"></span><br><span class="line">&gt;1.0a 2Gb/s bandwidth:2.5GT/s singleLane:250Mb/s full16:8GB/s</span><br><span class="line"></span><br><span class="line">&gt;2.1 4        5        500        16</span><br><span class="line"></span><br><span class="line">&gt;3   8        8        1GB/s        32</span><br></pre></td></tr></table></figure>
+<h3 id="Networking-profile"><a href="#Networking-profile" class="headerlink" title="Networking profile"></a>Networking profile</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Network card model</span><br><span class="line">Network technology</span><br><span class="line">Connection to switch(Speed)</span><br><span class="line">Separated network, special purpose network -Storage,VDI,administration,useradta</span><br><span class="line">I/O virtualization</span><br><span class="line"></span><br><span class="line">&gt;cmd</span><br><span class="line"></span><br><span class="line">    &gt;dmesg</span><br><span class="line"></span><br><span class="line">    &gt;/var/<span class="built_in">log</span>/dmesg</span><br><span class="line"></span><br><span class="line">    &gt;lscpu,lscpu -p</span><br><span class="line"></span><br><span class="line">    &gt;getconf -a</span><br><span class="line"></span><br><span class="line">    &gt;x86info</span><br></pre></td></tr></table></figure>
+<h3 id="profiling-commands"><a href="#profiling-commands" class="headerlink" title="profiling commands"></a>profiling commands</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&gt;cmd</span><br><span class="line"></span><br><span class="line">    &gt;dmidecode</span><br><span class="line"></span><br><span class="line">    &gt;/sys/class/dmi</span><br><span class="line"></span><br><span class="line">    &gt;lspci [-v[-v[-v]]]</span><br><span class="line"></span><br><span class="line">    &gt;lsusb [-v]</span><br><span class="line"></span><br><span class="line">    &gt;ethtool</span><br><span class="line"></span><br><span class="line">    &gt;sosreport</span><br><span class="line"></span><br><span class="line">    &gt;powertop</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/centos/" rel="tag"># centos</a>
+              <a href="/tags/RHCA/" rel="tag"># RHCA</a>
+              <a href="/tags/linux%E7%BA%A2%E5%B8%BD%E8%AE%A4%E8%AF%81%E6%9E%B6%E6%9E%84%E5%B8%88/" rel="tag"># linux红帽认证架构师</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2014/09/14/%E7%BA%A2%E5%B8%BD%E8%AE%A4%E8%AF%81%E6%9E%B6%E6%9E%84%E5%B8%88-RHCA-442-%E4%BA%8C-=Kernel-Module/" rel="prev" title="红帽认证架构师-RHCA 442(二):Kernel Module">
+      <i class="fa fa-chevron-left"></i> 红帽认证架构师-RHCA 442(二):Kernel Module
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2014/09/14/mysql-%E6%85%A2%E6%9F%A5%E8%AF%A2%E5%89%96%E6%9E%90%E5%B7%A5%E5%85%B7/" rel="next" title="mysql 慢查询剖析工具 shell">
+      mysql 慢查询剖析工具 shell <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-number">1.</span> <span class="nav-text"></span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RH442"><span class="nav-number">1.1.</span> <span class="nav-text">RH442</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hardware-profiling"><span class="nav-number">1.2.</span> <span class="nav-text">Hardware profiling</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-profile-%E6%8C%87%E6%A0%87"><span class="nav-number">1.3.</span> <span class="nav-text">CPU profile 指标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TOP-CPUs"><span class="nav-number">1.4.</span> <span class="nav-text">TOP CPUs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Memory-profile-%E5%86%85%E5%AD%98"><span class="nav-number">1.5.</span> <span class="nav-text">Memory profile 内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Storage-Profile"><span class="nav-number">1.6.</span> <span class="nav-text">Storage Profile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSD"><span class="nav-number">1.7.</span> <span class="nav-text">SSD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Networking-profile"><span class="nav-number">1.8.</span> <span class="nav-text">Networking profile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#profiling-commands"><span class="nav-number">1.9.</span> <span class="nav-text">profiling commands</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

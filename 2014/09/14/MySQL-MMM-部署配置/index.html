@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="MMM简介MMM即Master-Master Replication Manager for MySQL（mysql主主复制管理器）关于mysql主主复制配置的监控、故障转移和管理的一套可伸缩的脚本套件（在任何时候只有一个节点可以被写入），这个套件也能对居于标准的主从配置的任意数量的从服务器进行读负载均衡，所以你可以用它来在一组居于复制的服务器启动虚拟ip，除此之外，它还有实现数据备份、节点之间">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL MMM 部署配置">
+<meta property="og:url" content="http://yoursite.com/2014/09/14/MySQL-MMM-%E9%83%A8%E7%BD%B2%E9%85%8D%E7%BD%AE/index.html">
+<meta property="og:site_name" content="止乎于静">
+<meta property="og:description" content="MMM简介MMM即Master-Master Replication Manager for MySQL（mysql主主复制管理器）关于mysql主主复制配置的监控、故障转移和管理的一套可伸缩的脚本套件（在任何时候只有一个节点可以被写入），这个套件也能对居于标准的主从配置的任意数量的从服务器进行读负载均衡，所以你可以用它来在一组居于复制的服务器启动虚拟ip，除此之外，它还有实现数据备份、节点之间">
+<meta property="og:locale">
+<meta property="article:published_time" content="2014-09-14T11:32:13.000Z">
+<meta property="article:modified_time" content="2021-09-06T14:22:24.964Z">
+<meta property="article:author" content="Chenhan Hank">
+<meta property="article:tag" content="mysql">
+<meta property="article:tag" content="centos">
+<meta property="article:tag" content="mmm">
+<meta property="article:tag" content="mysql数据库">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2014/09/14/MySQL-MMM-%E9%83%A8%E7%BD%B2%E9%85%8D%E7%BD%AE/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>MySQL MMM 部署配置 | 止乎于静</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">止乎于静</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>Sitemap</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2014/09/14/MySQL-MMM-%E9%83%A8%E7%BD%B2%E9%85%8D%E7%BD%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MySQL MMM 部署配置
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2014-09-14 19:32:13" itemprop="dateCreated datePublished" datetime="2014-09-14T19:32:13+08:00">2014-09-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-09-06 22:22:24" itemprop="dateModified" datetime="2021-09-06T22:22:24+08:00">2021-09-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MYSQL/" itemprop="url" rel="index"><span itemprop="name">MYSQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <hr>
+<h3 id="MMM简介"><a href="#MMM简介" class="headerlink" title="MMM简介"></a>MMM简介</h3><pre><code>MMM即Master-Master Replication Manager for MySQL（mysql主主复制管理器）关于mysql主主复制配置的监控、故障转移和管理的一套可伸缩的脚本套件（在任何时候只有一个节点可以被写入），这个套件也能对居于标准的主从配置的任意数量的从服务器进行读负载均衡，所以你可以用它来在一组居于复制的服务器启动虚拟ip，除此之外，它还有实现数据备份、节点之间重新同步功能的脚本。
+</code></pre><span id="more"></span>
+<pre><code>MySQL本身没有提供replication failover的解决方案，通过MMM方案能实现服务器的故障转移，从而实现mysql的高可用。
+MMM项目来自 Google：http://code.google.com/p/mysql-master-master
+官方网站为：http://mysql-mmm.org
+Mmm主要功能由下面三个脚本提供
+
+1. mmm_mond 负责所有的监控工作的监控守护进程，决定节点的移除等等
+2. mmm_agentd 运行在mysql服务器上的代理守护进程，通过简单远程服务集提供给监控节点
+3. mmm_control 通过命令行管理mmm_mond进程
+</code></pre><h3 id="一、实验准备"><a href="#一、实验准备" class="headerlink" title="一、实验准备"></a>一、实验准备</h3><h2 id="系统-CentOS6-5"><a href="#系统-CentOS6-5" class="headerlink" title="系统: CentOS6.5"></a>系统: CentOS6.5</h2><p>functiont |    ip | hostname<br>monitoring_host    | 192.168.174.136 |    monitor<br>master1    | 192.168.174.134 |    db1</p>
+<h2 id="master2-192-168-174-135-db2"><a href="#master2-192-168-174-135-db2" class="headerlink" title="master2    | 192.168.174.135 | db2"></a>master2    | 192.168.174.135 | db2</h2><h3 id="二、搭建MM-双MYSQL互为主从模式Replication"><a href="#二、搭建MM-双MYSQL互为主从模式Replication" class="headerlink" title="二、搭建MM,双MYSQL互为主从模式Replication"></a>二、搭建MM,双MYSQL互为主从模式Replication</h3><ol>
+<li>db1 db2安装mysql数据库并修改配置文件</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># yum install mysql mysql-server -y</span></span><br><span class="line"><span class="comment"># vim /etc/my.cn</span></span><br></pre></td></tr></table></figure>
+<p>db1配置文件如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">datadir=/var/lib/mysql</span><br><span class="line">socket=/var/lib/mysql/mysql.sock</span><br><span class="line">log-error=/var/lib/mysql/mysql.err</span><br><span class="line"><span class="built_in">log</span> = /var/lib/mysql/query_log.log</span><br><span class="line">log-slow-queries = /var/lib/mysql/slow_query_log.log</span><br><span class="line">user=mysql</span><br><span class="line">default-character-set=utf8</span><br><span class="line">init_connect=<span class="string">&#x27;SET NAMES utf8&#x27;</span></span><br><span class="line"><span class="comment"># Disabling symbolic-links is recommended to prevent assorted security risks</span></span><br><span class="line">symbolic-links=0</span><br><span class="line">log-bin=mysql-bin     <span class="comment">#开启binlog日志用于主从数据复制</span></span><br><span class="line">server-id=1</span><br><span class="line">binlog-do-db=iccstm1   <span class="comment">#你要用于主从复制的数据库名称，多个用逗号隔开</span></span><br><span class="line">binlog-ignore-db=mysql  <span class="comment">#数据库名称</span></span><br><span class="line">replicate-do-db=iccstm1</span><br><span class="line">replicate-ignore-db=mysql</span><br><span class="line">log-slave-updates  <span class="comment">#此数据库宕机，备用数据库接管</span></span><br><span class="line">slave-skip-errors=all   <span class="comment">#跳过错误，继续执行复制</span></span><br><span class="line">sync_binlog=1</span><br><span class="line">auto_increment_increment=2</span><br><span class="line">auto_increment_offset=1 <span class="comment">#這樣A的auto_increment字段産生的數值是：1, 3, 5, 7, …等奇數ID</span></span><br><span class="line">[client]</span><br><span class="line">default-character-set=utf8</span><br><span class="line">[mysqld_safe]</span><br><span class="line">log-error=/var/<span class="built_in">log</span>/mysqld.log</span><br><span class="line">pid-file=/var/run/mysqld/mysqld.pid</span><br></pre></td></tr></table></figure>
+<p>db2配置文件如下(基本一致，server-id=2 这个不可同db1一致)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">datadir=/var/lib/mysql</span><br><span class="line">socket=/var/lib/mysql/mysql.sock</span><br><span class="line">log-error=/var/lib/mysql/mysql.err</span><br><span class="line"><span class="built_in">log</span> = /var/lib/mysql/query_log.log</span><br><span class="line">log-slow-queries = /var/lib/mysql/slow_query_log.log</span><br><span class="line">user=mysql</span><br><span class="line">default-character-set=utf8</span><br><span class="line">init_connect=<span class="string">&#x27;SET NAMES utf8&#x27;</span></span><br><span class="line"><span class="comment"># Disabling symbolic-links is recommended to prevent assorted security risks</span></span><br><span class="line">symbolic-links=0</span><br><span class="line">log-bin=mysql-bin     <span class="comment">#开启binlog日志用于主从数据复制</span></span><br><span class="line">server-id=2</span><br><span class="line">binlog-do-db=iccstm1   <span class="comment">#你要用于主从复制的数据库名称，多个用逗号隔开</span></span><br><span class="line">binlog-ignore-db=mysql  <span class="comment">#数据库名称</span></span><br><span class="line">replicate-do-db=iccstm1</span><br><span class="line">replicate-ignore-db=mysql</span><br><span class="line">log-slave-updates  <span class="comment">#此数据库宕机，备用数据库接管</span></span><br><span class="line">slave-skip-errors=all   <span class="comment">#跳过错误，继续执行复制</span></span><br><span class="line">sync_binlog=1</span><br><span class="line">auto_increment_increment=2</span><br><span class="line">auto_increment_offset=1 <span class="comment">#這樣A的auto_increment字段産生的數值是：1, 3, 5, 7, …等奇數ID</span></span><br><span class="line">[client]</span><br><span class="line">default-character-set=utf8</span><br><span class="line">[mysqld_safe]</span><br><span class="line">log-error=/var/<span class="built_in">log</span>/mysqld.log</span><br><span class="line">pid-file=/var/run/mysqld/mysqld.pid</span><br></pre></td></tr></table></figure>
+<p>2.在MYSQL内部启用同步</p>
+<p>取得master值</p>
+<p>db1:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show master status\G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">            File: mysql-bin.000005</span><br><span class="line">        Position: 526</span><br><span class="line">    Binlog_Do_DB: iccstm1</span><br><span class="line">Binlog_Ignore_DB: mysql</span><br><span class="line">1 row <span class="keyword">in</span> <span class="built_in">set</span> (0.00 sec)</span><br><span class="line">db2:</span><br><span class="line">mysql&gt; show master status\G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">            File: mysql-bin.000005</span><br><span class="line">        Position: 526</span><br><span class="line">    Binlog_Do_DB: iccstm1</span><br><span class="line">Binlog_Ignore_DB: mysql</span><br><span class="line">1 row <span class="keyword">in</span> <span class="built_in">set</span> (0.00 sec)</span><br><span class="line">master_log_file对应File，master_log_pos对应Position</span><br></pre></td></tr></table></figure>
+<p>db1 db2互相提升访问权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Mysql&gt; grant all privileges on *.* to <span class="string">&#x27;root&#x27;</span>@<span class="string">&#x27;%&#x27;</span> identified by <span class="string">&#x27;1&#x27;</span> with grant option;</span><br></pre></td></tr></table></figure>
+<p>db2:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; grant replication slave on *.* to <span class="string">&#x27;replication&#x27;</span>@<span class="string">&#x27;%&#x27;</span> identified by <span class="string">&#x27;1&#x27;</span>;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<p>db1:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; change master to master_host=<span class="string">&#x27;192.168.174.135&#x27;</span>, master_user=<span class="string">&#x27;replication&#x27;</span>, master_password=<span class="string">&#x27;1&#x27;</span>,master_log_file=<span class="string">&#x27;mysql-bin.000005&#x27;</span>,master_log_pos=526;</span><br><span class="line">mysql&gt; grant replication slave on *.* to <span class="string">&#x27;replication&#x27;</span>@<span class="string">&#x27;%&#x27;</span> identified by <span class="string">&#x27;1&#x27;</span>;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; change master to master_host=<span class="string">&#x27;192.168.174.134&#x27;</span>, master_user=<span class="string">&#x27;replication&#x27;</span>, master_password=<span class="string">&#x27;1&#x27;</span>,master_log_file=<span class="string">&#x27;mysql-bin.000005&#x27;</span>,master_log_pos=526;</span><br></pre></td></tr></table></figure>
+<p>db1,db2分别查看服务器主从状态:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt;start slave;</span><br><span class="line">mysql&gt;show slave status\G</span><br></pre></td></tr></table></figure>
+<p>如果有以下两个结果</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Slave_IO_Running: Yes</span><br><span class="line">Slave_SQL_Running: Yes</span><br></pre></td></tr></table></figure>
+<p>主从成功。</p>
+<p>可以建立</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create database iccstm1;</span><br><span class="line">mysql&gt; use iccstm1;</span><br><span class="line">mysql&gt; create table testTab(NAME <span class="built_in">set</span> char(2));</span><br></pre></td></tr></table></figure>
+<p>在另外一台主机查看。</p>
+<h3 id="三、安装配置MySQL-MMM"><a href="#三、安装配置MySQL-MMM" class="headerlink" title="三、安装配置MySQL-MMM"></a>三、安装配置MySQL-MMM</h3><p>1.在monitor、db1、db2上安装mmm，并配置：mmm_common.conf、mmm_agent.conf以及mmm_mon.conf文件<br>首先安装epel源<br>适合各个操作系统的epel源列表:<a target="_blank" rel="noopener" href="http://mirrors.fedoraproject.org/publiclist/EPEL/">http://mirrors.fedoraproject.org/publiclist/EPEL/</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget http://mirrors.yun-idc.com/epel/6/x86_64/epel-release-6-8.noarch.rpm</span><br><span class="line">rpm -Uvh epel-release-6-8.noarch.rpm</span><br><span class="line">yum -y install mysql-mmm*</span><br></pre></td></tr></table></figure>
+<p>配置mmm代理和监控账号的权限</p>
+<p>在db1和db2上分别执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; GRANT REPLICATION CLIENT ON *.* TO <span class="string">&#x27;mmm_monitor&#x27;</span>@<span class="string">&#x27;192.168.174.%&#x27;</span> IDENTIFIED BY <span class="string">&#x27;1&#x27;</span>;</span><br><span class="line">mysql&gt; GRANT SUPER, REPLICATION CLIENT, PROCESS ON *.* TO <span class="string">&#x27;mmm_agent&#x27;</span>@<span class="string">&#x27;192.168.174.%&#x27;</span>   IDENTIFIED BY <span class="string">&#x27;1&#x27;</span>;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<p>配置mysql-mmm</p>
+<p>所有的配置选项都集合在了一个叫/etc/mysql-mmm/mmm_common.conf的单独文件中，系统中所有主机的该文件内容都是一样的, 配置完后不要忘记了拷贝这个文件到所有的主机（包括监控主机）！，内容如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">active_master_role      writer</span><br><span class="line"> </span><br><span class="line">&lt;host default&gt;</span><br><span class="line">    cluster_interface       eth0</span><br><span class="line">    pid_path                /var/run/mysql-mmm/mmm_agentd.pid</span><br><span class="line">bin_path                /usr/libexec/mysql-mmm/</span><br><span class="line"><span class="comment">#同步的帐号（这些要和前面设置的保持一致！）</span></span><br><span class="line">    replication_user        replication  </span><br><span class="line">    replication_password    123456    <span class="comment">#同步的密码</span></span><br><span class="line">    agent_user              mmm_agent   <span class="comment">#mmm-agent用户名</span></span><br><span class="line">    agent_password          1    <span class="comment">#mmm-agent用户密码</span></span><br><span class="line">&lt;/host&gt;</span><br><span class="line"> </span><br><span class="line">&lt;host db1&gt;</span><br><span class="line">    ip      192.168.172.134     <span class="comment">#db1的ip</span></span><br><span class="line">    mode    master</span><br><span class="line">    peer    db2</span><br><span class="line">&lt;/host&gt;</span><br><span class="line"> </span><br><span class="line">&lt;host db2&gt;</span><br><span class="line">    ip      192.168.172.135      <span class="comment">#db2的ip</span></span><br><span class="line">    mode    master</span><br><span class="line">    peer    db1</span><br><span class="line">&lt;/host&gt;</span><br><span class="line"> </span><br><span class="line">&lt;role writer&gt;</span><br><span class="line">    hosts   db1, db2</span><br><span class="line">    ips     192.168.172.152      <span class="comment">#设置写如的虚拟IP</span></span><br><span class="line">    mode    exclusive</span><br><span class="line">&lt;/role&gt;</span><br><span class="line"> </span><br><span class="line">&lt;role reader&gt;</span><br><span class="line">    hosts   db1, db2</span><br><span class="line">    ips     192.168.1.153, 192.168.1.154     <span class="comment">#设置读取的虚拟IP</span></span><br><span class="line">    mode    balanced</span><br><span class="line">&lt;/role&gt;</span><br></pre></td></tr></table></figure>
+<p>在数据库主机上我们需要编辑/etc/mysql-mmm/mmm_agent.conf文件，根据其他主机的不同更改db1的值（db2就将db1更改成db2）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include mmm_common.conf</span><br></pre></td></tr></table></figure>
+<p>this db1<br>在监控主机上我们需要编辑/etc/mysql-mmm/mmm_mon.conf文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">include mmm_common.conf</span><br><span class="line"> </span><br><span class="line">&lt;monitor&gt;</span><br><span class="line">    ip                  127.0.0.1</span><br><span class="line">    pid_path            /var/run/mysql-mmm/mmm_mond.pid</span><br><span class="line">    bin_path            /usr/libexec/mysql-mmm</span><br><span class="line">    status_path         /var/lib/mysql-mmm/mmm_mond.status</span><br><span class="line">    ping_ips            192.168.1.134,192.168.1.135  <span class="comment">#监控服务器ip</span></span><br><span class="line">    auto_set_online     60</span><br><span class="line"> </span><br><span class="line">    <span class="comment"># The kill_host_bin does not exist by default, though the monitor will</span></span><br><span class="line">    <span class="comment"># throw a warning about it missing.  See the section 5.10 &quot;Kill Host</span></span><br><span class="line">    <span class="comment"># Functionality&quot; in the PDF documentation.</span></span><br><span class="line">    <span class="comment">#</span></span><br><span class="line">    <span class="comment"># kill_host_bin     /usr/libexec/mysql-mmm/monitor/kill_host</span></span><br><span class="line">    <span class="comment">#</span></span><br><span class="line">&lt;/monitor&gt;</span><br><span class="line"> </span><br><span class="line">&lt;host default&gt;</span><br><span class="line">    monitor_user        mmm_monitor    <span class="comment">#mmm_monitor用户名</span></span><br><span class="line">    monitor_password    1 <span class="comment">#mmm_monitor密码</span></span><br><span class="line">&lt;/host&gt;</span><br><span class="line">debug 0</span><br></pre></td></tr></table></figure>
+<p>启动MMM</p>
+<p>启动代理：</p>
+<p>（在数据库服务器上db1、db2）编辑/etc/default/mysql-mmm-agent来开启：</p>
+<p><code>ENABLED=1</code><br>然后启动它：</p>
+<p><code>/etc/init.d/mysql-mmm-agent start</code><br>启动监控（在监控机上）：</p>
+<p><code>/etc/init.d/mysql-mmm-monitor start</code><br>利用mmm_control监控mysql服务器状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@136 ~]<span class="comment"># mmm_control show</span></span><br><span class="line">  db1(192.168.174.134) master/ONLINE. Roles: reader(192.168.174.153)</span><br><span class="line">  db2(192.168.174.135) master/ONLINE. Roles: reader(192.168.174.154), writer(192.168.174.152)</span><br></pre></td></tr></table></figure>
+<p>测试看两个mysql服务器能否实现故障自动切换</p>
+<p>停掉作为写的db1上的mysql，查看写的服务器会不会自动转移到db2上去</p>
+<p>mmm_control命令简介</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">[root@server3 mysql-mmm]<span class="comment"># mmm_control help</span></span><br><span class="line">Valid commands are:</span><br><span class="line">    <span class="built_in">help</span>                              - show this message</span><br><span class="line">   <span class="comment">#查看帮助信息</span></span><br><span class="line">ping                              - ping monitor</span><br><span class="line"><span class="comment">#ping监控</span></span><br><span class="line">show                              - show status</span><br><span class="line"><span class="comment">#查看状态信息</span></span><br><span class="line">checks [&lt;host&gt;|all [&lt;check&gt;|all]] - show checks status</span><br><span class="line"><span class="comment">#显示检查状态，包括（ping、mysql、rep_threads、rep_backlog）</span></span><br><span class="line">set_online &lt;host&gt;                 - <span class="built_in">set</span> host &lt;host&gt; online</span><br><span class="line"><span class="comment">#设置某host为online状态</span></span><br><span class="line">set_offline &lt;host&gt;                - <span class="built_in">set</span> host &lt;host&gt; offline</span><br><span class="line"><span class="comment">#设置某host为offline状态</span></span><br><span class="line">mode                              - <span class="built_in">print</span> current mode.</span><br><span class="line"><span class="comment">#打印当前的模式，是ACTIVE、MANUAL、PASSIVE？</span></span><br><span class="line"><span class="comment">#默认ACTIVE模式</span></span><br><span class="line">set_active                        - switch into active mode.</span><br><span class="line"><span class="comment">#更改为active模式</span></span><br><span class="line">set_manual                        - switch into manual mode.</span><br><span class="line"><span class="comment">#更改为manual模式</span></span><br><span class="line">set_passive                       - switch into passive mode.</span><br><span class="line"><span class="comment">#更改为passive模式</span></span><br><span class="line">    move_role [--force] &lt;role&gt; &lt;host&gt; - move exclusive role &lt;role&gt; to host &lt;host&gt;</span><br><span class="line">       <span class="comment">#更改host的模式，比如更改处于slave的mysql数据库角色为write  </span></span><br><span class="line">   (Only use --force <span class="keyword">if</span> you know what you are doing!)</span><br><span class="line">set_ip &lt;ip&gt; &lt;host&gt;                - <span class="built_in">set</span> role with ip &lt;ip&gt; to host &lt;host&gt;</span><br><span class="line"><span class="comment">#为host设置ip，只有passive模式的时候才允许更改！</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"># mysql</a>
+              <a href="/tags/centos/" rel="tag"># centos</a>
+              <a href="/tags/mmm/" rel="tag"># mmm</a>
+              <a href="/tags/mysql%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"># mysql数据库</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2014/09/14/mutt%E9%82%AE%E4%BB%B6%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%80%E9%94%AE%E8%84%9A%E6%9C%AC/" rel="prev" title="mutt邮件客户端一键脚本">
+      <i class="fa fa-chevron-left"></i> mutt邮件客户端一键脚本
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2014/09/14/%E4%BA%9A%E9%A9%AC%E9%80%8A%E8%BF%90%E7%BB%B4-%E4%B8%80-IAM-%E8%BA%AB%E4%BB%BD%E4%B8%8E%E8%AE%BF%E9%97%AE%E7%AE%A1%E7%90%86/" rel="next" title="亚马逊运维(一):IAM 身份与访问管理">
+      亚马逊运维(一):IAM 身份与访问管理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#MMM%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">MMM简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%AE%9E%E9%AA%8C%E5%87%86%E5%A4%87"><span class="nav-number">2.</span> <span class="nav-text">一、实验准备</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F-CentOS6-5"><span class="nav-number"></span> <span class="nav-text">系统: CentOS6.5</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#master2-192-168-174-135-db2"><span class="nav-number"></span> <span class="nav-text">master2    | 192.168.174.135 | db2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%90%AD%E5%BB%BAMM-%E5%8F%8CMYSQL%E4%BA%92%E4%B8%BA%E4%B8%BB%E4%BB%8E%E6%A8%A1%E5%BC%8FReplication"><span class="nav-number">1.</span> <span class="nav-text">二、搭建MM,双MYSQL互为主从模式Replication</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AEMySQL-MMM"><span class="nav-number">2.</span> <span class="nav-text">三、安装配置MySQL-MMM</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Chenhan Hank</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chenhan Hank</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
