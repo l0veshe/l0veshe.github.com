@@ -170,6 +170,160 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/%E6%90%AD%E5%BB%BAharbor2-x-%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/09/07/%E6%90%AD%E5%BB%BAharbor2-x-%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">搭建harbor2.x 记录 </a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-09-07 23:49:28" itemprop="dateCreated datePublished" datetime="2021-09-07T23:49:28+08:00">2021-09-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%91%E5%8E%9F%E7%94%9F/" itemprop="url" rel="index"><span itemprop="name">云原生</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>docker-compose &gt; 1.27   (安装参见其他文档)</p>
+<h2 id="下载-离线安装包"><a href="#下载-离线安装包" class="headerlink" title="下载 离线安装包"></a>下载 离线安装包</h2><p>进入页面<a target="_blank" rel="noopener" href="https://github.com/goharbor/harbor">https://github.com/goharbor/harbor</a></p>
+<p>右边release位置</p>
+<p>这里使用 <a target="_blank" rel="noopener" href="https://github.com/goharbor/harbor/releases/download/v2.2.1/harbor-offline-installer-v2.2.1.tgz">https://github.com/goharbor/harbor/releases/download/v2.2.1/harbor-offline-installer-v2.2.1.tgz</a></p>
+<h2 id="制作证书"><a href="#制作证书" class="headerlink" title="制作证书"></a>制作证书</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 36500 -out domain.crt</span><br></pre></td></tr></table></figure>
+<p>在 Common Name (eg, your name or your server’s hostname) []: 填写你的主机名</p>
+<p>这里生成证书后放到/cert/</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ls /certs</span><br><span class="line">domain.crt  domain.key</span><br></pre></td></tr></table></figure>
+<p>同时把主机名写到/etc/hosts中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cat /etc/hosts</span><br><span class="line">...</span><br><span class="line">10.81.2.102 dockerhub.kubekey.local</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<h2 id="执行安装"><a href="#执行安装" class="headerlink" title="执行安装"></a>执行安装</h2><p>下载到服务器，放到/root/harbor空文件夹，然后打开</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd /root/harbor</span><br><span class="line">tar -zxvf harbor-offline-installer-v2.2.1.tgz</span><br><span class="line">cp harbor.yml.tmpl harbor.yml</span><br></pre></td></tr></table></figure>
+<p>修改harbor.yml.tmpl 这部分</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">hostname: dockerhub.kubekey.local</span><br><span class="line">http:</span><br><span class="line">  # port for http, default is 80. If https enabled, this port will redirect to https port</span><br><span class="line">  port: 80</span><br><span class="line">https:</span><br><span class="line">  port: 443</span><br><span class="line">  certificate: /certs/domain.crt</span><br><span class="line">  private_key: /certs/domain.key</span><br></pre></td></tr></table></figure>
+<p>然后执行命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">bash prepare</span><br><span class="line">...</span><br><span class="line">bash install --with-chartmuseum  # 安装helm chart</span><br></pre></td></tr></table></figure>
+<p>这时已经安装完毕</p>
+<p>服务在目录的docker-compose管理</p>
+<p>数据目录默认在/data</p>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>harbor2.0使用机需要添加ca证书，所以就有一些不太好用。内网如非必要，也可以使用nexus、frog等仓库管理仓库</p>
+<h2 id="使用仓库脚本"><a href="#使用仓库脚本" class="headerlink" title="使用仓库脚本"></a>使用仓库脚本</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">mkdir /etc/docker/certs.d/dockerhub.kubekey.local -p</span><br><span class="line"></span><br><span class="line">cat &gt; /etc/docker/certs.d/dockerhub.kubekey.local/ca.crt &lt;&lt;EOF</span><br><span class="line"></span><br><span class="line">-----BEGIN CERTIFICATE-----</span><br><span class="line">这里使用制作的/certs/domain.crt</span><br><span class="line"></span><br><span class="line">-----END CERTIFICATE-----</span><br><span class="line"></span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">grep  dockerhub.kubekey.local /etc/hosts || echo &quot;&lt;harbor ip&gt; dockerhub.kubekey.local&quot; &gt;&gt; /etc/hosts</span><br><span class="line"></span><br><span class="line">docker login dockerhub.kubekey.local -u &lt;harbor user&gt; -p &lt;harbor password&gt;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/cloud-stack-%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Chenhan Hank">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="止乎于静">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/09/07/cloud-stack-%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">cloud-stack 搭建记录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-09-07 23:43:04" itemprop="dateCreated datePublished" datetime="2021-09-07T23:43:04+08:00">2021-09-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%99%9A%E6%8B%9F%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">虚拟化</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">yum install mysql-connector-python mysql-connector-java  java-1.8.0-openjdk iptables-services ipmitool genisoimage apache-commons-daemon-jsvc python-netaddr</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">wget http://download.cloudstack.org/centos/7/4.11/cloudstack-agent-4.11.1.0-1.el7.centos.x86_64.rpm     </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">wget http://download.cloudstack.org/centos/7/4.11/cloudstack-common-4.11.1.0-1.el7.centos.x86_64.rpm</span><br><span class="line"></span><br><span class="line">wget http://download.cloudstack.org/centos/7/4.11/cloudstack-management-4.11.1.0-1.el7.centos.x86_64.rpm</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">wget https://bootstrap.pypa.io/pip/2.7/get-pip.py</span><br><span class="line"></span><br><span class="line">python2.7 ~/.local/lib/get-pip.py</span><br><span class="line"></span><br><span class="line">printf &quot;\nPATH=\$PATH:~/.local/bin/&quot; &gt;&gt; ~/.bashrc </span><br><span class="line"></span><br><span class="line">source ~/.bashrc</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">pip2.7 install mysql-connector-python -i https://pypi.tuna.tsinghua.edu.cn/simple</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/%E5%9B%BD%E6%9C%8D%E5%8A%A0%E9%80%9F%E5%AE%89%E8%A3%85DOCKER/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -958,434 +1112,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/k8s-1-18-%E5%9B%BD%E6%9C%8D%E5%AE%89%E8%A3%85%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/09/07/k8s-1-18-%E5%9B%BD%E6%9C%8D%E5%AE%89%E8%A3%85%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">k8s 1.18 国服安装笔记</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2021-09-07 23:21:19" itemprop="dateCreated datePublished" datetime="2021-09-07T23:21:19+08:00">2021-09-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-02-23 00:01:54" itemprop="dateModified" datetime="2022-02-23T00:01:54+08:00">2022-02-23</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%91%E5%8E%9F%E7%94%9F/" itemprop="url" rel="index"><span itemprop="name">云原生</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="1-系统准备"><a href="#1-系统准备" class="headerlink" title="1 系统准备"></a>1 系统准备</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat /etc/centos-release</span><br><span class="line">CentOS Linux release 7.8.2003 (Core)</span><br></pre></td></tr></table></figure>
-<h2 id="2-配置固定ip"><a href="#2-配置固定ip" class="headerlink" title="2 配置固定ip"></a>2 配置固定ip</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33</span><br><span class="line">TYPE=Ethernet</span><br><span class="line">PROXY_METHOD=none</span><br><span class="line">BROWSER_ONLY=no</span><br><span class="line">BOOTPROTO=static</span><br><span class="line">#BOOTPROTO=dhcp</span><br><span class="line">DEFROUTE=yes</span><br><span class="line">IPV4_FAILURE_FATAL=no</span><br><span class="line">IPV6INIT=yes</span><br><span class="line">IPV6_AUTOCONF=yes</span><br><span class="line">IPV6_DEFROUTE=yes</span><br><span class="line">IPV6_FAILURE_FATAL=no</span><br><span class="line">IPV6_ADDR_GEN_MODE=stable-privacy</span><br><span class="line">NAME=ens33</span><br><span class="line">UUID=2cb41960-5518-4366-8aa9-3b387ab22468</span><br><span class="line">DEVICE=ens33</span><br><span class="line">ONBOOT=yes</span><br><span class="line">IPADDR=192.168.232.201</span><br><span class="line">NETMASK=255.255.255.0</span><br><span class="line">GATEWAY=192.168.232.2</span><br></pre></td></tr></table></figure>
-<h2 id="3-添加阿里源"><a href="#3-添加阿里源" class="headerlink" title="3 添加阿里源"></a>3 添加阿里源</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# rm -rfv /etc/yum.repos.d/*</span><br><span class="line">[root@k8s1 ~]# curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure>
-<h2 id="4-配置主机名"><a href="#4-配置主机名" class="headerlink" title="4 配置主机名"></a>4 配置主机名</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat /etc/hosts</span><br><span class="line">127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4</span><br><span class="line">::1         localhost localhost.localdomain localhost6 localhost6.localdomain6</span><br><span class="line">192.168.232.201 k8s1.hank.im</span><br><span class="line">192.168.232.202 k8s2.hank.im</span><br></pre></td></tr></table></figure>
-<h2 id="5-关闭swap，注释swap分区"><a href="#5-关闭swap，注释swap分区" class="headerlink" title="5 关闭swap，注释swap分区"></a>5 关闭swap，注释swap分区</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# swapoff -a</span><br><span class="line">[root@k8s1 ~]# sed -i &#x27;/swap/d&#x27; /etc/fstab</span><br></pre></td></tr></table></figure>
-<h2 id="6-配置内核参数，将桥接的IPv4流量传递到iptables的链"><a href="#6-配置内核参数，将桥接的IPv4流量传递到iptables的链" class="headerlink" title="6 配置内核参数，将桥接的IPv4流量传递到iptables的链"></a>6 配置内核参数，将桥接的IPv4流量传递到iptables的链</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat &gt; /etc/sysctl.d/k8s.conf &lt;&lt;EOF</span><br><span class="line">net.bridge.bridge-nf-call-ip6tables = 1</span><br><span class="line">net.bridge.bridge-nf-call-iptables = 1</span><br><span class="line">EOF</span><br><span class="line">sysctl --system</span><br><span class="line">[root@k8s1 ~]# setenforce 0</span><br><span class="line">[root@k8s1 ~]# sed -i &#x27;s/SELINUX=enforcing/SELINUX=disabled/&#x27;  /etc/selinux/config</span><br></pre></td></tr></table></figure>
-<h2 id="7-安装常用包"><a href="#7-安装常用包" class="headerlink" title="7 安装常用包"></a>7 安装常用包</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# yum install vim bash-completion net-tools gcc -y</span><br><span class="line">[root@k8s1 ~]# yum group install Development Tools -y</span><br></pre></td></tr></table></figure>
-<h2 id="7-5-插入一条-ulimit-修改"><a href="#7-5-插入一条-ulimit-修改" class="headerlink" title="7.5 插入一条 ulimit 修改"></a>7.5 插入一条 ulimit 修改</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># 重启后生效</span><br><span class="line">[root@k8s1 ~]# cat &gt;&gt; /etc/security/limits.conf &lt;&lt; EOF</span><br><span class="line">*             soft    nofile         204800</span><br><span class="line">*             hard    nofile         204800</span><br><span class="line">*             soft    nproc          204800</span><br><span class="line">*             hard    nproc          204800</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">[root@k8s1 ~]# cat &gt; /etc/security/limits.d/20-nproc.conf &lt;&lt; EOF</span><br><span class="line">*          soft    nproc     204800</span><br><span class="line">root       soft    nproc     unlimited</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 立即生效</span><br><span class="line">[root@k8s1 ~]# ulimit -SHn 204800</span><br><span class="line">[root@k8s1 ~]# ulimit -SHq 819200</span><br><span class="line">[root@k8s1 ~]# ulimit -SHu 204800</span><br><span class="line"></span><br><span class="line"># 查看</span><br><span class="line">[root@k8s2 ~]# ulimit -a </span><br><span class="line"></span><br><span class="line"># cat /proc/$PID/limits  如果看到Max open files 65535 65535 files 则说明配置已生效</span><br></pre></td></tr></table></figure>
-<h2 id="8-查看时间是否正确"><a href="#8-查看时间是否正确" class="headerlink" title="8 查看时间是否正确"></a>8 查看时间是否正确</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# yum install ntpdate -y</span><br><span class="line">[root@k8s1 ~]# ntpdate -u time1.cloud.tencent.com </span><br><span class="line">[root@k8s1 ~]# echo &quot;*/20 * * * * /usr/sbin/ntpdate -u time1.cloud.tencent.com  &gt;/dev/null &amp;&quot; &gt;&gt; /var/spool/cron/root</span><br><span class="line">16 Aug 08:48:33 ntpdate[109431]: step time server 114.118.7.161 offset 352572.538751 sec</span><br></pre></td></tr></table></figure>
-<h2 id="9-使用aliyun源安装docker-ce"><a href="#9-使用aliyun源安装docker-ce" class="headerlink" title="9 使用aliyun源安装docker-ce"></a>9 使用aliyun源安装docker-ce</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# yum install -y yum-utils device-mapper-persistent-data lvm2</span><br><span class="line">[root@k8s1 ~]# yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docke</span><br><span class="line">r-ce.repo</span><br><span class="line">[root@k8s1 ~]# yum -y install docker-ce</span><br><span class="line">[root@k8s1 ~]# mkdir -p /etc/docker</span><br><span class="line">[root@k8s1 ~]# cat /etc/docker/daemon.json</span><br><span class="line">&#123;</span><br><span class="line">  &quot;graph&quot;: &quot;/data/docker&quot;,</span><br><span class="line">  &quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;],</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://x9o4p9lt.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">[root@k8s1 ~]# systemctl daemon-reload</span><br><span class="line">[root@k8s1 ~]# systemctl restart docker</span><br><span class="line">[root@k8s1 ~]# systemctl enable docker</span><br><span class="line">[root@k8s1 ~]# systemctl stop firewalld</span><br><span class="line">[root@k8s1 ~]# systemctl disable firewalld</span><br></pre></td></tr></table></figure>
-<h2 id="10-装kubectl、kubelet、kubeadm"><a href="#10-装kubectl、kubelet、kubeadm" class="headerlink" title="10 装kubectl、kubelet、kubeadm"></a>10 装kubectl、kubelet、kubeadm</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo</span><br><span class="line">[kubernetes]</span><br><span class="line">name=Kubernetes</span><br><span class="line">baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">repo_gpgcheck=1</span><br><span class="line">gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg</span><br><span class="line">EOF</span><br><span class="line">[root@k8s1 ~]# yum install -y kubectl-1.18.6 kubelet-1.18.6 kubeadm-1.18.6</span><br><span class="line">[root@k8s1 ~]# systemctl enable kubelet</span><br></pre></td></tr></table></figure>
-<h2 id="11-初始化安装集群"><a href="#11-初始化安装集群" class="headerlink" title="11 初始化安装集群"></a>11 初始化安装集群</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># --apiserver-advertise-address 本机地址</span><br><span class="line">kubeadm init --kubernetes-version=1.18.0  --apiserver-advertise-address=192.168.232.201  --image-repository registry.aliyuncs.com/google_containers  </span><br><span class="line">  --service-cidr=192.168.0.0/16 --pod-network-cidr=192.169.0.0/16   # 互无联系</span><br><span class="line">...</span><br><span class="line">To start using your cluster, you need to run the following as a regular user:</span><br><span class="line"></span><br><span class="line">  mkdir -p $HOME/.kube</span><br><span class="line">  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">  sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br><span class="line"></span><br><span class="line">You should now deploy a pod network to the cluster.</span><br><span class="line">Run &quot;kubectl apply -f [podnetwork].yaml&quot; with one of the options listed at:</span><br><span class="line">  https://kubernetes.io/docs/concepts/cluster-administration/addons/</span><br><span class="line"></span><br><span class="line">Then you can join any number of worker nodes by running the following on each as root:</span><br><span class="line">[root@k8s1 ~]# mkdir -p $HOME/.kube</span><br><span class="line">[root@k8s1 ~]# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">[root@k8s1 ~]# sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br><span class="line">[root@k8s1 ~]# source &lt;(kubectl completion bash)</span><br></pre></td></tr></table></figure>
-<h2 id="12-查看节点-pod"><a href="#12-查看节点-pod" class="headerlink" title="12 查看节点 pod"></a>12 查看节点 pod</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">NAME                STATUS     ROLES    AGE     VERSION</span><br><span class="line">master01.paas.com   NotReady   master   2m29s   v1.18.0</span><br><span class="line">[root@master01 ~]# kubectl get pod --all-namespaces</span><br><span class="line">NAMESPACE     NAME                                        READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system   coredns-7ff77c879f-fsj9l                    0/1     Pending   0          2m12s</span><br><span class="line">kube-system   coredns-7ff77c879f-q5ll2                    0/1     Pending   0          2m12s</span><br><span class="line">kube-system   etcd-master01.paas.com                      1/1     Running   0          2m22s</span><br><span class="line">kube-system   kube-apiserver-master01.paas.com            1/1     Running   0          2m22s</span><br><span class="line">kube-system   kube-controller-manager-master01.paas.com   1/1     Running   0          2m22s</span><br><span class="line">kube-system   kube-proxy-th472                            1/1     Running   0          2m12s</span><br><span class="line">kube-system   kube-scheduler-master01.paas.com            1/1     Running   0          2m22s</span><br></pre></td></tr></table></figure>
-<h2 id="13-安装calico网络"><a href="#13-安装calico网络" class="headerlink" title="13 安装calico网络"></a>13 安装calico网络</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml</span><br></pre></td></tr></table></figure>
-<h2 id="14-再次查看node"><a href="#14-再次查看node" class="headerlink" title="14 再次查看node"></a>14 再次查看node</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl get pod --all-namespaces</span><br><span class="line">NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system   calico-kube-controllers-578894d4cd-8p9xr   1/1     Running   0          5m18s</span><br><span class="line">kube-system   calico-node-czgqs                          1/1     Running   0          5m19s</span><br><span class="line">kube-system   coredns-7ff77c879f-f6p5r                   1/1     Running   0          4d10h</span><br><span class="line">kube-system   coredns-7ff77c879f-p2xl8                   1/1     Running   0          4d10h</span><br><span class="line">kube-system   etcd-k8s1.hank.im                          1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-apiserver-k8s1.hank.im                1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-controller-manager-k8s1.hank.im       1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-proxy-qjczn                           1/1     Running   0          4d10h</span><br><span class="line">kube-system   kube-scheduler-k8s1.hank.im                1/1     Running   0          4d10h</span><br><span class="line">[root@k8s1 ~]#</span><br></pre></td></tr></table></figure>
-<h2 id="15-如果报错，查看日志"><a href="#15-如果报错，查看日志" class="headerlink" title="15 如果报错，查看日志"></a>15 如果报错，查看日志</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 查日志				</span><br><span class="line">kubectl describe pod/calico-node-28fwk -n kube-system</span><br></pre></td></tr></table></figure>
-<h2 id="16-添加dashboard"><a href="#16-添加dashboard" class="headerlink" title="16 添加dashboard"></a>16 添加dashboard</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">[root@master01 ~]# wget  https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc7/aio/deploy/recommended.yaml</span><br><span class="line">[root@master01 ~]# vim recommended.yaml</span><br><span class="line">kind: Service</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br><span class="line">  name: kubernetes-dashboard</span><br><span class="line">  namespace: kubernetes-dashboard</span><br><span class="line">spec:</span><br><span class="line">  type: NodePort   # add</span><br><span class="line">  ports:</span><br><span class="line">    - port: 443</span><br><span class="line">      targetPort: 8443</span><br><span class="line">      nodePort: 30000  # add</span><br><span class="line">  selector:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br><span class="line"></span><br><span class="line">[root@master01 ~]# kubectl create -f recommended.yaml</span><br><span class="line">namespace/kubernetes-dashboard created</span><br><span class="line">serviceaccount/kubernetes-dashboard created</span><br><span class="line">service/kubernetes-dashboard created</span><br><span class="line">secret/kubernetes-dashboard-certs created</span><br><span class="line">secret/kubernetes-dashboard-csrf created</span><br><span class="line">secret/kubernetes-dashboard-key-holder created</span><br><span class="line">configmap/kubernetes-dashboard-settings created</span><br><span class="line">role.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created</span><br><span class="line">deployment.apps/kubernetes-dashboard created</span><br><span class="line">service/dashboard-metrics-scraper created</span><br><span class="line">deployment.apps/dashboard-metrics-scraper created</span><br></pre></td></tr></table></figure>
-<h2 id="17-查看状态"><a href="#17-查看状态" class="headerlink" title="17 查看状态"></a>17 查看状态</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]#  kubectl get pods -A</span><br><span class="line">NAMESPACE              NAME                                        READY   STATUS    RESTARTS   AGE</span><br><span class="line">kube-system            calico-kube-controllers-578894d4cd-8p9xr    1/1     Running   0          11m</span><br><span class="line">kube-system            calico-node-czgqs                           1/1     Running   0          11m</span><br><span class="line">kube-system            coredns-7ff77c879f-f6p5r                    1/1     Running   0          4d10h</span><br><span class="line">kube-system            coredns-7ff77c879f-p2xl8                    1/1     Running   0          4d10h</span><br><span class="line">kube-system            etcd-k8s1.hank.im                           1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-apiserver-k8s1.hank.im                 1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-controller-manager-k8s1.hank.im        1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-proxy-qjczn                            1/1     Running   0          4d10h</span><br><span class="line">kube-system            kube-scheduler-k8s1.hank.im                 1/1     Running   0          4d10h</span><br><span class="line">kubernetes-dashboard   dashboard-metrics-scraper-dc6947fbf-4ghbd   1/1     Running   0          2m4s</span><br><span class="line">kubernetes-dashboard   kubernetes-dashboard-5d4dc8b976-67lkz       1/1     Running   0          2m4s</span><br><span class="line">[root@k8s1 ~]# kubectl get svc -n kubernetes-dashboard</span><br><span class="line">NAME                        TYPE        CLUSTER-IP        EXTERNAL-IP   PORT(S)         AGE</span><br><span class="line">dashboard-metrics-scraper   ClusterIP   192.168.178.170   &lt;none&gt;        8000/TCP        104s</span><br><span class="line">kubernetes-dashboard        NodePort    192.168.26.221    &lt;none&gt;        443:30000/TCP   104s</span><br></pre></td></tr></table></figure>
-<h2 id="18-绑定密钥"><a href="#18-绑定密钥" class="headerlink" title="18 绑定密钥"></a>18 绑定密钥</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl -n kubernetes-dashboard get secret</span><br><span class="line">NAME                               TYPE                                  DATA   AGE</span><br><span class="line">default-token-v7k99                kubernetes.io/service-account-token   3      2m50s</span><br><span class="line">kubernetes-dashboard-certs         Opaque                                0      2m50s</span><br><span class="line">kubernetes-dashboard-csrf          Opaque                                1      2m50s</span><br><span class="line">kubernetes-dashboard-key-holder    Opaque                                2      2m50s</span><br><span class="line">kubernetes-dashboard-token-rz9mn   kubernetes.io/service-account-token   3      2m50s</span><br><span class="line">[root@k8s1 ~]# kubectl describe secrets -n kubernetes-dashboard  kubernetes-dashboard-token-rz9mn  | grep token | awk &#x27;NR==3&#123;print $2&#125;&#x27;</span><br><span class="line">eyJhbGciOiJSUzI1NiIsImtpZCI6IlFyaXppQ1JTYV82TDhoM2N6RjgtS05QeGdlLXc2TURxZFFCdnQ5YmtoV0UifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC10b2tlbi1yejltbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjczZjU0YTdmLTU4NWYtNGIwOS1iNTAwLTZlOGIyODlhNGQ0YiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDprdWJlcm5ldGVzLWRhc2hib2FyZCJ9.gNfY2Jysj3o7klavdHzcd055D6E3lAiYwmE8-ldAWKBo7jVX4CsjjJuwXgMAudCJheEILx52TcgDnvh-kwqUH1xQuTR9z4PWGTGAoE58TEnMJFVRc6c3-CB5hX5zJ_gs0knEmrocWx1HADfWQ82KFH-zdUUPiio7osMgEmEE0FcY3hIP62CvQ6URMFiJ9MeOBODKeUijAjYj4qxh11IcnpaDqlkkUfhba7G05Jn__A_xKnbqQ9-ljM0Q3fCrMPCD-60gbzXUO7b7svus1KlP8uQKNUHSQOKzVvK17C89WqWwIqjGhs3SZ9ar1hlwHi0SlpHNGrZeMqryhHVoYhm00g</span><br></pre></td></tr></table></figure>
-<h2 id="19-绑定用户资源"><a href="#19-绑定用户资源" class="headerlink" title="19 绑定用户资源"></a>19 绑定用户资源</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl create clusterrolebinding serviceaccount-cluster-admin --clusterrole=cluster-admin --user=system:serviceaccount:kubernetes-dashboard:kubernetes-dashboard</span><br></pre></td></tr></table></figure>
-<p>打开<a href="https://:30000">https://:30000</a><br>输入token 上方一大堆串的字符<br><code>eyJhbGciOiJSUzI1NiIsImtpZCI6IlFyaXppQ1JTYV82TDhoM2N6RjgtS05QeGdlLXc2TURxZFFCdnQ5YmtoV0UifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC10b2tlbi1yejltbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjczZjU0YTdmLTU4NWYtNGIwOS1iNTAwLTZlOGIyODlhNGQ0YiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDprdWJlcm5ldGVzLWRhc2hib2FyZCJ9.gNfY2Jysj3o7klavdHzcd055D6E3lAiYwmE8-ldAWKBo7jVX4CsjjJuwXgMAudCJheEILx52TcgDnvh-kwqUH1xQuTR9z4PWGTGAoE58TEnMJFVRc6c3-CB5hX5zJ_gs0knEmrocWx1HADfWQ82KFH-zdUUPiio7osMgEmEE0FcY3hIP62CvQ6URMFiJ9MeOBODKeUijAjYj4qxh11IcnpaDqlkkUfhba7G05Jn__A_xKnbqQ9-ljM0Q3fCrMPCD-60gbzXUO7b7svus1KlP8uQKNUHSQOKzVvK17C89WqWwIqjGhs3SZ9ar1hlwHi0SlpHNGrZeMqryhHVoYhm00g</code></p>
-<h4 id="主节点搭建完成"><a href="#主节点搭建完成" class="headerlink" title="主节点搭建完成"></a>主节点搭建完成</h4><h2 id="20-其他节点加入主节点"><a href="#20-其他节点加入主节点" class="headerlink" title="20 其他节点加入主节点"></a>20 其他节点加入主节点</h2><p>其他主机同步到本机的第10点</p>
-<h3 id="1-导出config"><a href="#1-导出config" class="headerlink" title="1 导出config"></a>1 导出config</h3><p>master中的节点认证信息24小时会失效，可以重新生成（master端操作）<br>重新生成用于节点加入集群的认证命令</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# cat ~/.kube/config</span><br><span class="line">apiVersion: v1</span><br><span class="line">clusters:</span><br><span class="line">- cluster:</span><br><span class="line">    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01Ea3lOREUxTXpVME1Wb1hEVE13TURreU1qRTFNelUwTVZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTUJtCjZrTDUwUFdRMExyUDhPZ2RTaGdzblNiWCttckcveUZrR2Vxa2cyRE9MeExuUElmcFBrcm9zOCtMZ2ZNbGRKK28KNUtZL1dJQmhpeWtydHQ0RVNqRGJUQXZKbWljTjZnSndQOGRzUVJOUHJCUlpGd0VEZU5jMWp3WXZETmRodU1EZAprVE9UT3N0aEhBaG1qVXJPVENLT3A4Z2VOK05zRm9DcjFQV2Z4MmVUQnpCNU56bXllRENiWG50eWViQ1hiYnVwCmlrS3p0cDBTTUpUSVlMUEUvRTIrTm91UlZiMCs3MXpHTzRJQXcyYVZTa25KOFNHSktVQm1WdWo5Y3FlcWRqQ1AKekphZnlRZ2dUSXcyZkl3aUxtYnNBY210WVhKUmh5VUQzZ2tNSzRDSGcydzczZ3FoaUFHRlc5bWtiVjJuTzRNNgpyZmRmSERXTWpjdjhubzJTakRzQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFFbkdtelpvZXE4dVpaRHZZZGVuVURiQnk0T1gKTXVUSlZCbEcvYmNua2tsQ2RKUGtjcmsyMFBqNkxjSmptNXJkVjZlZmJ3ZXlNSjU0ZjZJdEhmSHIrcFBlMitQNgo2NEZRMENlTlRRT0krN1hGSmZHQnJzMERTdGs1OG5uQ3dHVEwzRVI3NlN4Q1BUaTMvM3BzM3MzcGZhNldTSVQ2CjN5eDZYMVRkaFFjcWp4YTJ0eEdpUjVCODd1WkUzMFlYNGIwR2JGNElsNDFNemZpSTVwRGtXNXl0a2xHZVhFdzMKQUxXUHpOaytPOVZsSmtOMTFXQzZoSjBvWTNGUGJXYzQzWTAxWkcyQUhNOEVHNEVCTUxBbzM2RFFkMXQwQUwzTQpsbk00cjdXSE5wWXZyRTgyazhQRHBkVllyRERrYnJrMVpHbkk0K2NGSEhhNVN6YnFKa0xOZHNUVHhTcz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=</span><br><span class="line">    server: https://192.168.232.201:6443</span><br><span class="line">  name: kubernetes</span><br><span class="line">contexts:</span><br><span class="line">- context:</span><br><span class="line">    cluster: kubernetes</span><br><span class="line">    user: kubernetes-admin</span><br><span class="line">  name: kubernetes-admin@kubernetes</span><br><span class="line">current-context: kubernetes-admin@kubernetes</span><br><span class="line">kind: Config</span><br><span class="line">preferences: &#123;&#125;</span><br><span class="line">users:</span><br><span class="line">- name: kubernetes-admin</span><br><span class="line">  user:</span><br><span class="line">    client-certificate-data: LS...EUtLS0tLQo=</span><br><span class="line">    client-key-data: LS0tL...NqRHpr..0tCg==</span><br></pre></td></tr></table></figure>
-<p>复制到从节点</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# mkdir -p $HOME/.kube</span><br><span class="line">[root@k8s2 ~]# vim .kube/config   # 粘贴到这里</span><br><span class="line">[root@k8s2 ~]# sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br><span class="line">[root@k8s2 ~]# source &lt;(kubectl completion bash)</span><br></pre></td></tr></table></figure>
-<h3 id="2-创建token"><a href="#2-创建token" class="headerlink" title="2 创建token"></a>2 创建token</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubeadm token create</span><br><span class="line">W0925 23:27:24.185638   44148 configset.go:202] WARNING: kubeadm cannot validate component configs for API groups [kubelet.config.k8s.io kubeproxy.config.k8s.io]</span><br><span class="line">90u07f.em5awzxwxkrk5j5t</span><br><span class="line">[root@k8s1 ~]# openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2&gt;/dev/null |openssl dgst -sha256 -hex| sed &#x27;s/^.* //&#x27;</span><br></pre></td></tr></table></figure>
-<h3 id="3-加入集群"><a href="#3-加入集群" class="headerlink" title="3 加入集群"></a>3 加入集群</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# kubeadm join 192.168.232.201:6443 --token a941el.3psezyof2fi00bma --discovery-token-ca-cert-hash sha256:91c1c19df2c2abcaf0a98a6b02d4a7c1a56dbb514e18a5bc6267739edb3ad5a0</span><br></pre></td></tr></table></figure>
-<h3 id="4-查看nodes"><a href="#4-查看nodes" class="headerlink" title="4 查看nodes"></a>4 查看nodes</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# kubectl get nodes</span><br><span class="line">NAME           STATUS   ROLES    AGE   VERSION</span><br><span class="line">k8s1.hank.im   Ready    master   23h   v1.18.6</span><br><span class="line">k8s2.hank.im   Ready    &lt;none&gt;   19s   v1.18.6</span><br></pre></td></tr></table></figure>
-<h2 id="21-设置节点标签"><a href="#21-设置节点标签" class="headerlink" title="21 设置节点标签"></a>21 设置节点标签</h2><p>设置标签</p>
-<p><code>kubectl label node k8s2.hank.im type=nginx</code></p>
-<p>删除标签</p>
-<p><code>kubectl label nodes k8s2.hank.im type-</code></p>
-<p>查看标签</p>
-<p><code>kubectl get node k8s2.hank.im --show-labels</code></p>
-<p>修改覆盖标签</p>
-<p><code>kubectl label nodes k8s2.hank.im &lt;key&gt;=&lt;value&gt; --overwrite</code></p>
-<h2 id="22-设置污点-以标签"><a href="#22-设置污点-以标签" class="headerlink" title="22 设置污点 - 以标签"></a>22 设置污点 - 以标签</h2><ul>
-<li>NoSchedule:node 添加这个effect类型污点，新的不能容忍的pod，不能再调度过来，但是老的运行在node上不受影响</li>
-<li>NoExecute：node 添加这个effect类型污点，新的不能容忍的pod，不能调度过来，老的pod也会被驱逐</li>
-<li>PreferNoSchedule：pod会尝试将pod分配到该节点</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl taint nodes node1 key=value:NoSchedule</span><br><span class="line">kubectl taint nodes node1 key=value:NoExecute</span><br><span class="line">kubectl taint nodes node1 key=value:PreferNoSchedule</span><br></pre></td></tr></table></figure>
-<p><em>添加污点</em></p>
-<blockquote>
-<p>必须配合标签使用</p>
-</blockquote>
-<p><code>kubectl taint node xxx.xxx.xxx.xxx key=nginx:NoSchedule</code></p>
-<p><em>查看污点</em></p>
-<p><code>kubectl describe node xxx.xxx.xxx.xxx|grep -E &quot;Name:|Taint&quot;</code></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]#  kubectl taint node k8s1.hank.im  key=nginx:NoSchedule</span><br><span class="line">[root@k8s2 ~]#  kubectl taint node k8s2.hank.im  key=mysql:NoSchedule</span><br><span class="line"></span><br><span class="line">[root@k8s2 ~]# kubectl describe nodes |grep -E &quot;Name:|Taint&quot;</span><br><span class="line">Name:               k8s1.hank.im</span><br><span class="line">Taints:             key=nginx:NoSchedule</span><br><span class="line">Name:               k8s2.hank.im</span><br><span class="line">Taints:             key=mysql:NoSchedule</span><br><span class="line"></span><br><span class="line">[root@k8s2 ~]# kubectl taint node k8s2.hank.im  key=mysql:NoSchedule-</span><br><span class="line">node/k8s2.hank.im untainted</span><br><span class="line">[root@k8s2 ~]# kubectl taint node k8s1.hank.im  key=nginx:NoSchedule-</span><br><span class="line">node/k8s1.hank.im untainted</span><br><span class="line"></span><br><span class="line">[root@k8s2 ~]# kubectl describe nodes |grep -E &quot;Name:|Taint&quot;</span><br><span class="line">Name:               k8s1.hank.im</span><br><span class="line">Taints:             &lt;none&gt;</span><br><span class="line">Name:               k8s2.hank.im</span><br><span class="line">Taints:             &lt;none&gt;</span><br></pre></td></tr></table></figure>
-<p><img src="/images/2021/09/07/a23d7f20-0587-46cc-a51d-59eed3dd37a0.png" alt="Image.jpg"></p>
-<h2 id="23-master-单机使用"><a href="#23-master-单机使用" class="headerlink" title="23 master 单机使用"></a>23 master 单机使用</h2><p>查看master的污点</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s1 ~]# kubectl describe node k8s1.hank.im</span><br><span class="line">...</span><br><span class="line">Taints:             node-role.kubernetes.io/master:NoSchedule</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p>所以主节点模式是不接受新pod调度<br>那么我们可以让master接受调度，成为单机模式</p>
-<p><code>kubectl taint node k8s1.hank.im node-role.kubernetes.io/master-</code></p>
-<p>那么我们如何恢复主节点master only的状态</p>
-<p><code>kubectl taint node k8s1.hank.im node-role.kubernetes.io/master=&quot;&quot;:NoSchedule</code></p>
-<h2 id="24-停止调度"><a href="#24-停止调度" class="headerlink" title="24 停止调度"></a>24 停止调度</h2><blockquote>
-<p>影响最小，只会将node调为SchedulingDisabled<br>之后再发创建pod，不会被调度到该节点<br>旧有的pod不会受到影响，仍正常对外提供服务</p>
-</blockquote>
-<p>停止调度</p>
-<p><code>kubectl cordon k8s2.hank.im</code></p>
-<p>取消停止调度</p>
-<p><code>kubectl uncordon k8s2.hank.im</code></p>
-<p>查看停止调度</p>
-<p><code>kubectl describe nodes|grep -E &quot;Name:|Unschedulable&quot;</code></p>
-<h2 id="25-驱逐节点"><a href="#25-驱逐节点" class="headerlink" title="25 驱逐节点"></a>25 驱逐节点</h2><blockquote>
-<p>首先，驱逐node上的pod，其他节点重新创建<br>接着，将节点调为<strong> SchedulingDisabled</strong></p>
-</blockquote>
-<p>驱逐pod</p>
-<p><code>kubectl drain k8s2.hank.im</code><br><code>kubectl drain k8s2.hank.im --ignore-daemonsets</code></p>
-<p>恢复驱逐pod</p>
-<p><code>kubectl uncordon k8s2.hank.im</code></p>
-<p>查看驱逐调度</p>
-<p><code>kubectl describe nodes|grep -E &quot;Name:|Unschedulable&quot;</code></p>
-<h2 id="26-在指定节点部署"><a href="#26-在指定节点部署" class="headerlink" title="26 在指定节点部署"></a>26 在指定节点部署</h2><h3 id="1-查看节点信息"><a href="#1-查看节点信息" class="headerlink" title="1. 查看节点信息"></a>1. 查看节点信息</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# kubectl get nodes</span><br><span class="line">NAME           STATUS   ROLES    AGE   VERSION</span><br><span class="line">k8s1.hank.im   Ready    master   24h   v1.18.6</span><br><span class="line">k8s2.hank.im   Ready    &lt;none&gt;   56m   v1.18.6</span><br></pre></td></tr></table></figure>
-<h3 id="2-选择一个节点，给这个节点添加一个标签"><a href="#2-选择一个节点，给这个节点添加一个标签" class="headerlink" title="2. 选择一个节点，给这个节点添加一个标签"></a>2. 选择一个节点，给这个节点添加一个标签</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]#  kubectl label nodes k8s2.hank.im app=nginx</span><br><span class="line">node/k8s2.hank.im labeled</span><br></pre></td></tr></table></figure>
-<h3 id="3-查看标签信息"><a href="#3-查看标签信息" class="headerlink" title="3. 查看标签信息"></a>3. 查看标签信息</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# kubectl get node k8s2.hank.im --show-labels</span><br><span class="line">NAME           STATUS   ROLES    AGE   VERSION   LABELS</span><br><span class="line">k8s2.hank.im   Ready    &lt;none&gt;   58m   v1.18.6   app=nginx,beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s2.hank.im,kubernetes.io/os=linux</span><br></pre></td></tr></table></figure>
-<h3 id="4-nginx-部署"><a href="#4-nginx-部署" class="headerlink" title="4. nginx 部署"></a>4. nginx 部署</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">[root@k8s2 ~]# cat &gt; ~/nginx-dp.yaml&lt;&lt; EOF</span><br><span class="line">apiVersion: apps/v1</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    app: nginx</span><br><span class="line">  name: nginx</span><br><span class="line">spec:</span><br><span class="line">  replicas: 3</span><br><span class="line">  selector:</span><br><span class="line">    matchLabels:</span><br><span class="line">      app: nginx</span><br><span class="line">  strategy:</span><br><span class="line">    type: RollingUpdate</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        app: nginx</span><br><span class="line">    spec:              # pod spec</span><br><span class="line">      nodeSelector:    # 选 择在 app=nginx标签的node</span><br><span class="line">        app: nginx</span><br><span class="line">      containers:</span><br><span class="line">        - image: nginx</span><br><span class="line">          imagePullPolicy: Always</span><br><span class="line">          name: nginx</span><br><span class="line">      imagePullSecrets:</span><br><span class="line">        - name: default-secret</span><br><span class="line">EOF</span><br><span class="line">[root@k8s2 ~]# kubectl apply -f nginx-dp.yaml</span><br><span class="line">[root@k8s2 ~]# kubectl get pods -o wide</span><br><span class="line"></span><br><span class="line"># 查看pod状态</span><br><span class="line">[root@k8s2 ~]# kubectl describe pod nginx-764bc788c-kb8xv</span><br><span class="line"></span><br><span class="line"># 查看部署状态</span><br><span class="line">[root@k8s2 ~]# kubectl get pods -o wide</span><br><span class="line">NAME                    READY   STATUS    RESTARTS   AGE     IP               NODE           NOMINATED NODE   READINESS GATES</span><br><span class="line">nginx-764bc788c-7n8lm   1/1     Running   0          4m19s   192.169.62.128   k8s2.hank.im   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">nginx-764bc788c-7rd7g   1/1     Running   0          2m23s   192.169.62.129   k8s2.hank.im   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">nginx-764bc788c-kb8xv   1/1     Running   0          2m23s   192.169.62.130   k8s2.hank.im   &lt;none&gt;           &lt;none&gt;</span><br></pre></td></tr></table></figure>
-<p>可以看到全部node都创建在k8s2.hank.im</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/09/07/%E6%8A%80%E6%9C%AF%E8%BF%90%E7%BB%B4%E5%9F%BA%E7%A1%80%E6%8A%80%E8%83%BD%E9%9D%A2%E8%AF%95%E9%A2%98/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Chenhan Hank">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="止乎于静">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/09/07/%E6%8A%80%E6%9C%AF%E8%BF%90%E7%BB%B4%E5%9F%BA%E7%A1%80%E6%8A%80%E8%83%BD%E9%9D%A2%E8%AF%95%E9%A2%98/" class="post-title-link" itemprop="url">技术运维基础技能面试题</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2021-09-07 23:12:59" itemprop="dateCreated datePublished" datetime="2021-09-07T23:12:59+08:00">2021-09-07</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%9D%A2%E8%AF%95/" itemprop="url" rel="index"><span itemprop="name">面试</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="1-shell"><a href="#1-shell" class="headerlink" title="1.shell"></a>1.shell</h2><h3 id="1-1-脚本编程"><a href="#1-1-脚本编程" class="headerlink" title="1.1 脚本编程"></a>1.1 脚本编程</h3><h4 id="1-常用的shell解释器-中"><a href="#1-常用的shell解释器-中" class="headerlink" title="1. 常用的shell解释器 中"></a>1. 常用的shell解释器 中</h4><p>sh 在linux下是低版本的bash做的连接<br>bash 较于sh版本会高一些。 centos sh bash3.+ bash5.+<br>zsh<br>ksh work on AIX</p>
-<h4 id="2-如何检查之前的命令是否运行成功-低"><a href="#2-如何检查之前的命令是否运行成功-低" class="headerlink" title="2. 如何检查之前的命令是否运行成功? 低"></a>2. 如何检查之前的命令是否运行成功? 低</h4><p>$?</p>
-<h4 id="3-字符串的截取？-高"><a href="#3-字符串的截取？-高" class="headerlink" title="3. 字符串的截取？ 高"></a>3. 字符串的截取？ 高</h4><p>${string: start :length} 字符串截取</p>
-<p>${string: 0-start :length} 从右边截取.</p>
-<p>${url#*:} 截取冒号右边的字符串</p>
-<p>${url#*/} 截取/右边的字符串，遇到/就结束</p>
-<p>${str##<em>aa} 截取最后</em>aa的字符串，直到最后<br><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">url=&quot;http://c.biancheng.net/index.html&quot;</span><br><span class="line">echo $&#123;url#*/&#125;    #结果为 /c.biancheng.net/index.html</span><br><span class="line">echo $&#123;url##*/&#125;   #结果为 index.html</span><br><span class="line">str=&quot;---aa+++aa@@@&quot;</span><br><span class="line">echo $&#123;str#*aa&#125;   #结果为 +++aa@@@</span><br><span class="line">echo $&#123;str##*aa&#125;  #结果为 @@@</span><br></pre></td></tr></table></figure></p>
-<h4 id="4-与-区别-中"><a href="#4-与-区别-中" class="headerlink" title="4. $* 与 $@区别 中"></a>4. $* 与 $@区别 中</h4><p>未加引号,二者相同<br>$* 一个字符串整体<br>$@ 是一个字符串列表</p>
-<h4 id="5-如何移除第一个变量？"><a href="#5-如何移除第一个变量？" class="headerlink" title="5. 如何移除第一个变量？"></a>5. 如何移除第一个变量？</h4><p>shift</p>
-<h4 id="6-如何在-bash-shell-中更改标准的域分隔符为-“-”-中"><a href="#6-如何在-bash-shell-中更改标准的域分隔符为-“-”-中" class="headerlink" title="6. 如何在 bash shell 中更改标准的域分隔符为 “:” ? 中"></a>6. 如何在 bash shell 中更改标准的域分隔符为 “:” ? 中</h4><p>IFS=”:”</p>
-<h4 id="7-列表操作-中-高"><a href="#7-列表操作-中-高" class="headerlink" title="7. 列表操作 中-高"></a>7. 列表操作 中-高</h4><p>如何打印数组的第一个元素<br>echo ${array[0]}</p>
-<p>如何打印数组的所有元素 ?<br>echo ${array[@]}</p>
-<p>如何输出所有数组索引 ?<br>echo ${!array[@]}</p>
-<p>如何移除数组中索引为 2 的元素 ?<br>unset array[2]</p>
-<h4 id="8-与-的区别-中"><a href="#8-与-的区别-中" class="headerlink" title="8. [ 与 [[ 的区别 中"></a>8. [ 与 [[ 的区别 中</h4><p>[ ] 是test命令，他可以工作在posix shell下。<br>[[ ]] 是范匹配test命令的泛匹配模式。不能在posix shells下工作</p>
-<h4 id="9-如何调试-bash-脚本-高"><a href="#9-如何调试-bash-脚本-高" class="headerlink" title="9. 如何调试 bash 脚本 高"></a>9. 如何调试 bash 脚本 高</h4><h1 id="bin-bash-–xv"><a href="#bin-bash-–xv" class="headerlink" title="!/bin/bash –xv"></a>!/bin/bash –xv</h1><h3 id="1-2-命令掌握"><a href="#1-2-命令掌握" class="headerlink" title="1.2 命令掌握"></a>1.2 命令掌握</h3><h4 id="1-读取键盘输入-中"><a href="#1-读取键盘输入-中" class="headerlink" title="1. 读取键盘输入 中"></a>1. 读取键盘输入 中</h4><p>read -p “Destination backup Server : “ desthost</p>
-<h4 id="2-什么是-expect-高"><a href="#2-什么是-expect-高" class="headerlink" title="2. 什么是 expect 高"></a>2. 什么是 expect 高</h4><p>send 用于向进程发送字符串</p>
-<p>expect 从进程接收字符串</p>
-<p>spawn 启动新的进程</p>
-<p>interact 允许用户交互</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">expect &#123;</span><br><span class="line">    &quot;password&quot; &#123;</span><br><span class="line">        send &quot;$password\r&quot;</span><br><span class="line">        exp_continue</span><br><span class="line">    &#125;</span><br><span class="line">    eof</span><br><span class="line">    &#123;</span><br><span class="line">        send &quot;eof&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="3-如何去除字符串中的所有空格-中"><a href="#3-如何去除字符串中的所有空格-中" class="headerlink" title="3. 如何去除字符串中的所有空格 ? 中"></a>3. 如何去除字符串中的所有空格 ? 中</h4><p>echo $string|tr -d “ “</p>
-<p>echo $string|sed “s/ //g”.</p>
-<p>echo $string|awk ‘{gsub(/ /,””,$0);print $0}’</p>
-<h4 id="4-vim如何上下翻页，到最后一行，跳到上、下一个单词，删除两行-如何插入-中-高"><a href="#4-vim如何上下翻页，到最后一行，跳到上、下一个单词，删除两行-如何插入-中-高" class="headerlink" title="4. vim如何上下翻页，到最后一行，跳到上、下一个单词，删除两行, 如何插入 中-高"></a>4. vim如何上下翻页，到最后一行，跳到上、下一个单词，删除两行, 如何插入 中-高</h4><p>ctrl f b 上下半页<br>ctrl u d 上下整页<br>b w 上下个单词<br>2dd 删除两行</p>
-<p>a 在光标后插入文本<br>A 在当前行末插入文本<br>i 在光标前插入文本<br>I 在当前行前插入文本<br>o 在当前行的下边插入新行<br>O 在当前行的上边插入新行</p>
-<h4 id="5-查询进程-中"><a href="#5-查询进程-中" class="headerlink" title="5. 查询进程 中"></a>5. 查询进程 中</h4><p>ps -A | grep java<br>USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND</p>
-<p>root 12368 5.1 1.6 3065312 815148 ? Sl Jun30 745:28 /usr/lib/virtualbox</p>
-<p>USER 进程的用户</p>
-<p>pid 进程的ID</p>
-<p>%CPU 进程占用的CPU百分比；</p>
-<p>%MEM 占用内存的百分比；</p>
-<p>VSZ 该进程使用的虚拟内存量（KB）；</p>
-<p>RSS 该进程占用的固定内存量（KB）；</p>
-<p><strong>STAT</strong>状态位常见的状态字符</p>
-<p>D 无法中断的休眠状态（通常 IO 的进程）；</p>
-<p>R 正在运行可中在队列中可过行的；</p>
-<p>S 处于休眠状态；</p>
-<p>T 停止或被追踪；</p>
-<p>W 进入内存交换 （从内核2.6开始无效）；</p>
-<p>X 死掉的进程 （基本很少见）；</p>
-<p>Z 僵尸进程；</p>
-<h4 id="6-获取CPU内存等硬件信息-高"><a href="#6-获取CPU内存等硬件信息-高" class="headerlink" title="6. 获取CPU内存等硬件信息 高"></a>6. 获取CPU内存等硬件信息 高</h4><p>cat /proc/cpuinfo | grep name | cut -f2 -d: |uniq -c cpu型号</p>
-<p>grep ‘physical id’ /proc/cpuinfo | sort | uniq | wc -l cpu逻辑核个数</p>
-<p>工具dmidecode</p>
-<p>sudo dmidecode -t memory</p>
-<p>看内存的插槽数,已经使用多少插槽.每条内存多大</p>
-<p>sudo dmidecode -t memory | grep Size</p>
-<p>查看服务器型号、序列号</p>
-<p>sudo dmidecode | grep “System Information” -A9 | egrep “Manufacturer|Product|Serial”</p>
-<p>cat /proc/meminfo | grep MemTotal 内存</p>
-<p>lspci</p>
-<h4 id="7-查看内存资源-中"><a href="#7-查看内存资源-中" class="headerlink" title="7. 查看内存资源 中"></a>7. 查看内存资源 中</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#内存</span><br><span class="line">free -m </span><br><span class="line">              total        used        free      shared     buffers       cache   available&lt;br&gt; </span><br><span class="line">Mem:       49256832    37623856     2793324      512860           0     8839652    10623008&lt;br&gt; </span><br><span class="line">Swap:      12504060     1671468    10832592&lt;br&gt;</span><br></pre></td></tr></table></figure>
-<p>used：已使用的内存大小，这个值包括了 cached 和 应用程序实际使用的内存</p>
-<p>free：未被使用的内存大小</p>
-<p>shared：共享内存大小，是进程间通信的一种方式</p>
-<p>buffers：被<strong>缓冲区</strong>占用的内存大小（硬盘）</p>
-<p>cached：被<strong>缓存占</strong>用的内存大小 （程序）</p>
-<h4 id="8-什么是cpu负载和使用率，怎么查看？高"><a href="#8-什么是cpu负载和使用率，怎么查看？高" class="headerlink" title="8. 什么是cpu负载和使用率，怎么查看？高"></a>8. 什么是cpu负载和使用率，怎么查看？高</h4><p>load average/使用率 一定时间内系统的平均负荷 单核0-100%</p>
-<p>负载 显示的是一段时间内正在使用和等待使用CPU的平均任务数，使用率100%，同时处理两个程序，那么负载为2</p>
-<p>uptime</p>
-<p>top</p>
-<h4 id="9-查看硬盘读写状态-中-高"><a href="#9-查看硬盘读写状态-中-高" class="headerlink" title="9. 查看硬盘读写状态 中-高"></a>9. 查看硬盘读写状态 中-高</h4><p>iostat -x<br>rrqm/s: 每秒进行 merge 的读操作数目。即 delta(rmerge)/s</p>
-<p>wrqm/s: 每秒进行 merge 的写操作数目。即 delta(wmerge)/s</p>
-<p>r/s: 每秒完成的读 I/O 设备次数。即 delta(rio)/s</p>
-<p>w/s: 每秒完成的写 I/O 设备次数。即 delta(wio)/s</p>
-<p>rsec/s: 每秒读扇区数。即 delta(rsect)/s</p>
-<p>wsec/s: 每秒写扇区数。即 delta(wsect)/s</p>
-<p>rkB/s: 每秒读K字节数。是 rsect/s 的一半，因为每扇区大小为512字节。(需要计算)</p>
-<p>wkB/s: 每秒写K字节数。是 wsect/s 的一半。(需要计算)</p>
-<p>%util: 一秒中有百分之多少的时间用于 I/O 操作</p>
-<h4 id="10-其他命令-低-中"><a href="#10-其他命令-低-中" class="headerlink" title="10. 其他命令 低-中"></a>10. 其他命令 低-中</h4><p>检查网络</p>
-<p>nc</p>
-<p>telnet</p>
-<p>查看网卡</p>
-<p>ifconfig</p>
-<p>ip a</p>
-<h4 id="11-添加eth1-网卡-10-0-0-0-16-到10-0-0-1-的路由"><a href="#11-添加eth1-网卡-10-0-0-0-16-到10-0-0-1-的路由" class="headerlink" title="11. 添加eth1 网卡 10.0.0.0/16 到10.0.0.1 的路由"></a>11. 添加eth1 网卡 10.0.0.0/16 到10.0.0.1 的路由</h4><p>route add -net 203.208.39.104 netmask 255.255.255.255 gw 192.168.1.1 dev eth1</p>
-<p>total：物理内存大小，就是机器实际的内存</p>
-<h3 id="2-Python"><a href="#2-Python" class="headerlink" title="2. Python"></a>2. Python</h3><h4 id="1-python如何获取执行shell命令"><a href="#1-python如何获取执行shell命令" class="headerlink" title="1. python如何获取执行shell命令"></a>1. python如何获取执行shell命令</h4><p><code>os.system()</code></p>
-<p>原理</p>
-<p>1 fork一个子进程；</p>
-<p>2 在子进程中调用exec函数去执行命令；</p>
-<p>3 在父进程中调用wait（阻塞）去等待子进程结束</p>
-<p><code>os.popen()</code><br>这种调用方式是通过管道的方式来实现，函数返回是 file read 的对象，对其进行读取read、readlines等操作可以看到执行的输出。</p>
-<p>推荐使用</p>
-<p><code>subprocess.Popen()</code></p>
-<h4 id="2-python如何优雅的退出"><a href="#2-python如何优雅的退出" class="headerlink" title="2. python如何优雅的退出"></a>2. python如何优雅的退出</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 子进程退出后向父进程发送的信号</span><br><span class="line"> signal.signal(signal.SIGCHLD, onSigChld)</span><br><span class="line"># 主进程退出信号</span><br><span class="line"> signal.signal(signal.SIGINT, onSigInt)</span><br></pre></td></tr></table></figure>
-<h4 id="3-如何拼接字符串"><a href="#3-如何拼接字符串" class="headerlink" title="3. 如何拼接字符串"></a>3. 如何拼接字符串</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">str_list=[&#x27;a&#x27;, &#x27;b&#x27;, &#x27;c&#x27;]</span><br><span class="line">&#x27;&#x27;.join(str_list)</span><br></pre></td></tr></table></figure>
-<h4 id="4-python的构造函数"><a href="#4-python的构造函数" class="headerlink" title="4. python的构造函数"></a>4. python的构造函数</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">per = Person（）</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def  __ init__(self,arg1,arg2,...):</span><br><span class="line">函数体</span><br></pre></td></tr></table></figure>
-<h4 id="5-json和字典的区别"><a href="#5-json和字典的区别" class="headerlink" title="5. json和字典的区别"></a>5. json和字典的区别</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">d = &#123;&#x27;s&#x27;:&#x27;you&#x27;,&#x27;d&#x27;:&#x27;are&#x27;&#125;   #给一个字典</span><br><span class="line">j = json.dumps(d)</span><br><span class="line">type(j)</span><br><span class="line">str   #已经转化为json字符串</span><br><span class="line">d1 = json.loads(j)</span><br><span class="line">type(d1)</span><br><span class="line">dic  #已经将json字符串转化为字典了</span><br></pre></td></tr></table></figure>
-<p>字典是一个数据的结构，而json只是一个具有一定规则的字符串，方便在不同平台上处理其中包含的数据。</p>
-<h2 id="3-Docker面试题"><a href="#3-Docker面试题" class="headerlink" title="3. Docker面试题"></a>3. Docker面试题</h2><h4 id="1-如何理解docker-中"><a href="#1-如何理解docker-中" class="headerlink" title="1. 如何理解docker 中"></a>1. 如何理解docker 中</h4><p>docker的本质是进程</p>
-<p>PID Namespace</p>
-<p>Mount Namespace</p>
-<p>Network Namespace</p>
-<p>cgroup, namespace和unionFS<br>组成的类似于虚拟机的容器</p>
-<h4 id="2-DevOps有哪些优势？-高"><a href="#2-DevOps有哪些优势？-高" class="headerlink" title="2. DevOps有哪些优势？ 高"></a>2. DevOps有哪些优势？ 高</h4><p>技术优势：</p>
-<p>持续的软件交付<br>修复不太复杂的问题<br>更快地解决问题<br>商业利益：</p>
-<p>更快速地传递功能<br>更稳定的操作环境<br>有更多时间可以增加价值（而不是修复/维护）</p>
-<p>CI（持续集成）服务器的功能是什么？</p>
-<p>CI服务器功能是不断地集成所有正在进行的更改并由不同的开发人员提交到存储库，并检查编译错误。它需要每天多次构建代码，最好是在每次提交之后，以便它可以检测在问题发生时是哪个提交Bug了。</p>
-<h4 id="3-Docker内的服务使用的内核在哪"><a href="#3-Docker内的服务使用的内核在哪" class="headerlink" title="3. Docker内的服务使用的内核在哪"></a>3. Docker内的服务使用的内核在哪</h4><p>内核直接使用宿主机的docker，开发和生产之间要保持内核的一致性<br>windows服务器上的内核，必须支持虚拟化。否则需要使用vitrualbox的linux虚拟机</p>
-<h4 id="4-如何停止并删除一个docker"><a href="#4-如何停止并删除一个docker" class="headerlink" title="4. 如何停止并删除一个docker"></a>4. 如何停止并删除一个docker</h4><p>|</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker ps |grep docker-server-name</span><br><span class="line">docker stop docker-server-name</span><br><span class="line">docker rm docker-server-name</span><br></pre></td></tr></table></figure>
-<h4 id="5-如何清理docker数据目录"><a href="#5-如何清理docker数据目录" class="headerlink" title="5. 如何清理docker数据目录"></a>5. 如何清理docker数据目录</h4><p>sudo docker system prune -af</p>
-<p>会清理不用的镜像、容器</p>
-<h3 id="kubernets"><a href="#kubernets" class="headerlink" title="kubernets"></a>kubernets</h3><h4 id="1-什么是-Kubernetes？"><a href="#1-什么是-Kubernetes？" class="headerlink" title="1. 什么是 Kubernetes？"></a>1. 什么是 Kubernetes？</h4><p>Kubernetes 是一个开源容器管理工具，负责容器部署，容器扩缩容以及负载平衡。</p>
-<h4 id="2-什么是-Kubelet？"><a href="#2-什么是-Kubelet？" class="headerlink" title="2. 什么是 Kubelet？"></a>2. 什么是 Kubelet？</h4><p>这是一个代理服务，它在每个节点上运行，并使从服务器与主服务器通信。因此，Kubelet 处理 PodSpec 中提供给它的容器的描述，并确保 PodSpec 中描述的容器运行正常</p>
-<h4 id="3-什么是pod"><a href="#3-什么是pod" class="headerlink" title="3. 什么是pod"></a>3. 什么是pod</h4><p>一个Pod（就像一群鲸鱼，或者一个豌豆夹）相当于一个共享context的配置组，在同一个context下，应用可能还会有独立的cgroup隔离机制，一个Pod是一个容器环境下的“逻辑主机”，它可能包含一个或者多个紧密相连的应用，这些应用可能是在同一个物理主机或虚拟机上。</p>
-<p>Pod 的context可以理解成多个linux命名空间的联合</p>
-<p>PID 命名空间（同一个Pod中应用可以看到其它进程）<br>网络 命名空间（同一个Pod的中的应用对相同的IP地址和端口有权限）<br>IPC 命名空间（同一个Pod中的应用可以通过VPC或者POSIX进行通信）<br>UTS 命名空间（同一个Pod中的应用共享一个主机名称）</p>
-<h4 id="4-pod的生命周期"><a href="#4-pod的生命周期" class="headerlink" title="4. pod的生命周期"></a>4. pod的生命周期</h4><p>od被安排到结点上，并且保持在这个节点上直到被终止（根据重启的设定）或者被删除，当一个节点死掉之后，上面的所有Pod均会被删除。特殊的Pod永远不会被转移到的其他的节点，作为替代，他们必须被replace.</p>
-<h4 id="5-k8s的跨主机通信原理是什么"><a href="#5-k8s的跨主机通信原理是什么" class="headerlink" title="5. k8s的跨主机通信原理是什么"></a>5. k8s的跨主机通信原理是什么</h4><p>node network：承载kubernetes集群中各个“物理”Node(master和minion)通信的网络；<br>service network：由kubernetes集群中的Services所组成的“网络”；<br>flannel network： 即Pod网络，集群中承载各个Pod相互通信的网络。</p>
-<p>flannel 是二层的，那么三层网络使用什么<br>Calico 是一个三层的数据中心网络方案，而且方便集成 OpenStack 这种 IaaS 云架构，能够提供高效可控的 VM、容器、裸机之间的通信。<br>缺点是什么？<br>每台机器都配所有服务器路由，当大于（规定）100台，网络负载会非常高<br>那么使用 BGP Client(BIRD)<br>大规模部署时使用，摒弃所有节点互联的 mesh 模式，通过一个或者多个BGP Route Reflector来完成集中式的路由分发</p>
-<h4 id="6-Replica-Set-和-Replication-Controller之间有什么区别？"><a href="#6-Replica-Set-和-Replication-Controller之间有什么区别？" class="headerlink" title="6. Replica Set 和 Replication Controller之间有什么区别？"></a>6. Replica Set 和 Replication Controller之间有什么区别？</h4><p>Replica Set 和 Replication Controller几乎完全相同。它们都确保在任何给定时间运行指定数量的pod副本。不同之处在于复制pod使用的选择器。Replica Set使用基于集合的选择器，而Replication Controller使用基于权限的选择器。</p>
-<h2 id="4-中间件集群"><a href="#4-中间件集群" class="headerlink" title="4. 中间件集群"></a>4. 中间件集群</h2><p>哨兵至少需要 3 个实例，来保证自己的健壮性。<br>哨兵 + redis 主从的部署架构，是不保证数据零丢失的，只能保证 redis 集群的高可用性。<br>对于哨兵 + redis 主从这种复杂的部署架构，尽量在测试环境和生产环境，都进行充足的测试和演</p>
-<h4 id="6-官方Redis-Cluster-方案-服务端路由查询"><a href="#6-官方Redis-Cluster-方案-服务端路由查询" class="headerlink" title="6 官方Redis Cluster 方案(服务端路由查询)"></a>6 官方Redis Cluster 方案(服务端路由查询)</h4><p>方案说明</p>
-<ul>
-<li>通过哈希的方式，将数据分片，每个节点均分存储一定哈希槽(哈希值)区间的数据，默认分配了16384 个槽位</li>
-<li>每份数据分片会存储在多个互为主从的多节点上</li>
-<li>数据写入先写主节点，再同步到从节点(支持配置为阻塞同步)</li>
-<li>同一分片多个节点间的数据不保持一致性</li>
-<li>读取数据时，当客户端操作的key没有分配在该节点上时，redis会返回转向指令，指向正确的节点</li>
-<li>扩容时时需要需要把旧节点的数据迁移一部分到新节点</li>
-</ul>
-<h4 id="7-Redis-主从架构"><a href="#7-Redis-主从架构" class="headerlink" title="7 Redis 主从架构"></a>7 Redis 主从架构</h4><h4 id="8-Redis是单线程的，如何提高多核CPU的利用率？"><a href="#8-Redis是单线程的，如何提高多核CPU的利用率？" class="headerlink" title="8. Redis是单线程的，如何提高多核CPU的利用率？"></a>8. Redis是单线程的，如何提高多核CPU的利用率？</h4><h4 id="1-什么是Redis"><a href="#1-什么是Redis" class="headerlink" title="1 什么是Redis"></a>1 什么是Redis</h4><p>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
-<h4 id="2-Redis有哪些优缺点"><a href="#2-Redis有哪些优缺点" class="headerlink" title="2 Redis有哪些优缺点"></a>2 Redis有哪些优缺点</h4><p>优点</p>
-<p>读写性能优异， Redis能读的速度是110000次/s，写的速度是81000次/s。<br>支持数据持久化，支持AOF和RDB两种持久化方式。<br>支持事务，Redis的所有操作都是原子性的，同时Redis还支持对几个操作合并后的原子性执行。<br>数据结构丰富，除了支持string类型的value外还支持hash、set、zset、list等数据结构。<br>支持主从复制，主机会自动将数据同步到从机，可以进行读写分离。<br>缺点</p>
-<p>数据库容量受到物理内存的限制，不能用作海量数据的高性能读写，因此Redis适合的场景主要局限在较小数据量的高性能操作和运算上。<br>Redis 不具备自动容错和恢复功能，主机从机的宕机都会导致前端部分读写请求失败，需要等待机器重启或者手动切换前端的IP才能恢复。<br>主机宕机，宕机前有部分数据未能及时同步到从机，切换IP后还会引入数据不一致的问题，降低了系统的可用性。<br>Redis 较难支持在线扩容，在集群容量达到上限时在线扩容会变得很复杂。为避免这一问题，运维人员在系统上线时必须确保有足够的空间，这对资源造成了很大的浪费。</p>
-<h4 id="3-为什么要用-Redis-为什么要用缓存"><a href="#3-为什么要用-Redis-为什么要用缓存" class="headerlink" title="3 为什么要用 Redis /为什么要用缓存"></a>3 为什么要用 Redis /为什么要用缓存</h4><p>主要从“高性能”和“高并发”这两点来看待这个问题。<br>高性能：<br>假如用户第一次访问数据库中的某些数据。这个过程会比较慢，因为是从硬盘上读取的。将该用户访问的数据存在数缓存中，这样下一次再访问这些数据的时候就可以直接从缓存中获取了。操作缓存就是直接操作内存，所以速度相当快。<br>高并发：<br>直接操作缓存能够承受的请求是远远大于直接访问数据库的，所以我们可以考虑把数据库中的部分数据转移到缓存中去，这样用户的一部分请求会直接到缓存这里而不用经过数据库。</p>
-<h4 id="4-MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据"><a href="#4-MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据" class="headerlink" title="4 MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据"></a>4 MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据</h4><p>Redis的内存淘汰策略有哪些<br>Redis的内存淘汰策略是指在Redis的用于缓存的内存不足时，怎么处理需要新写入且需要申请额外空间的数据。</p>
-<p>全局的键空间选择性移除<br>noeviction：当内存不足以容纳新写入数据时，新写入操作会报错。<br>allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key。（这个是最常用的）<br>allkeys-random：当内存不足以容纳新写入数据时，在键空间中，随机移除某个key。<br>设置过期时间的键空间选择性移除<br>volatile-lru：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，移除最近最少使用的key。<br>volatile-random：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，随机移除某个key。<br>volatile-ttl：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，有更早过期时间的key优先移除。</p>
-<h4 id="5-哨兵模式"><a href="#5-哨兵模式" class="headerlink" title="5 哨兵模式"></a>5 哨兵模式</h4><p>哨兵的介绍<br>sentinel，中文名是哨兵。哨兵是 redis 集群机构中非常重要的一个组件，主要有以下功能：</p>
-<ul>
-<li>集群监控：负责监控 redis master 和 slave 进程是否正常工作。</li>
-<li>消息通知：如果某个 redis 实例有故障，那么哨兵负责发送消息作为报警通知给管理员。</li>
-<li>故障转移：如果 master node 挂掉了，会自动转移到 slave node 上。</li>
-<li>配置中心：如果故障转移发生了，通知 client 客户端新的 master 地址。<br>哨兵用于实现 redis 集群的高可用，本身也是分布式的，作为一个哨兵集群去运行，互相协同工作。</li>
-</ul>
-<p>故障转移时，判断一个 master node 是否宕机了，需要大部分的哨兵都同意才行，涉及到了分布式选举的问题。<br>即使部分哨兵节点挂掉了，哨兵集群还是能正常工作的，因为如果一个作为高可用机制重要组成部分的故障转移系统本身是单点的，那就很坑爹了。<br>哨兵的核心知识</p>
-<p>哨兵至少需要 3 个实例，来保证自己的健壮性。<br>哨兵 + redis 主从的部署架构，是不保证数据零丢失的，只能保证 redis 集群的高可用性。<br>对于哨兵 + redis 主从这种复杂的部署架构，尽量在测试环境和生产环境，都进行充足的测试和演</p>
-<h4 id="6-官方Redis-Cluster-方案-服务端路由查询-1"><a href="#6-官方Redis-Cluster-方案-服务端路由查询-1" class="headerlink" title="6 官方Redis Cluster 方案(服务端路由查询)"></a>6 官方Redis Cluster 方案(服务端路由查询)</h4><p>方案说明</p>
-<ul>
-<li>通过哈希的方式，将数据分片，每个节点均分存储一定哈希槽(哈希值)区间的数据，默认分配了16384 个槽位</li>
-<li>每份数据分片会存储在多个互为主从的多节点上</li>
-<li>数据写入先写主节点，再同步到从节点(支持配置为阻塞同步)</li>
-<li>同一分片多个节点间的数据不保持一致性</li>
-<li>读取数据时，当客户端操作的key没有分配在该节点上时，redis会返回转向指令，指向正确的节点</li>
-<li>扩容时时需要需要把旧节点的数据迁移一部分到新节点</li>
-</ul>
-<h4 id="7-Redis-主从架构-1"><a href="#7-Redis-主从架构-1" class="headerlink" title="7 Redis 主从架构"></a>7 Redis 主从架构</h4><h4 id="8-Redis是单线程的，如何提高多核CPU的利用率？-1"><a href="#8-Redis是单线程的，如何提高多核CPU的利用率？-1" class="headerlink" title="8. Redis是单线程的，如何提高多核CPU的利用率？"></a>8. Redis是单线程的，如何提高多核CPU的利用率？</h4><p>可以在同一个服务器部署多个Redis的实例，并把他们当作不同的服务器来使用，在某些时候，无论如何一个服务器是不够的， 所以，如果你想使用多个CPU，你可以考虑一下分片（shard）</p>
-<h1 id="sl版-融合中"><a href="#sl版-融合中" class="headerlink" title="sl版 融合中"></a>sl版 融合中</h1><p>环境部分</p>
-<ol>
-<li>当前公司主要业务是什么？</li>
-<li>上家公司负责那部分？团队人数多少？</li>
-</ol>
-<p>基础部分</p>
-<ol>
-<li>sh与bash区别；</li>
-<li>如果只有root用户权限，但无root密码，如何做到服务器之间的文件拷贝？</li>
-<li>top中的各项是意思？</li>
-<li>如何做到机器重启自动挂载磁盘？</li>
-<li>TCP的交互过程，UDP与TCP的区别是什么？</li>
-<li>如何测试TCP端口是否正常？如何测试UDP端口是否正常？</li>
-<li>nfs的工作原理是什么？</li>
-</ol>
-<p>应用部分</p>
-<ol>
-<li>keepalived的工作原理，如何做健康检查？</li>
-<li>HAProxy的工作原理是什么？与nginx的区别是什么？</li>
-<li>nginx的功能是什么？描述下反向代理的过程；</li>
-<li>MySQL的主从同步过程是什么样的，常见的MySQL的高可用有几种方案，描述原理；</li>
-<li>redis高可用方案是什么？如何做到redis重启数据不丢失；</li>
-</ol>
-<p>docker部分</p>
-<ol>
-<li>Docker与虚拟机有何不同？</li>
-<li>docker镜像是什么？描述下拉取镜像的过程；</li>
-<li>容器是什么？容器状态有几种？查看容器状态的命令是什么？如何进入容器内部？</li>
-<li>docker-compose是什么？</li>
-<li>容器内时间与外部时间不一致怎么办？</li>
-<li>docker内部用户与外部用户的关系是什么？</li>
-</ol>
-<p>SIP部分</p>
-<ol>
-<li>SIP信令常见的响应消息有几种？一个完整的通话过程中，信令交互的过程是什么样的？</li>
-<li>SDP是什么？</li>
-<li>RTP是如何工作的？RTCP是什么？通话中的单通现象是怎么产生的？通话断续什么什么原因？</li>
-<li>如何利用wireshark分析呼叫是否正常？</li>
-</ol>
-<p>职业部分</p>
-<ol>
-<li>离职原因？</li>
-<li>你认为运维工程师的职责是什么？</li>
-<li>升级某个服务时，是保障升级过程可回滚的？</li>
-</ol>
-<p>运维的挑战</p>
-<p>我们聊下运维岗位面临的一些挑战。</p>
-<p>一是基础资源从集中式向云化转变。</p>
-<p>传统的集中式基础资源，讲求的是单体的性能和稳定性，思考问题的方式是纵向的。但是在基于分布式的云化基础设施下，运维人员需要考虑的是云资源池的故障域要如何划分、云资源池的规模要如何设计、不同环境的资源池要如何隔离、资源的超售比设置为多少、资源的标准化要如何设计、云化资源池中不同范围的故障发生后，如何保证继续提供可靠的服务，这些都是云化以后运维人员需要考虑的。</p>
-<p>二是运维前置。</p>
-<p>笔者发现，有些公司运维人员做的事情太过于底层，只负责OS层及以下的部分，对应用层的运维完全不懂，以致于在应用出现问题的时候，看起来都是开发在排查问题，给领导的感觉会比较差。同时，随着云计算的普及，OS层以下的内容，后续很可能直接被云服务商托管掉，就类似现在很多公司使用的托管机房，以及很多创业公司直接使用公有云，极端情况下，就可能导致运维人员下岗。</p>
-<p>因此，运维人员应该让自己的技能前置，例如，对于java技术栈为主的公司，对于运维人员而言最好是要学习java虚拟机的相关知识和技能，这样在java程序出现问题的时候能够快速定位问题，而不是强依赖开发人员。</p>
-<p>三是容器运维。</p>
-<p>容器平台在被大量使用以后，一定会带来运维问题，但是容器平台的运维模式和基于虚拟机的运维模式是完全不同的，这就需要运维人员能够熟悉容器平台的运行机制，对容器有理论上的知识储备以及实际的运维能力，而这项技能对传统运维人员而言基本就是全新的领域。</p>
-<p>四是开源软件的运维。</p>
-<p>前文提到了架构师需要对开源软件的引入进行专业的评估和把控，那么对于引入进来的开源软件的运维工作就落到了运维人员头上。传统的公司的运维，一般都会买一些外部的运维服务，而这些运维服务大多数也都是针对传统的商用软件而不是开源软件。因此在引入开源软件以后，对于运维人员而言，原来可以依靠的外部服务没有了，自己就需要去能够具备运维开源软件的能力，这里要投入的学习成本是相当高的，并且没有一个所谓的“掌握”标准。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1455,7 +1181,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-count">78</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1468,7 +1194,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">79</span>
+        <span class="site-state-item-count">80</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
